@@ -25,6 +25,7 @@ class InvoiceItem extends Model implements InvoiceItemContract
 
     protected $casts = [
         'additional' => 'array',
+        'customization_data' => 'array',
     ];
 
     /**

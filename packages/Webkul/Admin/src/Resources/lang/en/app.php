@@ -1185,6 +1185,21 @@ return [
                     'title' => 'Images',
                 ],
 
+                'customizations' => [
+                    'title' => 'Customization Areas',
+                    'info' => 'Define printable areas for customer customization',
+                    'select-image' => 'Select an image first',
+                    'no-areas' => 'No customization areas defined',
+                    'set-print-area' => 'Set Print Area',
+                    'save-area' => 'Save Area',
+                    'cancel' => 'Cancel',
+                    'delete' => 'Delete',
+                    'delete-confirm' => 'Are you sure you want to delete this area?',
+                    'saved-areas' => 'Saved Areas',
+                    'area' => 'Area :number',
+                    'image-required' => 'Please upload an image first',
+                ],
+
                 'videos' => [
                     'error' => 'The :attribute may not be greater than :max kilobytes. Please choose a smaller file.',
                     'info' => 'Maximum video size should be like :size',

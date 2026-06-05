@@ -22,6 +22,7 @@ class CartItem extends Model implements CartItemContract
      */
     protected $casts = [
         'additional' => 'array',
+        'customization_data' => 'array',
     ];
 
     /**

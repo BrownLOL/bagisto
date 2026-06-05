@@ -63,6 +63,18 @@ class Simple extends AbstractType
     }
 
     /**
+     * Get additional view files.
+     *
+     * @return array
+     */
+    public function getAdditionalViews(): array
+    {
+        return array_merge(parent::getAdditionalViews(), [
+            'admin::catalog.products.accordians.customizations',
+        ]);
+    }
+
+    /**
      * Update.
      *
      * @param  int  $id

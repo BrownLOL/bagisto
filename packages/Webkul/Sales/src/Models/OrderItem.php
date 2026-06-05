@@ -38,6 +38,7 @@ class OrderItem extends Model implements OrderItemContract
      */
     protected $casts = [
         'additional' => 'array',
+        'customization_data' => 'array',
     ];
 
     /**
