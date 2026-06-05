@@ -184,3 +184,44 @@ php artisan db:seed              # Seed database
 4. No `env()` calls outside `config/` files
 5. New models have Contract + Model + Proxy + Repository
 6. New packages registered in `bootstrap/providers.php` and `config/concord.php`
+
+## Product Customization Feature
+
+### Overview
+商品定制（DIY设计）功能，允许客户在商品图片上添加自定义内容（图片、文字），定制结果保存到购物车和订单。
+
+### Key Files
+| Type | Files |
+|------|-------|
+| Database Migrations | `packages/Webkul/Product/src/Database/Migrations/2024_01_01_000001_create_product_customization_tables.php` |
+| | `packages/Webkul/Product/src/Database/Migrations/2024_01_01_000002_add_customization_data_to_order_and_invoice.php` |
+| Models | `packages/Webkul/Product/src/Models/ProductImagePrintArea.php` |
+| | `packages/Webkul/Checkout/src/Models/CartItemCustomization.php` |
+| | `packages/Webkul/Sales/src/Models/OrderItem.php` (updated) |
+| | `packages/Webkul/Sales/src/Models/InvoiceItem.php` (updated) |
+| Repositories | `packages/Webkul/Product/src/Repositories/ProductImagePrintAreaRepository.php` |
+| Controllers | `packages/Webkul/Shop/src/Http/Controllers/ProductCustomizationController.php` |
+| Vue Components | `packages/Webkul/Shop/src/Resources/assets/js/components/customization/` |
+| Views | `packages/Webkul/Admin/src/Resources/views/catalog/products/accordians/customization.blade.php` |
+| | `packages/Webkul/Shop/src/Resources/views/products/view/customization-button.blade.php` |
+| Product Type | `packages/Webkul/Product/src/Type/Simple.php` (updated with additionalViews) |
+
+### Routes
+- `GET /customization/designer/{id}` - 定制设计器页面
+- `GET /api/product/{id}/print-areas` - 获取商品可打印区域
+- `POST /api/customization/upload-preview` - 上传定制预览图
+- `POST /api/cart/add-customization` - 添加带定制的商品到购物车
+
+### Admin Usage
+1. Catalog → Products → 编辑商品
+2. 上传商品图片
+3. 切换到 "Customization Areas" 标签
+4. 选择图片，框选可打印区域
+5. 保存商品
+
+### Frontend Usage
+1. 商品详情页点击 "立即定制" 按钮
+2. 上传图片或添加文字
+3. 拖拽/旋转/缩放调整
+4. 点击 "确认定制"
+5. 加入购物车，定制数据自动保存
