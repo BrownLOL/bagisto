@@ -27,15 +27,9 @@
                 <div class="image-wrapper" style="position: relative; display: inline-block;">
                     <img id="customization-image" src="" alt="Product Image" style="max-width: 100%;">
                     
-                    <!-- Print area overlays -->
-                    <div id="print-area-overlay" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none;"></div>
-                    
                     <!-- SVG for drawing -->
                     <svg id="print-area-svg" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: all;"></svg>
                 </div>
-                
-                <!-- Drawing rectangle indicator -->
-                <div id="drawing-rect" style="position: absolute; border: 2px dashed #0068e1; background: rgba(0, 104, 225, 0.1); pointer-events: none; display: none;"></div>
             </div>
 
             <!-- No Images Message -->
@@ -68,19 +62,11 @@
 .customization-areas-wrapper {
     padding: 20px;
 }
-
 .customization-areas-wrapper .section-content {
     padding: 20px;
     background: #f8f9fa;
     border-radius: 4px;
 }
-
-.print-area-overlay {
-    border: 2px dashed #0068e1;
-    background: rgba(0, 104, 225, 0.1);
-    box-sizing: border-box;
-}
-
 .print-area-item {
     display: flex;
     align-items: center;
@@ -91,19 +77,27 @@
     border: 1px solid #ddd;
     border-radius: 4px;
 }
-
 .print-area-item .area-info {
     font-size: 14px;
 }
-
 .print-area-item .delete-btn {
     color: #f14d54;
     cursor: pointer;
 }
+.print-area-overlay {
+    border: 2px dashed #0068e1;
+    background: rgba(0, 104, 225, 0.1);
+    box-sizing: border-box;
+}
 </style>
 
+@php
+    $productId = $product->id;
+    $existingAreas = $product->images->flatMap->printAreas->toArray();
+@endphp
+
 <script>
-document.addEventListener('DOMContentLoaded', function() {
+(function() {
     const imageSelect = document.getElementById('customization-image-select');
     const container = document.getElementById('print-area-container');
     const image = document.getElementById('customization-image');
@@ -113,15 +107,20 @@ document.addEventListener('DOMContentLoaded', function() {
     const areasContainer = document.getElementById('areas-container');
     
     let currentImageId = null;
-    let printAreas = [];
+    let printAreas = {!! json_encode($existingAreas) !!};
     let isDrawing = false;
     let startX, startY;
     let currentRect = null;
-    let isDragging = false;
-    let dragTarget = null;
+    let tempRect = null;
+    
+    const productId = {!! $productId !!};
+    const noAreasText = '{{ __("admin::app.catalog.products.customization-areas.no-areas") }}';
+
+    // Initialize areas display
+    updateAreasDisplay();
 
     // Load image on selection
-    imageSelect.addEventListener('change', async function() {
+    imageSelect.addEventListener('change', function() {
         const option = this.options[this.selectedIndex];
         if (!option.value) {
             container.style.display = 'none';
@@ -137,31 +136,16 @@ document.addEventListener('DOMContentLoaded', function() {
         container.style.display = 'block';
         startDrawBtn.disabled = false;
         
-        // Load existing print areas
-        await loadPrintAreas(currentImageId);
+        // Filter areas for current image
+        printAreas = printAreas.filter(area => area.product_image_id == currentImageId);
+        updateAreasDisplay();
     });
-
-    // Load existing print areas
-    async function loadPrintAreas(imageId) {
-        try {
-            const response = await fetch(`/customization/print-areas/{{ $product->id }}`);
-            const result = await response.json();
-            
-            if (result.success) {
-                printAreas = result.data.filter(area => area.image_id == imageId);
-                renderPrintAreas();
-            }
-        } catch (error) {
-            console.error('Error loading print areas:', error);
-        }
-    }
 
     // Start drawing mode
     startDrawBtn.addEventListener('click', function() {
         if (!currentImageId) return;
         isDrawing = true;
-        startDrawBtn.textContent = '{{ __("admin::app.catalog.products.customization-areas.drawing") }}';
-        startDrawBtn.disabled = true;
+        startDrawBtn.textContent = 'Drawing... Click and drag on image';
         svg.style.cursor = 'crosshair';
     });
 
@@ -173,19 +157,17 @@ document.addEventListener('DOMContentLoaded', function() {
         startX = ((e.clientX - rect.left) / rect.width) * 100;
         startY = ((e.clientY - rect.top) / rect.height) * 100;
         
-        currentRect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-        currentRect.setAttribute('stroke', '#0068e1');
-        currentRect.setAttribute('stroke-width', '2');
-        currentRect.setAttribute('stroke-dasharray', '5,5');
-        currentRect.setAttribute('fill', 'rgba(0, 104, 225, 0.1)');
-        currentRect.style.pointerEvents = 'all';
-        currentRect.style.cursor = 'move';
-        svg.appendChild(currentRect);
+        tempRect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+        tempRect.setAttribute('stroke', '#0068e1');
+        tempRect.setAttribute('stroke-dasharray', '5,5');
+        tempRect.setAttribute('fill', 'rgba(0, 104, 225, 0.1)');
+        tempRect.setAttribute('stroke-width', '2');
+        svg.appendChild(tempRect);
     });
 
     // Mouse move - update rectangle
     svg.addEventListener('mousemove', function(e) {
-        if (!isDrawing || !currentRect) return;
+        if (!isDrawing || !tempRect) return;
         
         const rect = svg.getBoundingClientRect();
         const currentX = ((e.clientX - rect.left) / rect.width) * 100;
@@ -196,15 +178,15 @@ document.addEventListener('DOMContentLoaded', function() {
         const width = Math.abs(currentX - startX);
         const height = Math.abs(currentY - startY);
         
-        currentRect.setAttribute('x', x + '%');
-        currentRect.setAttribute('y', y + '%');
-        currentRect.setAttribute('width', width + '%');
-        currentRect.setAttribute('height', height + '%');
+        tempRect.setAttribute('x', x + '%');
+        tempRect.setAttribute('y', y + '%');
+        tempRect.setAttribute('width', width + '%');
+        tempRect.setAttribute('height', height + '%');
     });
 
     // Mouse up - finish drawing
     svg.addEventListener('mouseup', function(e) {
-        if (!isDrawing || !currentRect) return;
+        if (!isDrawing || !tempRect) return;
         
         const rect = svg.getBoundingClientRect();
         const endX = ((e.clientX - rect.left) / rect.width) * 100;
@@ -215,104 +197,91 @@ document.addEventListener('DOMContentLoaded', function() {
         const width = Math.abs(endX - startX);
         const height = Math.abs(endY - startY);
         
-        // Only add if area is big enough
-        if (width > 5 && height > 5) {
-            const areaId = Date.now();
+        if (width > 1 && height > 1) {
+            const areaNumber = printAreas.filter(a => a.product_image_id == currentImageId).length + 1;
             printAreas.push({
-                id: areaId,
+                id: null,
+                product_image_id: currentImageId,
+                name: 'Area ' + areaNumber,
                 x: x,
                 y: y,
                 width: width,
-                height: height,
-                name: 'Area ' + (printAreas.length + 1)
+                height: height
             });
-            renderPrintAreas();
+            updateAreasDisplay();
         }
         
-        // Remove temporary rect and reset
-        if (currentRect && currentRect.parentNode) {
-            currentRect.parentNode.removeChild(currentRect);
+        if (tempRect) {
+            tempRect.remove();
+            tempRect = null;
         }
-        currentRect = null;
+        
         isDrawing = false;
         startDrawBtn.textContent = '{{ __("admin::app.catalog.products.customization-areas.set-print-area") }}';
-        startDrawBtn.disabled = false;
         svg.style.cursor = 'default';
         
-        // Enable save button
-        saveAreasBtn.disabled = printAreas.length === 0;
+        saveAreasBtn.disabled = false;
     });
 
-    // Render print areas
-    function renderPrintAreas() {
-        // Clear SVG
-        svg.innerHTML = '';
+    // Update areas display
+    function updateAreasDisplay() {
+        const imageAreas = printAreas.filter(area => area.product_image_id == currentImageId);
         
-        // Render rectangles
-        printAreas.forEach((area, index) => {
-            const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-            rect.setAttribute('x', area.x + '%');
-            rect.setAttribute('y', area.y + '%');
-            rect.setAttribute('width', area.width + '%');
-            rect.setAttribute('height', area.height + '%');
-            rect.setAttribute('stroke', '#28c76f');
-            rect.setAttribute('stroke-width', '2');
-            rect.setAttribute('fill', 'rgba(40, 199, 111, 0.2)');
-            rect.style.pointerEvents = 'all';
-            rect.dataset.index = index;
-            rect.style.cursor = 'pointer';
-            svg.appendChild(rect);
+        if (imageAreas.length === 0) {
+            areasContainer.innerHTML = '<p class="no-areas">' + noAreasText + '</p>';
+            return;
+        }
+        
+        let html = '';
+        imageAreas.forEach((area, index) => {
+            html += '<div class="print-area-item">';
+            html += '<span class="area-info">Area ' + (index + 1) + ' (X: ' + area.x.toFixed(1) + '%, Y: ' + area.y.toFixed(1) + '%, W: ' + area.width.toFixed(1) + '%, H: ' + area.height.toFixed(1) + '%)</span>';
+            html += '<span class="delete-btn" data-index="' + printAreas.indexOf(area) + '">X</span>';
+            html += '</div>';
         });
-        
-        // Render list
-        areasContainer.innerHTML = printAreas.length === 0 
-            ? '<p>{{ __("admin::app.catalog.products.customization-areas.no-areas") }}</p>'
-            : printAreas.map((area, index) => '
-                <div class="print-area-item">
-                    <span class="area-info">${area.name} (X: ${area.x.toFixed(1)}%, Y: ${area.y.toFixed(1)}%, W: ${area.width.toFixed(1)}%, H: ${area.height.toFixed(1)}%)</span>
-                    <span class="delete-btn" data-index="${index}">✕</span>
-                </div>
-            ').join('');
+        areasContainer.innerHTML = html;
         
         // Add delete handlers
         areasContainer.querySelectorAll('.delete-btn').forEach(btn => {
             btn.addEventListener('click', function() {
                 const index = parseInt(this.dataset.index);
                 printAreas.splice(index, 1);
-                renderPrintAreas();
-                saveAreasBtn.disabled = printAreas.length === 0;
+                updateAreasDisplay();
+                saveAreasBtn.disabled = false;
             });
         });
     }
 
-    // Save print areas
+    // Save areas
     saveAreasBtn.addEventListener('click', async function() {
-        if (!currentImageId || printAreas.length === 0) return;
+        if (!currentImageId) return;
+        
+        const imageAreas = printAreas.filter(area => area.product_image_id == currentImageId);
         
         try {
-            const response = await fetch('/customization/print-areas/save', {
+            const response = await fetch('/customization/print-areas', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
                 },
                 body: JSON.stringify({
+                    product_id: productId,
                     image_id: currentImageId,
-                    areas: printAreas
+                    areas: imageAreas
                 })
             });
             
             const result = await response.json();
-            
             if (result.success) {
-                alert('{{ __("admin::app.catalog.products.customization-areas.saved") }}');
+                alert('Areas saved successfully!');
+                location.reload();
             } else {
-                alert('{{ __("admin::app.catalog.products.customization-areas.save-failed") }}');
+                alert('Error: ' + result.message);
             }
         } catch (error) {
-            console.error('Error saving print areas:', error);
-            alert('{{ __("admin::app.catalog.products.customization-areas.save-failed") }}');
+            alert('Error saving areas: ' + error.message);
         }
     });
-});
+})();
 </script>
