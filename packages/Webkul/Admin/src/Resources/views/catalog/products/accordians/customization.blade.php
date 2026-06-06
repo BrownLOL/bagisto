@@ -70,7 +70,7 @@
                         <div
                             v-for="imageData in imagesWithAreas"
                             :key="imageData.id"
-                            class="relative cursor-pointer rounded border border-gray-200 p-2 transition-all hover:border-blue-400 hover:shadow dark:border-gray-700"
+                            class="relative h-[120px] w-[120px] cursor-pointer rounded border border-gray-200 transition-all hover:border-blue-400 hover:shadow dark:border-gray-700"
                             @click="openEditDialog(imageData)"
                         >
                             <div class="relative h-[120px] w-[120px] overflow-hidden rounded">
