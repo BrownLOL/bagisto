@@ -244,9 +244,9 @@
 
             data() {
                 return {
-                    productId: {{ $product->id }},
-                    allImages: {!! json_encode($productImages) !!},
-                    imagesWithAreas: {!! json_encode($imagesWithAreas) !!},
+                    productId: {{ $product->id ?? 0 }},
+                    allImages: {!! json_encode($productImages ?? [], JSON_UNESCAPED_SLASHES) !!},
+                    imagesWithAreas: {!! json_encode($imagesWithAreas ?? [], JSON_UNESCAPED_SLASHES) !!},
                     dialogSelectedImageId: '',
                     dialogSelectedImageUrl: '',
                     originalImageId: null,
@@ -393,9 +393,9 @@
                 deleteAllAreas() {
                     this.localAreas = [];
                 },
-                    }
-                }
             }
         });
+
+        app.component('v-product-customization', ProductCustomization);
     </script>
 @endpushOnce
