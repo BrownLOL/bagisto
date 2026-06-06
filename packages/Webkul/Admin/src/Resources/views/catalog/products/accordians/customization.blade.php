@@ -274,25 +274,16 @@
                     this.saving = true;
 
                     try {
-                        const response = await fetch('/customization/print-areas', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-                            },
-                            body: JSON.stringify({
-                                product_id: this.productId,
-                                image_id: this.selectedImageId,
-                                areas: this.currentImageAreas
-                            })
+                        const response = await this.$axios.post('/customization/print-areas', {
+                            product_id: this.productId,
+                            image_id: this.selectedImageId,
+                            areas: this.currentImageAreas
                         });
 
-                        const result = await response.json();
-
-                        if (result.success) {
+                        if (response.data.success) {
                             window.location.reload();
                         } else {
-                            alert('Error: ' + result.message);
+                            alert('Error: ' + response.data.message);
                         }
                     } catch (error) {
                         alert('Error saving areas: ' + error.message);
