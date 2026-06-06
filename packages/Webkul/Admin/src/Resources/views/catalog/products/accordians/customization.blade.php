@@ -70,7 +70,6 @@
                         v-for="imageData in imagesWithAreas"
                         :key="imageData.id"
                         class="group relative grid max-h-[120px] min-w-[120px] justify-items-center overflow-hidden rounded border border-gray-200 transition-all hover:border-gray-400 dark:border-gray-800"
-                        @click="openEditDialog(imageData)"
                     >
                         <!-- Image -->
                         <img
@@ -87,7 +86,7 @@
                         <!-- Overlay with actions -->
                         <div class="invisible absolute bottom-0 top-0 flex w-full flex-col justify-between bg-white p-3 opacity-80 transition-all group-hover:visible dark:bg-gray-900">
                             <!-- Area count -->
-                            <p class="break-all text-xs font-semibold text-gray-600 dark:text-gray-300">
+                            <p class="text-center text-xs font-semibold text-gray-600 dark:text-gray-300">
                                 @{{ imageData.areas.length }} area(s)
                             </p>
 
