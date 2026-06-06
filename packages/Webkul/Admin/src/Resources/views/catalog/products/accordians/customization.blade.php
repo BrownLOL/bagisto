@@ -61,36 +61,31 @@
                 </div>
 
                 <!-- Images with Areas -->
-                <div class="p-4 pt-0">
-                    <div v-if="imagesWithAreas.length === 0" class="rounded bg-gray-50 py-10 text-center text-sm text-gray-500 dark:bg-gray-800">
-                        No print areas defined yet. Click "Add Print Area" to create one.
-                    </div>
+                <div v-if="imagesWithAreas.length === 0" class="rounded bg-gray-50 py-10 text-center text-sm text-gray-500 dark:bg-gray-800">
+                    No print areas defined yet. Click "Add Print Area" to create one.
+                </div>
 
-                    <div v-else class="grid grid-cols-3 gap-4 sm:grid-cols-4 md:grid-cols-6">
-                        <div
-                            v-for="imageData in imagesWithAreas"
-                            :key="imageData.id"
-                            class="relative h-[120px] w-[120px] cursor-pointer rounded border border-gray-200 transition-all hover:border-blue-400 hover:shadow dark:border-gray-700"
-                            @click="openEditDialog(imageData)"
-                        >
-                            <div class="relative h-[120px] w-[120px] overflow-hidden rounded">
-                                <img
-                                    :src="imageData.url"
-                                    :alt="'Image ' + imageData.id"
-                                    class="h-full w-full object-cover"
-                                >
-                                <!-- Area count badge -->
-                                <span class="absolute right-1 top-1 rounded-full bg-green-500 px-1.5 py-0.5 text-xs font-bold text-white">
-                                    @{{ imageData.areas.length }}
-                                </span>
-                            </div>
-                            <p class="truncate text-center text-xs text-gray-600 dark:text-gray-400">
-                                Image @{{ imageData.id }}
-                            </p>
-                            <p class="text-center text-xs text-gray-400">
-                                @{{ imageData.areas.length }} area(s)
-                            </p>
+                <div v-else class="grid grid-cols-3 gap-4 sm:grid-cols-4 md:grid-cols-6">
+                    <div
+                        v-for="imageData in imagesWithAreas"
+                        :key="imageData.id"
+                        class="flex h-[120px] w-[120px] cursor-pointer flex-col items-center justify-center rounded border border-gray-200 transition-all hover:border-blue-400 hover:shadow dark:border-gray-700"
+                        @click="openEditDialog(imageData)"
+                    >
+                        <div class="relative h-[90px] w-[90px] overflow-hidden">
+                            <img
+                                :src="imageData.url"
+                                :alt="'Image ' + imageData.id"
+                                class="h-full w-full object-contain"
+                            >
+                            <!-- Area count badge -->
+                            <span class="absolute right-0 top-0 rounded-full bg-green-500 px-1.5 py-0.5 text-xs font-bold text-white">
+                                @{{ imageData.areas.length }}
+                            </span>
                         </div>
+                        <p class="mt-1 truncate text-center text-xs text-gray-600 dark:text-gray-400">
+                            @{{ imageData.areas.length }} area(s)
+                        </p>
                     </div>
                 </div>
             </div>
