@@ -140,5 +140,7 @@ Route::prefix('catalog')->group(function () {
         Route::get('{id}/{attribute_id}', 'download')->name('admin.catalog.products.file.download');
 
         Route::post('print-areas', [ProductCustomizationController::class, 'savePrintAreas'])->name('admin.catalog.products.print-areas.save');
+
+        Route::delete('print-areas/{id}', [ProductCustomizationController::class, 'deletePrintArea'])->name('admin.catalog.products.print-areas.delete');
     });
 });

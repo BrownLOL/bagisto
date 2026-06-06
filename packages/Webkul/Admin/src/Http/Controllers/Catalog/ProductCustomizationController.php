@@ -52,4 +52,24 @@ class ProductCustomizationController extends Controller
             ], 500);
         }
     }
+
+    /**
+     * Delete a print area.
+     */
+    public function deletePrintArea(int $id): JsonResponse
+    {
+        try {
+            $this->printAreaRepository->find($id)?->delete();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Print area deleted successfully.',
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to delete print area: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
 }

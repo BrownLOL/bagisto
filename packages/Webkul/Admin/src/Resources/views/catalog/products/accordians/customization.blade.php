@@ -18,119 +18,190 @@
                             Define printable areas on product images for customer customization.
                         </p>
                     </div>
+
+                    <div class="flex items-center gap-x-1">
+                        <button
+                            type="button"
+                            class="secondary-button"
+                            @click="showDialog = true"
+                        >
+                            Add Print Area
+                        </button>
+                    </div>
                 </div>
 
-                <!-- Content -->
+                <!-- Saved Areas Grid -->
                 <div class="p-4 pt-0">
-                    <!-- Image Selection -->
-                    <div class="mb-4">
-                        <label class="mb-1 block text-xs font-medium text-gray-700 dark:text-gray-300">
-                            Select Image
-                        </label>
-                        <select
-                            v-model="selectedImageId"
-                            class="custom-select w-full rounded border border-gray-300 px-3 py-2 text-sm dark:border-gray-800 dark:bg-gray-900"
-                            @change="onImageChange"
+                    <div v-if="allAreas.length === 0" class="rounded bg-gray-50 py-10 text-center text-sm text-gray-500 dark:bg-gray-800">
+                        No print areas defined yet. Click "Add Print Area" to create one.
+                    </div>
+
+                    <div v-else class="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
+                        <div
+                            v-for="(area, index) in allAreas"
+                            :key="index"
+                            class="relative rounded border border-gray-200 bg-gray-50 p-2 dark:border-gray-700 dark:bg-gray-800"
                         >
-                            <option value="">Choose an image...</option>
-                            <option
-                                v-for="image in images"
-                                :key="image.id"
-                                :value="image.id"
-                                :data-url="image.url"
-                            >
-                                @{{ image.id }} - @{{ image.path }}
-                            </option>
-                        </select>
-                    </div>
-
-                    <!-- Image Preview with SVG Overlay -->
-                    <div
-                        v-if="selectedImageId"
-                        class="mb-4"
-                    >
-                        <div class="relative inline-block max-w-full overflow-hidden rounded border border-gray-200">
-                            <img
-                                :src="selectedImageUrl"
-                                alt="Product Image"
-                                class="max-w-full"
-                                @load="onImageLoad"
-                            >
-                            <svg
-                                ref="printAreaSvg"
-                                class="pointer-events absolute top-0 left-0 h-full w-full"
-                                @mousedown="startDraw"
-                                @mousemove="updateDraw"
-                                @mouseup="endDraw"
-                            >
-                                <rect
-                                    v-for="(area, index) in currentImageAreas"
-                                    :key="index"
-                                    :x="area.x + '%'"
-                                    :y="area.y + '%'"
-                                    :width="area.width + '%'"
-                                    :height="area.height + '%'"
-                                    stroke="#28a745"
-                                    stroke-width="2"
-                                    fill="rgba(40, 167, 69, 0.2)"
-                                />
-                            </svg>
-                        </div>
-                    </div>
-
-                    <!-- Defined Areas List -->
-                    <div class="mb-4">
-                        <p class="mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
-                            Defined Areas (@{{ currentImageAreas.length }})
-                        </p>
-
-                        <div v-if="currentImageAreas.length === 0" class="rounded bg-gray-50 p-4 text-center text-sm text-gray-500 dark:bg-gray-800">
-                            No areas defined yet. Click "Set Print Area" to draw on the image.
-                        </div>
-
-                        <div v-else class="space-y-2">
-                            <div
-                                v-for="(area, index) in currentImageAreas"
-                                :key="index"
-                                class="flex items-center justify-between rounded border border-gray-200 bg-white p-3 dark:border-gray-700 dark:bg-gray-800"
-                            >
-                                <span class="text-sm text-gray-700 dark:text-gray-300">
-                                    Area @{{ index + 1 }} (X: @{{ Number(area.x).toFixed(1) }}%, Y: @{{ Number(area.y).toFixed(1) }}%, W: @{{ Number(area.width).toFixed(1) }}%, H: @{{ Number(area.height).toFixed(1) }}%)
-                                </span>
-                                <button
-                                    type="button"
-                                    class="text-red-500 hover:text-red-700"
-                                    @click="deleteArea(index)"
+                            <!-- Preview Image with Area Overlay -->
+                            <div class="relative mb-2 overflow-hidden rounded">
+                                <img
+                                    :src="area.imageUrl"
+                                    :alt="'Print Area ' + (index + 1)"
+                                    class="h-24 w-full object-cover"
                                 >
-                                    Remove
-                                </button>
+                                <div
+                                    class="absolute border-2 border-green-500 bg-green-500/20"
+                                    :style="{
+                                        left: area.x + '%',
+                                        top: area.y + '%',
+                                        width: area.width + '%',
+                                        height: area.height + '%'
+                                    }"
+                                ></div>
+                            </div>
+
+                            <!-- Info -->
+                            <p class="mb-1 truncate text-xs font-medium text-gray-700 dark:text-gray-300">
+                                Area {{ index + 1 }}
+                            </p>
+                            <p class="mb-2 text-xs text-gray-500">
+                                {{ Number(area.width).toFixed(0) }}% x {{ Number(area.height).toFixed(0) }}%
+                            </p>
+
+                            <!-- Delete Button -->
+                            <button
+                                type="button"
+                                class="w-full cursor-pointer rounded bg-red-50 px-2 py-1 text-xs text-red-600 transition-colors hover:bg-red-100 dark:bg-red-900/30 dark:text-red-400 dark:hover:bg-red-900/50"
+                                @click="deleteArea(index)"
+                            >
+                                Remove
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Add Print Area Dialog -->
+            <x-admin::modal
+                v-if="showDialog"
+                @toggle="showDialog = false"
+            >
+                <!-- Modal Header -->
+                <x-slot:header>
+                    <p class="text-lg font-semibold text-gray-800 dark:text-white">
+                        Add Print Area
+                    </p>
+                </x-slot:header>
+
+                <!-- Modal Content -->
+                <x-slot:content>
+                    <div class="grid gap-4">
+                        <!-- Image Selection -->
+                        <div>
+                            <label class="mb-1 block text-xs font-medium text-gray-700 dark:text-gray-300">
+                                Select Image
+                            </label>
+                            <select
+                                v-model="dialogSelectedImageId"
+                                class="custom-select w-full rounded border border-gray-300 px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-900"
+                                @change="onDialogImageChange"
+                            >
+                                <option value="">Choose an image...</option>
+                                <option
+                                    v-for="image in images"
+                                    :key="image.id"
+                                    :value="image.id"
+                                >
+                                    {{ image.id }} - {{ image.path }}
+                                </option>
+                            </select>
+                        </div>
+
+                        <!-- Image Preview with Drawing -->
+                        <div v-if="dialogSelectedImageId" class="relative">
+                            <p class="mb-2 text-xs font-medium text-gray-500">
+                                Click "Start Drawing" then draw on the image to define the print area.
+                            </p>
+
+                            <div class="relative inline-block max-w-full overflow-hidden rounded border border-gray-200">
+                                <img
+                                    ref="dialogImage"
+                                    :src="dialogSelectedImageUrl"
+                                    alt="Selected Image"
+                                    class="max-w-full"
+                                    @load="onDialogImageLoad"
+                                >
+                                <svg
+                                    ref="dialogSvg"
+                                    class="pointer-events absolute top-0 left-0 h-full w-full"
+                                    @mousedown="startDraw"
+                                    @mousemove="updateDraw"
+                                    @mouseup="endDraw"
+                                >
+                                    <rect
+                                        v-if="tempRect"
+                                        :x="tempRect.x + '%'"
+                                        :y="tempRect.y + '%'"
+                                        :width="tempRect.width + '%'"
+                                        :height="tempRect.height + '%'"
+                                        stroke="#0068e1"
+                                        stroke-dasharray="5,5"
+                                        stroke-width="2"
+                                        fill="rgba(0, 104, 225, 0.2)"
+                                    />
+                                </svg>
                             </div>
                         </div>
-                    </div>
 
-                    <!-- Action Buttons -->
-                    <div class="flex gap-2">
+                        <!-- Preview Size Info -->
+                        <div v-if="tempRect" class="rounded bg-blue-50 p-3 text-sm text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">
+                            Area size: {{ Number(tempRect.width).toFixed(1) }}% x {{ Number(tempRect.height).toFixed(1) }}%
+                        </div>
+                    </div>
+                </x-slot:content>
+
+                <!-- Modal Footer -->
+                <x-slot:footer>
+                    <div class="flex items-center justify-end gap-2">
                         <button
                             type="button"
                             class="cursor-pointer rounded border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
-                            :disabled="!selectedImageId || isDrawing || !imageLoaded"
-                            :class="{'opacity-50 cursor-not-allowed': !selectedImageId || !imageLoaded}"
-                            @click="toggleDrawMode"
+                            @click="showDialog = false"
                         >
-                            @{{ isDrawing ? 'Drawing... Click and drag' : 'Set Print Area' }}
+                            Cancel
+                        </button>
+
+                        <button
+                            v-if="!isDrawing"
+                            type="button"
+                            class="cursor-pointer rounded border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
+                            :disabled="!dialogSelectedImageId || !imageLoaded"
+                            :class="{'opacity-50 cursor-not-allowed': !dialogSelectedImageId || !imageLoaded}"
+                            @click="startDrawing"
+                        >
+                            Start Drawing
+                        </button>
+
+                        <button
+                            v-else
+                            type="button"
+                            class="cursor-pointer rounded bg-orange-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-orange-600"
+                            @click="cancelDrawing"
+                        >
+                            Cancel Drawing
                         </button>
 
                         <button
                             type="button"
                             class="cursor-pointer rounded bg-blue-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-600 disabled:cursor-not-allowed disabled:bg-gray-300"
-                            :disabled="currentImageAreas.length === 0 || saving"
-                            @click="saveAreas"
+                            :disabled="!canSaveArea"
+                            @click="saveArea"
                         >
-                            @{{ saving ? 'Saving...' : 'Save Areas' }}
+                            Save Area
                         </button>
                     </div>
-                </div>
-            </div>
+                </x-slot:footer>
+            </x-admin::modal>
         </div>
     </script>
 
@@ -148,70 +219,74 @@
                             'url' => url('storage/' . $img->path)
                         ];
                     })),
-                    existingAreas: @json($product->images->flatMap->printAreas->toArray()),
-                    selectedImageId: '',
-                    isDrawing: false,
-                    isSaving: false,
+                    allAreas: @json($product->images->flatMap->printAreas->map(function($area) {
+                        $image = $area->productImage;
+                        return [
+                            'id' => $area->id,
+                            'image_id' => $area->product_image_id,
+                            'imageUrl' => $image ? url('storage/' . $image->path) : '',
+                            'name' => $area->name,
+                            'x' => $area->x,
+                            'y' => $area->y,
+                            'width' => $area->width,
+                            'height' => $area->height,
+                        ];
+                    })->toArray()),
+                    showDialog: false,
+                    dialogSelectedImageId: '',
+                    dialogSelectedImageUrl: '',
                     imageLoaded: false,
-                    saving: false,
-                    startX: 0,
-                    startY: 0,
+                    isDrawing: false,
                     tempRect: null,
                     drawStartX: 0,
                     drawStartY: 0,
+                    saving: false,
                 }
             },
 
             computed: {
-                selectedImageUrl() {
-                    const image = this.images.find(img => img.id == this.selectedImageId);
-                    return image ? image.url : '';
-                },
-                currentImageAreas() {
-                    return this.existingAreas.filter(area => area.product_image_id == this.selectedImageId);
+                canSaveArea() {
+                    return this.tempRect && this.dialogSelectedImageId;
                 }
             },
 
             methods: {
-                onImageChange() {
+                onDialogImageChange() {
                     this.imageLoaded = false;
+                    this.tempRect = null;
                     this.isDrawing = false;
+                    const image = this.images.find(img => img.id == this.dialogSelectedImageId);
+                    this.dialogSelectedImageUrl = image ? image.url : '';
                 },
 
-                onImageLoad() {
+                onDialogImageLoad() {
                     this.imageLoaded = true;
                 },
 
-                toggleDrawMode() {
-                    if (!this.selectedImageId || !this.imageLoaded) return;
-                    this.isDrawing = !this.isDrawing;
-                    
-                    if (this.isDrawing) {
-                        this.$refs.printAreaSvg.style.cursor = 'crosshair';
-                    } else {
-                        this.$refs.printAreaSvg.style.cursor = 'default';
-                    }
+                startDrawing() {
+                    if (!this.dialogSelectedImageId || !this.imageLoaded) return;
+                    this.isDrawing = true;
+                    this.$refs.dialogSvg.style.cursor = 'crosshair';
+                },
+
+                cancelDrawing() {
+                    this.isDrawing = false;
+                    this.tempRect = null;
+                    this.$refs.dialogSvg.style.cursor = 'default';
                 },
 
                 startDraw(e) {
                     if (!this.isDrawing) return;
 
-                    const rect = this.$refs.printAreaSvg.getBoundingClientRect();
+                    const rect = this.$refs.dialogSvg.getBoundingClientRect();
                     this.drawStartX = ((e.clientX - rect.left) / rect.width) * 100;
                     this.drawStartY = ((e.clientY - rect.top) / rect.height) * 100;
-
-                    this.tempRect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-                    this.tempRect.setAttribute('stroke', '#0068e1');
-                    this.tempRect.setAttribute('stroke-dasharray', '5,5');
-                    this.tempRect.setAttribute('fill', 'rgba(0, 104, 225, 0.2)');
-                    this.tempRect.setAttribute('stroke-width', '2');
-                    this.$refs.printAreaSvg.appendChild(this.tempRect);
                 },
 
                 updateDraw(e) {
-                    if (!this.isDrawing || !this.tempRect) return;
+                    if (!this.isDrawing) return;
 
-                    const rect = this.$refs.printAreaSvg.getBoundingClientRect();
+                    const rect = this.$refs.dialogSvg.getBoundingClientRect();
                     const currentX = ((e.clientX - rect.left) / rect.width) * 100;
                     const currentY = ((e.clientY - rect.top) / rect.height) * 100;
 
@@ -220,16 +295,13 @@
                     const width = Math.abs(currentX - this.drawStartX);
                     const height = Math.abs(currentY - this.drawStartY);
 
-                    this.tempRect.setAttribute('x', x + '%');
-                    this.tempRect.setAttribute('y', y + '%');
-                    this.tempRect.setAttribute('width', width + '%');
-                    this.tempRect.setAttribute('height', height + '%');
+                    this.tempRect = { x, y, width, height };
                 },
 
                 endDraw(e) {
-                    if (!this.isDrawing || !this.tempRect) return;
+                    if (!this.isDrawing) return;
 
-                    const rect = this.$refs.printAreaSvg.getBoundingClientRect();
+                    const rect = this.$refs.dialogSvg.getBoundingClientRect();
                     const endX = ((e.clientX - rect.left) / rect.width) * 100;
                     const endY = ((e.clientY - rect.top) / rect.height) * 100;
 
@@ -239,56 +311,81 @@
                     const height = Math.abs(endY - this.drawStartY);
 
                     if (width > 1 && height > 1) {
-                        const areaNumber = this.currentImageAreas.length + 1;
-                        this.existingAreas.push({
-                            id: null,
-                            product_image_id: this.selectedImageId,
-                            name: 'Area ' + areaNumber,
-                            x: x,
-                            y: y,
-                            width: width,
-                            height: height
-                        });
-                    }
-
-                    if (this.tempRect) {
-                        this.tempRect.remove();
-                        this.tempRect = null;
+                        this.tempRect = { x, y, width, height };
                     }
 
                     this.isDrawing = false;
-                    this.$refs.printAreaSvg.style.cursor = 'default';
+                    this.$refs.dialogSvg.style.cursor = 'default';
                 },
 
-                deleteArea(index) {
-                    const areaToDelete = this.currentImageAreas[index];
-                    const globalIndex = this.existingAreas.indexOf(areaToDelete);
-                    if (globalIndex > -1) {
-                        this.existingAreas.splice(globalIndex, 1);
-                    }
-                },
-
-                async saveAreas() {
-                    if (!this.selectedImageId || this.saving) return;
+                async saveArea() {
+                    if (!this.tempRect || !this.dialogSelectedImageId || this.saving) return;
 
                     this.saving = true;
 
                     try {
                         const response = await this.$axios.post("{{ route('admin.catalog.products.print-areas.save') }}", {
                             product_id: this.productId,
-                            image_id: this.selectedImageId,
-                            areas: this.currentImageAreas
+                            image_id: this.dialogSelectedImageId,
+                            areas: [{
+                                name: 'Print Area ' + (this.allAreas.length + 1),
+                                x: this.tempRect.x,
+                                y: this.tempRect.y,
+                                width: this.tempRect.width,
+                                height: this.tempRect.height
+                            }]
                         });
 
                         if (response.data.success) {
-                            window.location.reload();
+                            // Add to local array
+                            const image = this.images.find(img => img.id == this.dialogSelectedImageId);
+                            this.allAreas.push({
+                                id: null,
+                                image_id: this.dialogSelectedImageId,
+                                imageUrl: image ? image.url : '',
+                                name: 'Print Area ' + (this.allAreas.length + 1),
+                                x: this.tempRect.x,
+                                y: this.tempRect.y,
+                                width: this.tempRect.width,
+                                height: this.tempRect.height
+                            });
+
+                            // Close dialog
+                            this.showDialog = false;
+                            this.dialogSelectedImageId = '';
+                            this.tempRect = null;
                         } else {
                             alert('Error: ' + response.data.message);
                         }
                     } catch (error) {
-                        alert('Error saving areas: ' + error.message);
+                        alert('Error saving area: ' + error.message);
                     } finally {
                         this.saving = false;
+                    }
+                },
+
+                async deleteArea(index) {
+                    const area = this.allAreas[index];
+                    if (!area.id) {
+                        // Not saved yet, just remove locally
+                        this.allAreas.splice(index, 1);
+                        return;
+                    }
+
+                    if (!confirm('Are you sure you want to delete this print area?')) {
+                        return;
+                    }
+
+                    try {
+                        const response = await this.$axios.delete("{{ route('admin.catalog.products.print-areas.delete', ':id') }}".replace(':id', area.id));
+
+                        if (response.data.success) {
+                            this.allAreas.splice(index, 1);
+                        } else {
+                            alert('Error: ' + response.data.message);
+                        }
+                    } catch (error) {
+                        alert('Error deleting area: ' + error.message);
                     }
                 }
             }
