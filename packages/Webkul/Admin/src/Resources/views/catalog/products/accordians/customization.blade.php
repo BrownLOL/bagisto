@@ -1,19 +1,19 @@
 <div class="customization-areas-wrapper">
     <div class="section">
         <div class="sectitle">
-            <span>{{ __('admin::app.catalog.products.customization-areas.title') }}</span>
+            <span>Customization Areas</span>
         </div>
 
         <div class="section-content">
             <div class="customization-instructions">
-                <p>{{ __('admin::app.catalog.products.customization-areas.instructions') }}</p>
+                <p>Upload product images and define printable areas for customer customization.</p>
             </div>
 
             <!-- Image Selection -->
             <div class="image-selector mb-4">
-                <label>{{ __('admin::app.catalog.products.customization-areas.select-image') }}</label>
+                <label>Select Image:</label>
                 <select id="customization-image-select" class="control">
-                    <option value="">{{ __('admin::app.catalog.products.customization-areas.choose-image') }}</option>
+                    <option value="">Choose an image...</option>
                     @foreach ($product->images as $image)
                         <option value="{{ $image->id }}" data-url="{{ url('storage/' . $image->path) }}">
                             {{ $image->id }} - {{ $image->path }}
@@ -26,8 +26,6 @@
             <div id="print-area-container" class="print-area-container" style="display: none; position: relative;">
                 <div class="image-wrapper" style="position: relative; display: inline-block;">
                     <img id="customization-image" src="" alt="Product Image" style="max-width: 100%;">
-                    
-                    <!-- SVG for drawing -->
                     <svg id="print-area-svg" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: all;"></svg>
                 </div>
             </div>
@@ -35,23 +33,23 @@
             <!-- No Images Message -->
             @if ($product->images->isEmpty())
                 <div class="no-images-message">
-                    <p>{{ __('admin::app.catalog.products.customization-areas.no-images') }}</p>
+                    <p>Please upload product images first.</p>
                 </div>
             @endif
 
             <!-- Print Areas List -->
             <div id="print-areas-list" class="print-areas-list mt-4">
-                <h4>{{ __('admin::app.catalog.products.customization-areas.defined-areas') }}</h4>
+                <h4>Defined Areas:</h4>
                 <div id="areas-container"></div>
             </div>
 
             <!-- Action Buttons -->
             <div class="action-buttons mt-4">
                 <button type="button" id="start-draw-btn" class="btn btn-secondary" disabled>
-                    {{ __('admin::app.catalog.products.customization-areas.set-print-area') }}
+                    Set Print Area
                 </button>
                 <button type="button" id="save-areas-btn" class="btn btn-primary" disabled>
-                    {{ __('admin::app.catalog.products.customization-areas.save-areas') }}
+                    Save Areas
                 </button>
             </div>
         </div>
@@ -59,36 +57,11 @@
 </div>
 
 <style>
-.customization-areas-wrapper {
-    padding: 20px;
-}
-.customization-areas-wrapper .section-content {
-    padding: 20px;
-    background: #f8f9fa;
-    border-radius: 4px;
-}
-.print-area-item {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 10px;
-    margin: 5px 0;
-    background: white;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-}
-.print-area-item .area-info {
-    font-size: 14px;
-}
-.print-area-item .delete-btn {
-    color: #f14d54;
-    cursor: pointer;
-}
-.print-area-overlay {
-    border: 2px dashed #0068e1;
-    background: rgba(0, 104, 225, 0.1);
-    box-sizing: border-box;
-}
+.customization-areas-wrapper { padding: 20px; }
+.customization-areas-wrapper .section-content { padding: 20px; background: #f8f9fa; border-radius: 4px; }
+.print-area-item { display: flex; align-items: center; justify-content: space-between; padding: 10px; margin: 5px 0; background: white; border: 1px solid #ddd; border-radius: 4px; }
+.print-area-item .area-info { font-size: 14px; }
+.print-area-item .delete-btn { color: #f14d54; cursor: pointer; font-weight: bold; }
 </style>
 
 @php
@@ -110,11 +83,9 @@
     let printAreas = {!! json_encode($existingAreas) !!};
     let isDrawing = false;
     let startX, startY;
-    let currentRect = null;
     let tempRect = null;
     
     const productId = {!! $productId !!};
-    const noAreasText = '{{ __("admin::app.catalog.products.customization-areas.no-areas") }}';
 
     // Initialize areas display
     updateAreasDisplay();
@@ -217,7 +188,7 @@
         }
         
         isDrawing = false;
-        startDrawBtn.textContent = '{{ __("admin::app.catalog.products.customization-areas.set-print-area") }}';
+        startDrawBtn.textContent = 'Set Print Area';
         svg.style.cursor = 'default';
         
         saveAreasBtn.disabled = false;
@@ -227,8 +198,8 @@
     function updateAreasDisplay() {
         const imageAreas = printAreas.filter(area => area.product_image_id == currentImageId);
         
-        if (imageAreas.length === 0) {
-            areasContainer.innerHTML = '<p class="no-areas">' + noAreasText + '</p>';
+        if (!currentImageId || imageAreas.length === 0) {
+            areasContainer.innerHTML = '<p style="color:#666;">No areas defined yet. Select an image and click "Set Print Area" to draw.</p>';
             return;
         }
         
