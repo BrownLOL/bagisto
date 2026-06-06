@@ -65,54 +65,45 @@
                     No print areas defined yet. Click "Add Print Area" to create one.
                 </div>
 
-                <div v-else class="grid grid-cols-3 gap-4 sm:grid-cols-4 md:grid-cols-6">
+                <div v-else class="flex flex-wrap gap-1">
                     <div
                         v-for="imageData in imagesWithAreas"
                         :key="imageData.id"
-                        class="group relative h-[120px] w-[120px] cursor-pointer rounded border border-gray-200 transition-all hover:border-blue-400 dark:border-gray-700"
+                        class="group relative grid max-h-[120px] min-w-[120px] justify-items-center overflow-hidden rounded border border-gray-200 transition-all hover:border-gray-400 dark:border-gray-800"
                         @click="openEditDialog(imageData)"
                     >
-                        <!-- Image container -->
-                        <div class="flex h-[90px] w-[120px] items-center justify-center">
-                            <img
-                                :src="imageData.url"
-                                :alt="'Image ' + imageData.id"
-                                class="max-h-[90px] max-w-[90px] object-contain"
-                            >
-                        </div>
+                        <!-- Image -->
+                        <img
+                            :src="imageData.url"
+                            :alt="'Image ' + imageData.id"
+                            class="h-[120px] w-[120px] object-cover"
+                        >
                         
                         <!-- Area count badge -->
                         <span class="absolute left-1 top-1 rounded-full bg-green-500 px-1.5 py-0.5 text-xs font-bold text-white">
                             @{{ imageData.areas.length }}
                         </span>
-                        
-                        <!-- Action buttons (visible on hover) -->
-                        <div class="absolute inset-0 flex items-center justify-center gap-1 rounded bg-black/50 opacity-0 transition-opacity group-hover:opacity-100">
-                            <button
-                                type="button"
-                                class="rounded bg-white p-1.5 text-gray-800 transition-colors hover:bg-gray-100"
-                                @click.stop="openEditDialog(imageData)"
-                                title="Edit"
-                            >
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                                </svg>
-                            </button>
-                            <button
-                                type="button"
-                                class="rounded bg-red-500 p-1.5 text-white transition-colors hover:bg-red-600"
-                                @click.stop="deleteAreaImage(imageData.id)"
-                                title="Delete"
-                            >
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                </svg>
-                            </button>
+
+                        <!-- Overlay with actions -->
+                        <div class="invisible absolute bottom-0 top-0 flex w-full flex-col justify-between bg-white p-3 opacity-80 transition-all group-hover:visible dark:bg-gray-900">
+                            <!-- Area count -->
+                            <p class="break-all text-xs font-semibold text-gray-600 dark:text-gray-300">
+                                @{{ imageData.areas.length }} area(s)
+                            </p>
+
+                            <!-- Actions -->
+                            <div class="flex justify-between">
+                                <span
+                                    class="icon-delete cursor-pointer rounded-md p-1.5 text-2xl hover:bg-gray-200 dark:hover:bg-gray-800"
+                                    @click.stop="deleteAreaImage(imageData.id)"
+                                ></span>
+
+                                <span
+                                    class="icon-edit cursor-pointer rounded-md p-1.5 text-2xl hover:bg-gray-200 dark:hover:bg-gray-800"
+                                    @click.stop="openEditDialog(imageData)"
+                                ></span>
+                            </div>
                         </div>
-                        
-                        <p class="truncate text-center text-xs text-gray-600 dark:text-gray-400">
-                            @{{ imageData.areas.length }} area(s)
-                        </p>
                     </div>
                 </div>
             </div>
