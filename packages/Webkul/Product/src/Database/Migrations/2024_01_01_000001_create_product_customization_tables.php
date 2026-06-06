@@ -29,8 +29,9 @@ return new class extends Migration
 
         // 购物车项定制数据表
         Schema::create('cart_item_customizations', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('cart_item_id')->constrained()->onDelete('cascade');
+            $table->increments('id');
+            $table->unsignedInteger('cart_item_id');
+            $table->foreign('cart_item_id')->references('id')->on('cart_items')->onDelete('cascade');
             $table->json('design_data')->comment('设计数据JSON');
             $table->string('preview_image')->nullable()->comment('预览图路径');
             $table->timestamps();
