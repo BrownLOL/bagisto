@@ -45,14 +45,14 @@
                 src="{{ $firstImage }}"
                 srcset="{{ $firstImage }} 1920w, {{ str_replace('storage', 'cache/large', $firstImage) }} 1280w, {{ str_replace('storage', 'cache/medium', $firstImage) }} 1024w, {{ str_replace('storage', 'cache/small', $firstImage) }} 768w"
                 sizes="100vw"
-                class="aspect-[1.6/1] max-h-screen w-screen select-none object-cover"
-                style="width:100vw;aspect-ratio:1.6/1;max-height:100vh;object-fit:cover;display:block"
+                class="aspect-[1.6/1] w-full select-none object-cover"
+                style="width:100%;aspect-ratio:1.6/1;object-fit:cover;display:block"
                 alt="{{ $firstImageTitle ?? trans('shop::app.home.index.image-carousel') }}"
                 fetchpriority="high"
                 decoding="sync"
             >
         @else
-            <div class="shimmer aspect-[1.6/1] max-h-screen w-screen"></div>
+            <div class="shimmer aspect-[1.6/1] w-full"></div>
         @endif
     </div>
 </v-carousel>
@@ -69,14 +69,14 @@
                 ref="sliderContainer"
             >
                 <div
-                    class="max-h-screen w-screen bg-cover bg-no-repeat"
+                    class="w-full bg-cover bg-no-repeat"
                     v-for="(image, index) in images"
                     :key="index"
                     @click="visitLink(image)"
                     ref="slide"
                 >
                     <x-shop::media.images.lazy
-                        class="aspect-[1.6/1] max-h-full w-full max-w-full select-none transition-transform duration-300 ease-in-out will-change-transform"
+                        class="aspect-[1.6/1] w-full select-none object-cover transition-transform duration-300 ease-in-out will-change-transform"
                         ::lazy="index === 0 ? false : true"
                         ::src="image.image"
                         ::srcset="image.image + ' 1920w, ' + image.image.replace('storage', 'cache/large') + ' 1280w,' + image.image.replace('storage', 'cache/medium') + ' 1024w, ' + image.image.replace('storage', 'cache/small') + ' 768w'"
