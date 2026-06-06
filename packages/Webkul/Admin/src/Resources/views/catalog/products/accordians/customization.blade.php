@@ -88,10 +88,10 @@
 
                             <!-- Info -->
                             <p class="mb-1 truncate text-xs font-medium text-gray-700 dark:text-gray-300">
-                                Area {{ index + 1 }}
+                                Area @{{ index + 1 }}
                             </p>
                             <p class="mb-2 text-xs text-gray-500">
-                                {{ Number(area.width).toFixed(0) }}% x {{ Number(area.height).toFixed(0) }}%
+                                @{{ Number(area.width).toFixed(0) }}% x @{{ Number(area.height).toFixed(0) }}%
                             </p>
 
                             <!-- Delete Button -->
@@ -138,7 +138,7 @@
                                     :key="image.id"
                                     :value="image.id"
                                 >
-                                    {{ image.id }} - {{ image.path }}
+                                    @{{ image.id }} - @{{ image.path }}
                                 </option>
                             </select>
                         </div>
@@ -181,7 +181,7 @@
 
                         <!-- Preview Size Info -->
                         <div v-if="tempRect" class="rounded bg-blue-50 p-3 text-sm text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">
-                            Area size: {{ Number(tempRect.width).toFixed(1) }}% x {{ Number(tempRect.height).toFixed(1) }}%
+                            Area size: @{{ Number(tempRect.width).toFixed(1) }}% x @{{ Number(tempRect.height).toFixed(1) }}%
                         </div>
                     </div>
                 </x-slot:content>
