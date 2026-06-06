@@ -46,7 +46,7 @@
                 srcset="{{ $firstImage }} 1920w, {{ str_replace('storage', 'cache/large', $firstImage) }} 1280w, {{ str_replace('storage', 'cache/medium', $firstImage) }} 1024w, {{ str_replace('storage', 'cache/small', $firstImage) }} 768w"
                 sizes="100vw"
                 class="aspect-[1.6/1] max-h-screen w-screen select-none object-cover"
-                style="width:100vw;aspect-ratio:2.743/1;max-height:100vh;object-fit:cover;display:block"
+                style="width:100vw;aspect-ratio:1.6/1;max-height:100vh;object-fit:cover;display:block"
                 alt="{{ $firstImageTitle ?? trans('shop::app.home.index.image-carousel') }}"
                 fetchpriority="high"
                 decoding="sync"
