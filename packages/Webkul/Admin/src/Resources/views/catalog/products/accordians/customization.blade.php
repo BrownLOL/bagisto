@@ -398,7 +398,7 @@
                     }
 
                     try {
-                        const response = await this.$axios.delete("{{ route('admin.catalog.products.print-areas.delete', ':id') }}".replace(':id', 'all_' + this.originalImageId));
+                        const response = await this.$axios.delete("{{ route('admin.catalog.products.print-areas.delete-image', ':imageId') }}".replace(':imageId', this.originalImageId));
 
                         if (response.data.success) {
                             window.location.reload();
