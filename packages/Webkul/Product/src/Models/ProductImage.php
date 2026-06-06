@@ -4,6 +4,7 @@ namespace Webkul\Product\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\Storage;
 use Webkul\Product\Contracts\ProductImage as ProductImageContract;
 
@@ -74,5 +75,13 @@ class ProductImage extends Model implements ProductImageContract
     public function isCustomAttribute($attribute)
     {
         return $this->attribute_family->custom_attributes->pluck('code')->contains($attribute);
+    }
+
+    /**
+     * Get the print areas for customization.
+     */
+    public function printAreas(): HasMany
+    {
+        return $this->hasMany(ProductImagePrintAreaProxy::modelClass(), 'product_image_id');
     }
 }
