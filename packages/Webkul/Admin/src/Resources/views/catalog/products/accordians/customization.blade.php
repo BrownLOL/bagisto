@@ -253,6 +253,7 @@
                     dialogSelectedImageId: '',
                     dialogSelectedImageUrl: '',
                     imageLoaded: false,
+                    isDrawing: false,
                     tempRect: null,
                     tempAreas: [],
                     drawStartX: 0,
@@ -293,10 +294,11 @@
                     const rect = this.$refs.dialogSvg.getBoundingClientRect();
                     this.drawStartX = ((e.clientX - rect.left) / rect.width) * 100;
                     this.drawStartY = ((e.clientY - rect.top) / rect.height) * 100;
+                    this.isDrawing = true;
                 },
 
                 updateDraw(e) {
-                    if (!this.dialogSelectedImageId || !this.imageLoaded) return;
+                    if (!this.isDrawing) return;
 
                     const rect = this.$refs.dialogSvg.getBoundingClientRect();
                     const currentX = ((e.clientX - rect.left) / rect.width) * 100;
