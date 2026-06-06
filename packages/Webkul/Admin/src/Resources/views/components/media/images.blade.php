@@ -518,6 +518,18 @@
                         return;
                     }
 
+                    const maxSize = 5 * 1024 * 1024; // 5MB
+                    const oversizedFiles = Array.from(imageInput.files).filter(file => file.size > maxSize);
+
+                    if (oversizedFiles.length > 0) {
+                        this.$emitter.emit('add-flash', {
+                            type: 'warning',
+                            message: "File size exceeds the maximum limit of 5MB"
+                        });
+
+                        return;
+                    }
+
                     imageInput.files.forEach((file, index) => {
                         this.images.push({
                             id: 'image_' + this.images.length,
