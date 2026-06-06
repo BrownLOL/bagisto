@@ -3,12 +3,18 @@
 use Illuminate\Support\Facades\Route;
 use Webkul\Shop\Http\Controllers\CartController;
 use Webkul\Shop\Http\Controllers\OnepageController;
+use Webkul\Shop\Http\Controllers\ProductCustomizationController;
+use Webkul\Shop\Http\Controllers\API\CartController as APICartController;
 
 /**
  * Cart routes.
  */
 Route::controller(CartController::class)->prefix('checkout/cart')->group(function () {
     Route::get('', 'index')->name('shop.checkout.cart.index');
+});
+
+Route::controller(APICartController::class)->prefix('api/checkout/cart')->group(function () {
+    Route::post('add-customization', 'addCustomization')->name('shop.checkout.cart.add-customization');
 });
 
 Route::controller(OnepageController::class)->prefix('checkout/onepage')->group(function () {

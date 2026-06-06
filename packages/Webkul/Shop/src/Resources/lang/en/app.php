@@ -745,6 +745,21 @@ return [
     ],
 
     'products' => [
+        'customization' => [
+            'title' => 'Custom Design',
+            'start-design' => 'Start Design',
+            'customize' => 'Customize',
+            'add-text' => 'Add Text',
+            'add-image' => 'Add Image',
+            'change-color' => 'Change Color',
+            'font-size' => 'Font Size',
+            'font-family' => 'Font Family',
+            'text-color' => 'Text Color',
+            'save-design' => 'Save Design',
+            'cancel' => 'Cancel',
+            'preview' => 'Preview',
+            'added-to-cart' => 'Customized product added to cart',
+        ],
         'prices' => [
             'grouped' => [
                 'starting-at' => 'Starting at',

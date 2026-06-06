@@ -96,6 +96,44 @@ class CartController extends APIController
     }
 
     /**
+     * Add product with customization to cart.
+     */
+    public function addCustomization()
+    {
+        $this->validate(request(), [
+            'product_id'    => 'required|integer|exists:products,id',
+            'quantity'      => 'integer|min:1',
+            'customization' => 'required|array',
+            'customization.print_area_id' => 'required|integer|exists:product_image_print_areas,id',
+            'customization.preview_image' => 'required|string',
+        ]);
+
+        $product = $this->productRepository->with('parent')->findOrFail(request()->input('product_id'));
+
+        try {
+            if (! $product->status) {
+                throw new \Exception(trans('shop::app.checkout.cart.inactive-add'));
+            }
+
+            $cart = Cart::addProduct($product, request()->all());
+
+            return new JsonResource([
+                'data'    => new CartResource($cart),
+                'message' => trans('shop::app.checkout.cart.item-add-to-cart'),
+            ]);
+        } catch (InsufficientProductInventoryException $exception) {
+            return response()->json([
+                'message' => $exception->getMessage(),
+            ], Response::HTTP_BAD_REQUEST);
+        } catch (\Exception $exception) {
+            return response()->json([
+                'redirect_uri' => route('shop.product_or_category.index', $product->url_key),
+                'message'      => $exception->getMessage(),
+            ], Response::HTTP_BAD_REQUEST);
+        }
+    }
+
+    /**
      * Removes the item from the cart if it exists.
      */
     public function destroy(): JsonResource
