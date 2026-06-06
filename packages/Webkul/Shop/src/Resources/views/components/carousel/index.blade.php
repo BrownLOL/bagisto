@@ -37,6 +37,9 @@
         @else
             <div class="shimmer" style="aspect-ratio:1.6/1"></div>
         @endif
+        <template v-if="!$firstImage">
+            <div class="absolute inset-0" v-for="(image, index) in [[]]" :key="index" v-show="false"></div>
+        </template>
     </div>
 </v-carousel>
 
@@ -46,12 +49,15 @@
         id="v-carousel-template"
     >
         <div class="relative" style="max-width:1200px;margin:0 auto;">
+            <!-- Spacer to maintain aspect ratio -->
+            <div style="aspect-ratio:1.6/1;width:100%"></div>
+            
             <!-- Slides -->
             <div
                 v-for="(image, index) in images"
                 :key="index"
                 v-show="currentIndex === index"
-                :style="'position:absolute;top:0;left:0;width:100%;aspect-ratio:1.6/1;cursor:' + (image.url ? 'pointer' : 'default')"
+                style="position:absolute;top:0;left:0;width:100%;height:100%;cursor:pointer"
                 @click="visitLink(image)"
             >
                 <img
