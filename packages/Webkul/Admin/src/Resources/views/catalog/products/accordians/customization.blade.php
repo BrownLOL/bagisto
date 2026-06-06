@@ -273,6 +273,18 @@
                 }
             },
 
+            mounted() {
+                console.log('ProductCustomization component mounted');
+                console.log('productId:', this.productId);
+                console.log('allImages:', this.allImages);
+                console.log('imagesWithAreas:', this.imagesWithAreas);
+            },
+
+            errorCaptured(error) {
+                console.error('ProductCustomization error:', error);
+                return false;
+            },
+
             computed: {
                 availableImages() {
                     // In add mode, only show images without areas
