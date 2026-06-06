@@ -313,7 +313,7 @@
                 },
 
                 endDraw(e) {
-                    if (!this.dialogSelectedImageId || !this.imageLoaded) return;
+                    if (!this.isDrawing) return;
 
                     const rect = this.$refs.dialogSvg.getBoundingClientRect();
                     const endX = ((e.clientX - rect.left) / rect.width) * 100;
@@ -329,6 +329,7 @@
                     }
 
                     this.tempRect = null;
+                    this.isDrawing = false;
                 },
 
                 removeTempArea(index) {
