@@ -1,5 +1,31 @@
 <v-product-customization></v-product-customization>
 
+@php
+    $productImages = $product->images->map(function($img) {
+        return [
+            'id' => $img->id,
+            'path' => $img->path,
+            'url' => url('storage/' . $img->path)
+        ];
+    })->toArray();
+
+    $printAreas = [];
+    foreach ($product->images as $image) {
+        foreach ($image->printAreas as $area) {
+            $printAreas[] = [
+                'id' => $area->id,
+                'image_id' => $area->product_image_id,
+                'imageUrl' => url('storage/' . $image->path),
+                'name' => $area->name,
+                'x' => $area->x,
+                'y' => $area->y,
+                'width' => $area->width,
+                'height' => $area->height,
+            ];
+        }
+    }
+@endphp
+
 @pushOnce('scripts')
     <script
         type="text/x-template"
@@ -212,26 +238,8 @@
             data() {
                 return {
                     productId: {{ $product->id }},
-                    images: @json($product->images->map(function($img) {
-                        return [
-                            'id' => $img->id,
-                            'path' => $img->path,
-                            'url' => url('storage/' . $img->path)
-                        ];
-                    })),
-                    allAreas: @json($product->images->flatMap->printAreas->map(function($area) {
-                        $image = $area->productImage;
-                        return [
-                            'id' => $area->id,
-                            'image_id' => $area->product_image_id,
-                            'imageUrl' => $image ? url('storage/' . $image->path) : '',
-                            'name' => $area->name,
-                            'x' => $area->x,
-                            'y' => $area->y,
-                            'width' => $area->width,
-                            'height' => $area->height,
-                        ];
-                    })->toArray()),
+                    images: {!! json_encode($productImages) !!},
+                    allAreas: {!! json_encode($printAreas) !!},
                     showDialog: false,
                     dialogSelectedImageId: '',
                     dialogSelectedImageUrl: '',
@@ -337,7 +345,6 @@
                         });
 
                         if (response.data.success) {
-                            // Add to local array
                             const image = this.images.find(img => img.id == this.dialogSelectedImageId);
                             this.allAreas.push({
                                 id: null,
@@ -350,7 +357,6 @@
                                 height: this.tempRect.height
                             });
 
-                            // Close dialog
                             this.showDialog = false;
                             this.dialogSelectedImageId = '';
                             this.tempRect = null;
@@ -367,7 +373,6 @@
                 async deleteArea(index) {
                     const area = this.allAreas[index];
                     if (!area.id) {
-                        // Not saved yet, just remove locally
                         this.allAreas.splice(index, 1);
                         return;
                     }
