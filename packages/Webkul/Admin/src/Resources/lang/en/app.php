@@ -1185,12 +1185,16 @@ return [
                     'title' => 'Images',
                 ],
 
-                'customizations' => [
+                'customization-areas' => [
                     'title' => 'Customization Areas',
-                    'info' => 'Define printable areas for customer customization',
+                    'instructions' => 'Select an image and draw the printable area for customer customization.',
                     'select-image' => 'Select an image first',
-                    'no-areas' => 'No customization areas defined',
+                    'choose-image' => '-- Choose Image --',
+                    'no-images' => 'Please upload an image first to set customization areas.',
+                    'defined-areas' => 'Defined Areas',
                     'set-print-area' => 'Set Print Area',
+                    'save-areas' => 'Save Areas',
+                    'no-areas' => 'No customization areas defined',
                     'save-area' => 'Save Area',
                     'cancel' => 'Cancel',
                     'delete' => 'Delete',
