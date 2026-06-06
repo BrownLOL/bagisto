@@ -73,7 +73,12 @@
                             class="relative cursor-pointer rounded border border-gray-200 p-2 transition-all hover:border-blue-400 hover:shadow dark:border-gray-700"
                             @click="openEditDialog(imageData)"
                         >
-                            <div class="relative mb-2 h-[80px] w-full overflow-hidden rounded">
+                            <div class="relative h-[80px] w-full overflow-hidden rounded">
+                                <img
+                                    :src="imageData.url"
+                                    :alt="'Image ' + imageData.id"
+                                    class="h-full w-full object-cover"
+                                >
                                 <img
                                     :src="imageData.url"
                                     :alt="'Image ' + imageData.id"
