@@ -72,4 +72,24 @@ class ProductCustomizationController extends Controller
             ], 500);
         }
     }
+
+    /**
+     * Delete all print areas for an image.
+     */
+    public function deleteAreasByImage(int $imageId): JsonResponse
+    {
+        try {
+            $this->printAreaRepository->deleteByImageId($imageId);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Print areas deleted successfully.',
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to delete print areas: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
 }

@@ -9,18 +9,22 @@
         ];
     })->toArray();
 
-    $printAreas = [];
+    $imagesWithAreas = [];
     foreach ($product->images as $image) {
-        foreach ($image->printAreas as $area) {
-            $printAreas[] = [
-                'id' => $area->id,
-                'image_id' => $area->product_image_id,
-                'imageUrl' => url('storage/' . $image->path),
-                'name' => $area->name,
-                'x' => $area->x,
-                'y' => $area->y,
-                'width' => $area->width,
-                'height' => $area->height,
+        if ($image->printAreas->count() > 0) {
+            $imagesWithAreas[] = [
+                'id' => $image->id,
+                'path' => $image->path,
+                'url' => url('storage/' . $image->path),
+                'areas' => $image->printAreas->map(function($area) {
+                    return [
+                        'id' => $area->id,
+                        'x' => $area->x,
+                        'y' => $area->y,
+                        'width' => $area->width,
+                        'height' => $area->height,
+                    ];
+                })->toArray(),
             ];
         }
     }
@@ -41,7 +45,7 @@
                         </p>
 
                         <p class="text-xs font-medium text-gray-500 dark:text-gray-300">
-                            Define printable areas on product images for customer customization.
+                            Manage printable areas on product images.
                         </p>
                     </div>
 
@@ -49,87 +53,62 @@
                         <button
                             type="button"
                             class="secondary-button"
-                            @click="openDialog"
+                            @click="openAddDialog"
                         >
                             Add Print Area
                         </button>
                     </div>
                 </div>
 
-                <!-- Saved Areas Grid -->
+                <!-- Images with Areas -->
                 <div class="p-4 pt-0">
-                    <div v-if="allAreas.length === 0" class="rounded bg-gray-50 py-10 text-center text-sm text-gray-500 dark:bg-gray-800">
+                    <div v-if="imagesWithAreas.length === 0" class="rounded bg-gray-50 py-10 text-center text-sm text-gray-500 dark:bg-gray-800">
                         No print areas defined yet. Click "Add Print Area" to create one.
                     </div>
 
-                    <!-- Group areas by image -->
-                    <div v-else>
+                    <div v-else class="grid grid-cols-3 gap-4 sm:grid-cols-4 md:grid-cols-6">
                         <div
-                            v-for="(imageAreas, imageId) in groupedAreas"
-                            :key="imageId"
-                            class="mb-6"
+                            v-for="imageData in imagesWithAreas"
+                            :key="imageData.id"
+                            class="relative cursor-pointer rounded border border-gray-200 p-2 transition-all hover:border-blue-400 hover:shadow dark:border-gray-700"
+                            @click="openEditDialog(imageData)"
                         >
-                            <div class="mb-2 flex items-center gap-2">
-                                <span class="text-sm font-medium text-gray-700 dark:text-gray-300">
-                                    Image ID: @{{ imageId }}
-                                </span>
-                                <span class="text-xs text-gray-500">
-                                    (@{{ imageAreas.length }} area(s))
-                                </span>
-                            </div>
-                            <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
-                                <div
-                                    v-for="(area, areaIndex) in imageAreas"
-                                    :key="area.id ?? 'new-' + areaIndex"
-                                    class="relative rounded border border-gray-200 bg-gray-50 p-2 dark:border-gray-700 dark:bg-gray-800"
+                            <div class="relative mb-2 h-[80px] w-full overflow-hidden rounded">
+                                <img
+                                    :src="imageData.url"
+                                    :alt="'Image ' + imageData.id"
+                                    class="h-full w-full object-cover"
                                 >
-                                    <!-- Preview Image with Area Overlay -->
-                                    <div class="relative mb-2 h-[80px] w-full overflow-hidden rounded">
-                                        <img
-                                            :src="area.imageUrl"
-                                            :alt="'Area ' + (areaIndex + 1)"
-                                            class="h-full w-full object-cover"
-                                        >
-                                        <div
-                                            class="absolute border-2 border-green-500 bg-green-500/20"
-                                            :style="{
-                                                left: area.x + '%',
-                                                top: area.y + '%',
-                                                width: area.width + '%',
-                                                height: area.height + '%'
-                                            }"
-                                        ></div>
-                                    </div>
-
-                                    <!-- Delete Button -->
-                                    <button
-                                        type="button"
-                                        class="w-full cursor-pointer rounded bg-red-50 px-2 py-1 text-xs text-red-600 transition-colors hover:bg-red-100 dark:bg-red-900/30 dark:text-red-400 dark:hover:bg-red-900/50"
-                                        @click="deleteArea(area.id)"
-                                    >
-                                        Remove
-                                    </button>
-                                </div>
+                                <!-- Area count badge -->
+                                <span class="absolute right-1 top-1 rounded-full bg-green-500 px-1.5 py-0.5 text-xs font-bold text-white">
+                                    @{{ imageData.areas.length }}
+                                </span>
                             </div>
+                            <p class="truncate text-center text-xs text-gray-600 dark:text-gray-400">
+                                Image @{{ imageData.id }}
+                            </p>
+                            <p class="text-center text-xs text-gray-400">
+                                @{{ imageData.areas.length }} area(s)
+                            </p>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Add Print Area Modal -->
+            <!-- Add/Edit Print Area Modal -->
             <x-admin::modal ref="printAreaModal">
                 <!-- Modal Header -->
                 <x-slot:header>
                     <p class="text-lg font-semibold text-gray-800 dark:text-white">
-                        Add Print Area
+                        @{{ isEditMode ? 'Edit Print Areas' : 'Add Print Area' }}
                     </p>
                 </x-slot:header>
 
                 <!-- Modal Content -->
                 <x-slot:content>
                     <div class="grid gap-4">
-                        <!-- Image Selection -->
-                        <div>
+                        <!-- Image Selection (only for Add mode) -->
+                        <div v-if="!isEditMode">
                             <label class="mb-1 block text-xs font-medium text-gray-700 dark:text-gray-300">
                                 Select Image
                             </label>
@@ -140,7 +119,7 @@
                             >
                                 <option value="">Choose an image...</option>
                                 <option
-                                    v-for="image in images"
+                                    v-for="image in availableImages"
                                     :key="image.id"
                                     :value="image.id"
                                 >
@@ -150,9 +129,9 @@
                         </div>
 
                         <!-- Image Preview with Drawing -->
-                        <div v-if="dialogSelectedImageId" class="relative">
+                        <div v-if="dialogSelectedImageUrl" class="relative">
                             <p class="mb-2 text-xs font-medium text-gray-500">
-                                Click and drag on the image to draw print areas. Draw multiple areas as needed.
+                                Click and drag on the image to draw print areas.
                             </p>
 
                             <div class="relative inline-block max-w-full overflow-hidden rounded border border-gray-200">
@@ -170,10 +149,10 @@
                                     @mousemove="updateDraw"
                                     @mouseup="endDraw"
                                 >
-                                    <!-- Saved temp areas for this image -->
+                                    <!-- Existing areas -->
                                     <rect
                                         v-for="(area, index) in tempAreas"
-                                        :key="'temp-' + index"
+                                        :key="'area-' + index"
                                         :x="area.x + '%'"
                                         :y="area.y + '%'"
                                         :width="area.width + '%'"
@@ -198,10 +177,10 @@
                             </div>
                         </div>
 
-                        <!-- Current Drawing Areas List -->
+                        <!-- Areas List -->
                         <div v-if="tempAreas.length > 0" class="rounded border border-gray-200 p-3 dark:border-gray-700">
                             <p class="mb-2 text-xs font-medium text-gray-700 dark:text-gray-300">
-                                Areas to save (@{{ tempAreas.length }})
+                                Areas (@{{ tempAreas.length }})
                             </p>
                             <div class="space-y-2">
                                 <div
@@ -237,12 +216,21 @@
                         </button>
 
                         <button
+                            v-if="isEditMode && originalImageId"
+                            type="button"
+                            class="cursor-pointer rounded bg-red-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-red-600"
+                            @click="deleteAllAreas"
+                        >
+                            Delete All
+                        </button>
+
+                        <button
                             type="button"
                             class="cursor-pointer rounded bg-blue-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-600 disabled:cursor-not-allowed disabled:bg-gray-300"
                             :disabled="tempAreas.length === 0 || saving"
                             @click="saveAreas"
                         >
-                            @{{ saving ? 'Saving...' : 'Save ' + tempAreas.length + ' Area(s)' }}
+                            @{{ saving ? 'Saving...' : 'Save' }}
                         </button>
                     </div>
                 </x-slot:footer>
@@ -257,10 +245,12 @@
             data() {
                 return {
                     productId: {{ $product->id }},
-                    images: {!! json_encode($productImages) !!},
-                    allAreas: {!! json_encode($printAreas) !!},
+                    allImages: {!! json_encode($productImages) !!},
+                    imagesWithAreas: {!! json_encode($imagesWithAreas) !!},
                     dialogSelectedImageId: '',
                     dialogSelectedImageUrl: '',
+                    originalImageId: null,
+                    isEditMode: false,
                     imageLoaded: false,
                     isDrawing: false,
                     tempRect: null,
@@ -272,21 +262,31 @@
             },
 
             computed: {
-                groupedAreas() {
-                    const grouped = {};
-                    this.allAreas.forEach(area => {
-                        const imageId = area.image_id;
-                        if (!grouped[imageId]) {
-                            grouped[imageId] = [];
-                        }
-                        grouped[imageId].push(area);
-                    });
-                    return grouped;
+                availableImages() {
+                    // In add mode, only show images without areas
+                    const imagesWithAreaIds = this.imagesWithAreas.map(img => img.id);
+                    return this.allImages.filter(img => !imagesWithAreaIds.includes(img.id));
                 }
             },
 
             methods: {
-                openDialog() {
+                openAddDialog() {
+                    this.isEditMode = false;
+                    this.originalImageId = null;
+                    this.dialogSelectedImageId = '';
+                    this.dialogSelectedImageUrl = '';
+                    this.tempAreas = [];
+                    this.imageLoaded = false;
+                    this.$refs.printAreaModal.open();
+                },
+
+                openEditDialog(imageData) {
+                    this.isEditMode = true;
+                    this.originalImageId = imageData.id;
+                    this.dialogSelectedImageId = imageData.id;
+                    this.dialogSelectedImageUrl = imageData.url;
+                    this.tempAreas = JSON.parse(JSON.stringify(imageData.areas));
+                    this.imageLoaded = true;
                     this.$refs.printAreaModal.open();
                 },
 
@@ -294,16 +294,16 @@
                     this.$refs.printAreaModal.close();
                     this.dialogSelectedImageId = '';
                     this.dialogSelectedImageUrl = '';
-                    this.imageLoaded = false;
+                    this.originalImageId = null;
+                    this.isEditMode = false;
                     this.tempRect = null;
                     this.tempAreas = [];
+                    this.imageLoaded = false;
                 },
 
                 onDialogImageChange() {
-                    this.imageLoaded = false;
-                    this.tempRect = null;
                     this.tempAreas = [];
-                    const image = this.images.find(img => img.id == this.dialogSelectedImageId);
+                    const image = this.allImages.find(img => img.id == this.dialogSelectedImageId);
                     this.dialogSelectedImageUrl = image ? image.url : '';
                 },
 
@@ -312,7 +312,7 @@
                 },
 
                 startDraw(e) {
-                    if (!this.dialogSelectedImageId || !this.imageLoaded) return;
+                    if (!this.dialogSelectedImageUrl || !this.imageLoaded) return;
 
                     const rect = this.$refs.dialogSvg.getBoundingClientRect();
                     this.drawStartX = ((e.clientX - rect.left) / rect.width) * 100;
@@ -369,7 +369,7 @@
                             product_id: this.productId,
                             image_id: this.dialogSelectedImageId,
                             areas: this.tempAreas.map((area, index) => ({
-                                name: 'Area ' + (this.allAreas.length + index + 1),
+                                name: 'Area ' + (index + 1),
                                 x: area.x,
                                 y: area.y,
                                 width: area.width,
@@ -378,22 +378,8 @@
                         });
 
                         if (response.data.success) {
-                            // Add to local array
-                            const image = this.images.find(img => img.id == this.dialogSelectedImageId);
-                            this.tempAreas.forEach(area => {
-                                this.allAreas.push({
-                                    id: null,
-                                    image_id: this.dialogSelectedImageId,
-                                    imageUrl: image ? image.url : '',
-                                    name: 'Area ' + (this.allAreas.length + 1),
-                                    x: area.x,
-                                    y: area.y,
-                                    width: area.width,
-                                    height: area.height
-                                });
-                            });
-
-                            this.closeDialog();
+                            // Refresh the page to get updated data
+                            window.location.reload();
                         } else {
                             alert('Error: ' + response.data.message);
                         }
@@ -404,29 +390,23 @@
                     }
                 },
 
-                async deleteArea(areaId) {
-                    const areaIndex = this.allAreas.findIndex(a => a.id === areaId);
-                    if (areaIndex === -1) return;
+                async deleteAllAreas() {
+                    if (!this.originalImageId) return;
 
-                    if (!areaId) {
-                        this.allAreas.splice(areaIndex, 1);
-                        return;
-                    }
-
-                    if (!confirm('Are you sure you want to delete this print area?')) {
+                    if (!confirm('Are you sure you want to delete all print areas for this image?')) {
                         return;
                     }
 
                     try {
-                        const response = await this.$axios.delete("{{ route('admin.catalog.products.print-areas.delete', ':id') }}".replace(':id', area.id));
+                        const response = await this.$axios.delete("{{ route('admin.catalog.products.print-areas.delete', ':id') }}".replace(':id', 'all_' + this.originalImageId));
 
                         if (response.data.success) {
-                            this.allAreas.splice(index, 1);
+                            window.location.reload();
                         } else {
                             alert('Error: ' + response.data.message);
                         }
                     } catch (error) {
-                        alert('Error deleting area: ' + error.message);
+                        alert('Error deleting areas: ' + error.message);
                     }
                 }
             }

@@ -63,4 +63,12 @@ class ProductImagePrintAreaRepository extends Repository
             }
         }
     }
+
+    /**
+     * Delete all areas for an image.
+     */
+    public function deleteByImageId(int $imageId): void
+    {
+        $this->model->where('product_image_id', $imageId)->delete();
+    }
 }

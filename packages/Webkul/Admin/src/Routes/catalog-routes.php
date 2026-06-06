@@ -142,5 +142,7 @@ Route::prefix('catalog')->group(function () {
         Route::post('print-areas', [ProductCustomizationController::class, 'savePrintAreas'])->name('admin.catalog.products.print-areas.save');
 
         Route::delete('print-areas/{id}', [ProductCustomizationController::class, 'deletePrintArea'])->name('admin.catalog.products.print-areas.delete');
+
+        Route::delete('print-areas/image/{imageId}', [ProductCustomizationController::class, 'deleteAreasByImage'])->name('admin.catalog.products.print-areas.delete-image');
     });
 });
