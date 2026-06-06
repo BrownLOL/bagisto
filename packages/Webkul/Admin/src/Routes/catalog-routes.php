@@ -11,6 +11,7 @@ use Webkul\Admin\Http\Controllers\Catalog\Product\GroupedController;
 use Webkul\Admin\Http\Controllers\Catalog\Product\SimpleController;
 use Webkul\Admin\Http\Controllers\Catalog\Product\VirtualController;
 use Webkul\Admin\Http\Controllers\Catalog\ProductController;
+use Webkul\Admin\Http\Controllers\Catalog\ProductCustomizationController;
 
 /**
  * Catalog routes.
@@ -137,5 +138,7 @@ Route::prefix('catalog')->group(function () {
         Route::get('search', 'search')->name('admin.catalog.products.search');
 
         Route::get('{id}/{attribute_id}', 'download')->name('admin.catalog.products.file.download');
+
+        Route::post('print-areas', [ProductCustomizationController::class, 'savePrintAreas'])->name('admin.catalog.products.print-areas.save');
     });
 });

@@ -274,7 +274,7 @@
                     this.saving = true;
 
                     try {
-                        const response = await this.$axios.post('/customization/print-areas', {
+                        const response = await this.$axios.post("{{ route('admin.catalog.products.print-areas.save') }}", {
                             product_id: this.productId,
                             image_id: this.selectedImageId,
                             areas: this.currentImageAreas
