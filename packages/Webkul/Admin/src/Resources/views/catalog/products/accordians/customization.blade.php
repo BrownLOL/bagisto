@@ -95,7 +95,7 @@
                                 class="flex items-center justify-between rounded border border-gray-200 bg-white p-3 dark:border-gray-700 dark:bg-gray-800"
                             >
                                 <span class="text-sm text-gray-700 dark:text-gray-300">
-                                    Area @{{ index + 1 }} (X: @{{ area.x.toFixed(1) }}%, Y: @{{ area.y.toFixed(1) }}%, W: @{{ area.width.toFixed(1) }}%, H: @{{ area.height.toFixed(1) }}%)
+                                    Area @{{ index + 1 }} (X: @{{ Number(area.x).toFixed(1) }}%, Y: @{{ Number(area.y).toFixed(1) }}%, W: @{{ Number(area.width).toFixed(1) }}%, H: @{{ Number(area.height).toFixed(1) }}%)
                                 </span>
                                 <button
                                     type="button"
