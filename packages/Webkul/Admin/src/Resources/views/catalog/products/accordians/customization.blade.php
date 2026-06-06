@@ -5,10 +5,6 @@
         </div>
 
         <div class="section-content">
-            <div class="customization-instructions">
-                <p>Upload product images and define printable areas for customer customization.</p>
-            </div>
-
             <!-- Image Selection -->
             <div class="image-selector mb-4">
                 <label>Select Image:</label>
@@ -23,9 +19,9 @@
             </div>
 
             <!-- Image with Print Area Overlay -->
-            <div id="print-area-container" class="print-area-container" style="display: none; position: relative;">
-                <div class="image-wrapper" style="position: relative; display: inline-block;">
-                    <img id="customization-image" src="" alt="Product Image" style="max-width: 100%;">
+            <div id="print-area-container" class="print-area-container" style="display: none;">
+                <div class="image-wrapper" style="position: relative; display: inline-block; max-width: 100%;">
+                    <img id="customization-image" src="" alt="Product Image" style="max-width: 100%; display: block;">
                     <svg id="print-area-svg" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: all;"></svg>
                 </div>
             </div>
@@ -62,6 +58,7 @@
 .print-area-item { display: flex; align-items: center; justify-content: space-between; padding: 10px; margin: 5px 0; background: white; border: 1px solid #ddd; border-radius: 4px; }
 .print-area-item .area-info { font-size: 14px; }
 .print-area-item .delete-btn { color: #f14d54; cursor: pointer; font-weight: bold; }
+#print-area-svg rect { cursor: pointer; }
 </style>
 
 @php
@@ -71,28 +68,29 @@
 
 <script>
 (function() {
-    const imageSelect = document.getElementById('customization-image-select');
-    const container = document.getElementById('print-area-container');
-    const image = document.getElementById('customization-image');
-    const svg = document.getElementById('print-area-svg');
-    const startDrawBtn = document.getElementById('start-draw-btn');
-    const saveAreasBtn = document.getElementById('save-areas-btn');
-    const areasContainer = document.getElementById('areas-container');
+    var imageSelect = document.getElementById('customization-image-select');
+    var container = document.getElementById('print-area-container');
+    var img = document.getElementById('customization-image');
+    var svg = document.getElementById('print-area-svg');
+    var startDrawBtn = document.getElementById('start-draw-btn');
+    var saveAreasBtn = document.getElementById('save-areas-btn');
+    var areasContainer = document.getElementById('areas-container');
     
-    let currentImageId = null;
-    let printAreas = {!! json_encode($existingAreas) !!};
-    let isDrawing = false;
-    let startX, startY;
-    let tempRect = null;
+    var currentImageId = null;
+    var printAreas = {!! json_encode($existingAreas) !!};
+    var isDrawing = false;
+    var startX, startY;
+    var tempRect = null;
+    var isImageLoaded = false;
     
-    const productId = {!! $productId !!};
+    var productId = {!! $productId !!};
 
     // Initialize areas display
     updateAreasDisplay();
 
     // Load image on selection
     imageSelect.addEventListener('change', function() {
-        const option = this.options[this.selectedIndex];
+        var option = this.options[this.selectedIndex];
         if (!option.value) {
             container.style.display = 'none';
             startDrawBtn.disabled = true;
@@ -101,20 +99,53 @@
         }
 
         currentImageId = option.value;
-        const imageUrl = option.dataset.url;
+        var imageUrl = option.dataset.url;
         
-        image.src = imageUrl;
-        container.style.display = 'block';
-        startDrawBtn.disabled = false;
+        // Clear previous SVG content
+        svg.innerHTML = '';
         
-        // Filter areas for current image
-        printAreas = printAreas.filter(area => area.product_image_id == currentImageId);
-        updateAreasDisplay();
+        // Load image
+        img.onload = function() {
+            isImageLoaded = true;
+            container.style.display = 'block';
+            startDrawBtn.disabled = false;
+            
+            // Re-render existing areas for this image
+            renderExistingAreas();
+            updateAreasDisplay();
+        };
+        
+        img.onerror = function() {
+            alert('Failed to load image');
+            container.style.display = 'none';
+        };
+        
+        img.src = imageUrl;
     });
+
+    // Render existing areas on the SVG
+    function renderExistingAreas() {
+        svg.innerHTML = '';
+        var imageAreas = printAreas.filter(function(area) { 
+            return area.product_image_id == currentImageId; 
+        });
+        
+        imageAreas.forEach(function(area) {
+            var rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+            rect.setAttribute('x', area.x + '%');
+            rect.setAttribute('y', area.y + '%');
+            rect.setAttribute('width', area.width + '%');
+            rect.setAttribute('height', area.height + '%');
+            rect.setAttribute('stroke', '#28a745');
+            rect.setAttribute('stroke-width', '2');
+            rect.setAttribute('fill', 'rgba(40, 167, 69, 0.2)');
+            svg.appendChild(rect);
+        });
+    }
 
     // Start drawing mode
     startDrawBtn.addEventListener('click', function() {
-        if (!currentImageId) return;
+        if (!currentImageId || !isImageLoaded) return;
         isDrawing = true;
         startDrawBtn.textContent = 'Drawing... Click and drag on image';
         svg.style.cursor = 'crosshair';
@@ -124,14 +155,14 @@
     svg.addEventListener('mousedown', function(e) {
         if (!isDrawing) return;
         
-        const rect = svg.getBoundingClientRect();
+        var rect = svg.getBoundingClientRect();
         startX = ((e.clientX - rect.left) / rect.width) * 100;
         startY = ((e.clientY - rect.top) / rect.height) * 100;
         
         tempRect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
         tempRect.setAttribute('stroke', '#0068e1');
         tempRect.setAttribute('stroke-dasharray', '5,5');
-        tempRect.setAttribute('fill', 'rgba(0, 104, 225, 0.1)');
+        tempRect.setAttribute('fill', 'rgba(0, 104, 225, 0.2)');
         tempRect.setAttribute('stroke-width', '2');
         svg.appendChild(tempRect);
     });
@@ -140,14 +171,14 @@
     svg.addEventListener('mousemove', function(e) {
         if (!isDrawing || !tempRect) return;
         
-        const rect = svg.getBoundingClientRect();
-        const currentX = ((e.clientX - rect.left) / rect.width) * 100;
-        const currentY = ((e.clientY - rect.top) / rect.height) * 100;
+        var rect = svg.getBoundingClientRect();
+        var currentX = ((e.clientX - rect.left) / rect.width) * 100;
+        var currentY = ((e.clientY - rect.top) / rect.height) * 100;
         
-        const x = Math.min(startX, currentX);
-        const y = Math.min(startY, currentY);
-        const width = Math.abs(currentX - startX);
-        const height = Math.abs(currentY - startY);
+        var x = Math.min(startX, currentX);
+        var y = Math.min(startY, currentY);
+        var width = Math.abs(currentX - startX);
+        var height = Math.abs(currentY - startY);
         
         tempRect.setAttribute('x', x + '%');
         tempRect.setAttribute('y', y + '%');
@@ -159,17 +190,17 @@
     svg.addEventListener('mouseup', function(e) {
         if (!isDrawing || !tempRect) return;
         
-        const rect = svg.getBoundingClientRect();
-        const endX = ((e.clientX - rect.left) / rect.width) * 100;
-        const endY = ((e.clientY - rect.top) / rect.height) * 100;
+        var rect = svg.getBoundingClientRect();
+        var endX = ((e.clientX - rect.left) / rect.width) * 100;
+        var endY = ((e.clientY - rect.top) / rect.height) * 100;
         
-        const x = Math.min(startX, endX);
-        const y = Math.min(startY, endY);
-        const width = Math.abs(endX - startX);
-        const height = Math.abs(endY - startY);
+        var x = Math.min(startX, endX);
+        var y = Math.min(startY, endY);
+        var width = Math.abs(endX - startX);
+        var height = Math.abs(endY - startY);
         
         if (width > 1 && height > 1) {
-            const areaNumber = printAreas.filter(a => a.product_image_id == currentImageId).length + 1;
+            var areaNumber = printAreas.filter(function(a) { return a.product_image_id == currentImageId; }).length + 1;
             printAreas.push({
                 id: null,
                 product_image_id: currentImageId,
@@ -179,6 +210,18 @@
                 width: width,
                 height: height
             });
+            
+            // Render the new area
+            var newRect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+            newRect.setAttribute('x', x + '%');
+            newRect.setAttribute('y', y + '%');
+            newRect.setAttribute('width', width + '%');
+            newRect.setAttribute('height', height + '%');
+            newRect.setAttribute('stroke', '#28a745');
+            newRect.setAttribute('stroke-width', '2');
+            newRect.setAttribute('fill', 'rgba(40, 167, 69, 0.2)');
+            svg.appendChild(newRect);
+            
             updateAreasDisplay();
         }
         
@@ -196,41 +239,57 @@
 
     // Update areas display
     function updateAreasDisplay() {
-        const imageAreas = printAreas.filter(area => area.product_image_id == currentImageId);
+        var imageAreas = printAreas.filter(function(area) { 
+            return area.product_image_id == currentImageId; 
+        });
         
         if (!currentImageId || imageAreas.length === 0) {
-            areasContainer.innerHTML = '<p style="color:#666;">No areas defined yet. Select an image and click "Set Print Area" to draw.</p>';
+            if (currentImageId) {
+                areasContainer.innerHTML = '<p style="color:#666;">No areas defined yet. Select an image and click "Set Print Area" to draw.</p>';
+            } else {
+                areasContainer.innerHTML = '<p style="color:#999;">Select an image above to start defining print areas.</p>';
+            }
             return;
         }
         
-        let html = '';
-        imageAreas.forEach((area, index) => {
+        var html = '';
+        imageAreas.forEach(function(area, index) {
+            var globalIndex = printAreas.indexOf(area);
             html += '<div class="print-area-item">';
             html += '<span class="area-info">Area ' + (index + 1) + ' (X: ' + area.x.toFixed(1) + '%, Y: ' + area.y.toFixed(1) + '%, W: ' + area.width.toFixed(1) + '%, H: ' + area.height.toFixed(1) + '%)</span>';
-            html += '<span class="delete-btn" data-index="' + printAreas.indexOf(area) + '">X</span>';
+            html += '<span class="delete-btn" data-index="' + globalIndex + '">X</span>';
             html += '</div>';
         });
         areasContainer.innerHTML = html;
         
         // Add delete handlers
-        areasContainer.querySelectorAll('.delete-btn').forEach(btn => {
-            btn.addEventListener('click', function() {
-                const index = parseInt(this.dataset.index);
-                printAreas.splice(index, 1);
-                updateAreasDisplay();
-                saveAreasBtn.disabled = false;
-            });
-        });
+        var deleteBtns = areasContainer.querySelectorAll('.delete-btn');
+        for (var i = 0; i < deleteBtns.length; i++) {
+            deleteBtns[i].addEventListener('click', (function(btn) {
+                return function() {
+                    var index = parseInt(btn.dataset.index);
+                    printAreas.splice(index, 1);
+                    renderExistingAreas();
+                    updateAreasDisplay();
+                    saveAreasBtn.disabled = false;
+                };
+            })(deleteBtns[i]));
+        }
     }
 
     // Save areas
     saveAreasBtn.addEventListener('click', async function() {
         if (!currentImageId) return;
         
-        const imageAreas = printAreas.filter(area => area.product_image_id == currentImageId);
+        var imageAreas = printAreas.filter(function(area) { 
+            return area.product_image_id == currentImageId; 
+        });
+        
+        saveAreasBtn.disabled = true;
+        saveAreasBtn.textContent = 'Saving...';
         
         try {
-            const response = await fetch('/customization/print-areas', {
+            var response = await fetch('/customization/print-areas', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -243,15 +302,19 @@
                 })
             });
             
-            const result = await response.json();
+            var result = await response.json();
             if (result.success) {
                 alert('Areas saved successfully!');
                 location.reload();
             } else {
                 alert('Error: ' + result.message);
+                saveAreasBtn.disabled = false;
+                saveAreasBtn.textContent = 'Save Areas';
             }
         } catch (error) {
             alert('Error saving areas: ' + error.message);
+            saveAreasBtn.disabled = false;
+            saveAreasBtn.textContent = 'Save Areas';
         }
     });
 })();
