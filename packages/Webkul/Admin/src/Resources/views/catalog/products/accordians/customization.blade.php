@@ -61,11 +61,11 @@
                 </div>
 
                 <!-- Images with Areas -->
-                <div v-if="imagesWithAreas.length === 0" class="rounded bg-gray-50 py-10 text-center text-sm text-gray-500 dark:bg-gray-800">
+                <div v-if="imagesWithAreas.length === 0" class="rounded bg-gray-50 p-4 text-center text-sm text-gray-500 dark:bg-gray-800">
                     No print areas defined yet. Click "Add Print Area" to create one.
                 </div>
 
-                <div v-else class="flex flex-wrap gap-1">
+                <div v-else class="flex flex-wrap gap-1 p-4">
                     <div
                         v-for="imageData in imagesWithAreas"
                         :key="imageData.id"
