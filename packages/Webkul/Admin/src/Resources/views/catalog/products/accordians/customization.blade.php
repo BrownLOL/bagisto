@@ -390,23 +390,9 @@
                     }
                 },
 
-                async deleteAllAreas() {
-                    if (!this.originalImageId) return;
-
-                    if (!confirm('Are you sure you want to delete all print areas for this image?')) {
-                        return;
-                    }
-
-                    try {
-                        const response = await this.$axios.delete("{{ route('admin.catalog.products.print-areas.delete-image', ':imageId') }}".replace(':imageId', this.originalImageId));
-
-                        if (response.data.success) {
-                            window.location.reload();
-                        } else {
-                            alert('Error: ' + response.data.message);
-                        }
-                    } catch (error) {
-                        alert('Error deleting areas: ' + error.message);
+                deleteAllAreas() {
+                    this.localAreas = [];
+                },
                     }
                 }
             }
