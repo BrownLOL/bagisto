@@ -62,46 +62,55 @@
                         No print areas defined yet. Click "Add Print Area" to create one.
                     </div>
 
-                    <div v-else class="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
+                    <!-- Group areas by image -->
+                    <div v-else>
                         <div
-                            v-for="(area, index) in allAreas"
-                            :key="index"
-                            class="relative rounded border border-gray-200 bg-gray-50 p-2 dark:border-gray-700 dark:bg-gray-800"
+                            v-for="(imageAreas, imageId) in groupedAreas"
+                            :key="imageId"
+                            class="mb-6"
                         >
-                            <!-- Preview Image with Area Overlay -->
-                            <div class="relative mb-2 overflow-hidden rounded">
-                                <img
-                                    :src="area.imageUrl"
-                                    :alt="'Print Area ' + (index + 1)"
-                                    class="h-24 w-full object-cover"
-                                >
-                                <div
-                                    class="absolute border-2 border-green-500 bg-green-500/20"
-                                    :style="{
-                                        left: area.x + '%',
-                                        top: area.y + '%',
-                                        width: area.width + '%',
-                                        height: area.height + '%'
-                                    }"
-                                ></div>
+                            <div class="mb-2 flex items-center gap-2">
+                                <span class="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    Image ID: @{{ imageId }}
+                                </span>
+                                <span class="text-xs text-gray-500">
+                                    (@{{ imageAreas.length }} area(s))
+                                </span>
                             </div>
+                            <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
+                                <div
+                                    v-for="(area, areaIndex) in imageAreas"
+                                    :key="area.id ?? 'new-' + areaIndex"
+                                    class="relative rounded border border-gray-200 bg-gray-50 p-2 dark:border-gray-700 dark:bg-gray-800"
+                                >
+                                    <!-- Preview Image with Area Overlay -->
+                                    <div class="relative mb-2 h-[80px] w-full overflow-hidden rounded">
+                                        <img
+                                            :src="area.imageUrl"
+                                            :alt="'Area ' + (areaIndex + 1)"
+                                            class="h-full w-full object-cover"
+                                        >
+                                        <div
+                                            class="absolute border-2 border-green-500 bg-green-500/20"
+                                            :style="{
+                                                left: area.x + '%',
+                                                top: area.y + '%',
+                                                width: area.width + '%',
+                                                height: area.height + '%'
+                                            }"
+                                        ></div>
+                                    </div>
 
-                            <!-- Info -->
-                            <p class="mb-1 truncate text-xs font-medium text-gray-700 dark:text-gray-300">
-                                Area @{{ index + 1 }}
-                            </p>
-                            <p class="mb-2 text-xs text-gray-500">
-                                @{{ Number(area.width).toFixed(0) }}% x @{{ Number(area.height).toFixed(0) }}%
-                            </p>
-
-                            <!-- Delete Button -->
-                            <button
-                                type="button"
-                                class="w-full cursor-pointer rounded bg-red-50 px-2 py-1 text-xs text-red-600 transition-colors hover:bg-red-100 dark:bg-red-900/30 dark:text-red-400 dark:hover:bg-red-900/50"
-                                @click="deleteArea(index)"
-                            >
-                                Remove
-                            </button>
+                                    <!-- Delete Button -->
+                                    <button
+                                        type="button"
+                                        class="w-full cursor-pointer rounded bg-red-50 px-2 py-1 text-xs text-red-600 transition-colors hover:bg-red-100 dark:bg-red-900/30 dark:text-red-400 dark:hover:bg-red-900/50"
+                                        @click="deleteArea(area.id)"
+                                    >
+                                        Remove
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -262,6 +271,20 @@
                 }
             },
 
+            computed: {
+                groupedAreas() {
+                    const grouped = {};
+                    this.allAreas.forEach(area => {
+                        const imageId = area.image_id;
+                        if (!grouped[imageId]) {
+                            grouped[imageId] = [];
+                        }
+                        grouped[imageId].push(area);
+                    });
+                    return grouped;
+                }
+            },
+
             methods: {
                 openDialog() {
                     this.$refs.printAreaModal.open();
@@ -381,10 +404,12 @@
                     }
                 },
 
-                async deleteArea(index) {
-                    const area = this.allAreas[index];
-                    if (!area.id) {
-                        this.allAreas.splice(index, 1);
+                async deleteArea(areaId) {
+                    const areaIndex = this.allAreas.findIndex(a => a.id === areaId);
+                    if (areaIndex === -1) return;
+
+                    if (!areaId) {
+                        this.allAreas.splice(areaIndex, 1);
                         return;
                     }
 
