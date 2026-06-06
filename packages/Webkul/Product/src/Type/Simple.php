@@ -70,7 +70,7 @@ class Simple extends AbstractType
     public function getAdditionalViews(): array
     {
         return array_merge(parent::getAdditionalViews(), [
-            'admin::catalog.products.accordians.customizations',
+            'admin::catalog.products.accordians.customization',
         ]);
     }
 
