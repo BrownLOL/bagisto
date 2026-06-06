@@ -52,23 +52,20 @@
                 ref="sliderContainer"
             >
                 <div
-                    class="w-full bg-cover bg-no-repeat"
+                    class="relative bg-no-repeat"
                     v-for="(image, index) in images"
                     :key="index"
                     @click="visitLink(image)"
                     ref="slide"
+                    :style="'aspect-ratio:1.6/1'"
                 >
-                    <x-shop::media.images.lazy
-                        class="w-full select-none object-cover"
-                        :style="'aspect-ratio:1.6/1'"
-                        :lazy="index === 0 ? false : true"
+                    <img
                         :src="image.image"
-                        :srcset="image.image + ' 1920w, ' + image.image.replace('storage', 'cache/large') + ' 1280w,' + image.image.replace('storage', 'cache/medium') + ' 1024w, ' + image.image.replace('storage', 'cache/small') + ' 768w'"
-                        sizes="(max-width: 1200px) 100vw, 1200px"
                         :alt="image?.title || 'Carousel Image ' + (index + 1)"
-                        tabindex="0"
+                        class="w-full h-full select-none object-cover"
+                        :loading="index === 0 ? 'eager' : 'lazy'"
                         :fetchpriority="index === 0 ? 'high' : 'low'"
-                        :decoding="index === 0 ? 'sync' : 'async'"
+                        decoding="async"
                     />
                 </div>
             </div>
