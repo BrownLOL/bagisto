@@ -141,7 +141,28 @@ class ProductController extends Controller
     {
         $product = $this->productRepository->findOrFail($id);
 
-        return view('admin::catalog.products.edit', compact('product'));
+        // Get images with print areas
+        $imagesWithAreas = $product->images
+            ->map(function ($image) {
+                return [
+                    'id'  => $image->id,
+                    'url' => $image->url,
+                    'areas' => $image->printAreas->map(function ($area) {
+                        return [
+                            'id'       => $area->id,
+                            'x'        => (float) $area->x,
+                            'y'        => (float) $area->y,
+                            'width'    => (float) $area->width,
+                            'height'   => (float) $area->height,
+                        ];
+                    })->toArray(),
+                ];
+            })
+            ->filter(fn($img) => count($img['areas']) > 0)
+            ->values()
+            ->toArray();
+
+        return view('admin::catalog.products.edit', compact('product', 'imagesWithAreas'));
     }
 
     /**
