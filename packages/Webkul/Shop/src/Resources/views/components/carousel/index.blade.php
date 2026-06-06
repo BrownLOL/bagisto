@@ -22,7 +22,7 @@
 @endif
 
 <v-carousel :images="{{ json_encode($carouselImages) }}">
-    <div class="overflow-hidden" style="width:100%;max-width:1200px;margin:0 auto;">
+    <div class="overflow-hidden relative" style="max-width:1200px;margin:0 auto;">
         @if ($firstImage)
             <img
                 src="{{ $firstImage }}"
@@ -45,29 +45,23 @@
         type="text/x-template"
         id="v-carousel-template"
     >
-        <div class="relative w-full overflow-hidden" :style="'max-width:1200px;margin:0 auto'">
-            <!-- Slider -->
+        <div class="relative" style="max-width:1200px;margin:0 auto;">
+            <!-- Slides -->
             <div
-                class="inline-flex translate-x-0 cursor-pointer transition-transform duration-700 ease-out will-change-transform"
-                ref="sliderContainer"
+                v-for="(image, index) in images"
+                :key="index"
+                v-show="currentIndex === index"
+                :style="'position:absolute;top:0;left:0;width:100%;aspect-ratio:1.6/1;cursor:' + (image.url ? 'pointer' : 'default')"
+                @click="visitLink(image)"
             >
-                <div
-                    class="relative bg-no-repeat"
-                    v-for="(image, index) in images"
-                    :key="index"
-                    @click="visitLink(image)"
-                    ref="slide"
-                    :style="'aspect-ratio:1.6/1'"
-                >
-                    <img
-                        :src="image.image"
-                        :alt="image?.title || 'Carousel Image ' + (index + 1)"
-                        class="w-full h-full select-none object-cover"
-                        :loading="index === 0 ? 'eager' : 'lazy'"
-                        :fetchpriority="index === 0 ? 'high' : 'low'"
-                        decoding="async"
-                    />
-                </div>
+                <img
+                    :src="image.image"
+                    :alt="image?.title || 'Carousel Image ' + (index + 1)"
+                    class="w-full h-full select-none object-cover"
+                    :loading="index === 0 ? 'eager' : 'lazy'"
+                    :fetchpriority="index === 0 ? 'high' : 'low'"
+                    decoding="async"
+                />
             </div>
 
             <!-- Navigation -->
@@ -81,7 +75,7 @@
                 aria-label="@lang('shop::components.carousel.previous')"
                 tabindex="0"
                 v-if="images?.length >= 2"
-                @click="navigate('prev')"
+                @click.stop="navigate('prev')"
             >
             </span>
 
@@ -95,7 +89,7 @@
                 aria-label="@lang('shop::components.carousel.next')"
                 tabindex="0"
                 v-if="images?.length >= 2"
-                @click="navigate('next')"
+                @click.stop="navigate('next')"
             >
             </span>
 
@@ -111,7 +105,7 @@
                         role="button"
                         tabindex="0"
                         :aria-label="'Go to slide ' + (index + 1)"
-                        @click="goTo(index)"
+                        @click.stop="goTo(index)"
                         @keydown.enter="goTo(index)"
                         @keydown.space.prevent="goTo(index)"
                     >
@@ -160,27 +154,10 @@
                             this.currentIndex = this.images.length - 1;
                         }
                     }
-
-                    this.updateSlider();
                 },
 
                 goTo(index) {
                     this.currentIndex = index;
-                    this.updateSlider();
-                },
-
-                updateSlider() {
-                    const slider = this.$refs.sliderContainer;
-
-                    if (!slider) {
-                        return;
-                    }
-
-                    if (this.direction === 'rtl') {
-                        slider.style.transform = `translateX(${this.currentIndex * 100}%)`;
-                    } else {
-                        slider.style.transform = `translateX(-${this.currentIndex * 100}%)`;
-                    }
                 },
 
                 startAutoplay() {
