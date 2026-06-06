@@ -49,7 +49,7 @@
                         <button
                             type="button"
                             class="secondary-button"
-                            @click="showDialog = true"
+                            @click="openDialog"
                         >
                             Add Print Area
                         </button>
@@ -107,11 +107,8 @@
                 </div>
             </div>
 
-            <!-- Add Print Area Dialog -->
-            <x-admin::modal
-                v-if="showDialog"
-                @toggle="showDialog = false"
-            >
+            <!-- Add Print Area Modal -->
+            <x-admin::modal ref="printAreaModal">
                 <!-- Modal Header -->
                 <x-slot:header>
                     <p class="text-lg font-semibold text-gray-800 dark:text-white">
@@ -192,7 +189,7 @@
                         <button
                             type="button"
                             class="cursor-pointer rounded border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
-                            @click="showDialog = false"
+                            @click="closeDialog"
                         >
                             Cancel
                         </button>
@@ -240,7 +237,6 @@
                     productId: {{ $product->id }},
                     images: {!! json_encode($productImages) !!},
                     allAreas: {!! json_encode($printAreas) !!},
-                    showDialog: false,
                     dialogSelectedImageId: '',
                     dialogSelectedImageUrl: '',
                     imageLoaded: false,
@@ -259,6 +255,20 @@
             },
 
             methods: {
+                openDialog() {
+                    this.$refs.printAreaModal.open();
+                },
+
+                closeDialog() {
+                    this.$refs.printAreaModal.close();
+                    // Reset state
+                    this.dialogSelectedImageId = '';
+                    this.dialogSelectedImageUrl = '';
+                    this.imageLoaded = false;
+                    this.tempRect = null;
+                    this.isDrawing = false;
+                },
+
                 onDialogImageChange() {
                     this.imageLoaded = false;
                     this.tempRect = null;
@@ -357,9 +367,7 @@
                                 height: this.tempRect.height
                             });
 
-                            this.showDialog = false;
-                            this.dialogSelectedImageId = '';
-                            this.tempRect = null;
+                            this.closeDialog();
                         } else {
                             alert('Error: ' + response.data.message);
                         }
