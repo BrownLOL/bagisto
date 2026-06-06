@@ -14,7 +14,7 @@ return new class extends Migration
         // 商品图片可打印区域表
         Schema::create('product_image_print_areas', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('product_image_id');
+            $table->unsignedInteger('product_image_id');
             $table->foreign('product_image_id')->references('id')->on('product_images')->onDelete('cascade');
             $table->string('name')->nullable()->comment('区域名称');
             $table->decimal('x', 8, 4)->default(0)->comment('X坐标百分比');
