@@ -141,6 +141,14 @@ class ProductController extends Controller
     {
         $product = $this->productRepository->findOrFail($id);
 
+        // Get all product images for selection
+        $productImages = $product->images->map(function ($image) {
+            return [
+                'id'  => $image->id,
+                'url' => $image->url,
+            ];
+        })->toArray();
+
         // Get images with print areas
         $imagesWithAreas = $product->images
             ->map(function ($image) {
@@ -162,7 +170,7 @@ class ProductController extends Controller
             ->values()
             ->toArray();
 
-        return view('admin::catalog.products.edit', compact('product', 'imagesWithAreas'));
+        return view('admin::catalog.products.edit', compact('product', 'productImages', 'imagesWithAreas'));
     }
 
     /**
