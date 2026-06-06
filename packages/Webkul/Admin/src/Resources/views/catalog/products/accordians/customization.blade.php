@@ -282,6 +282,7 @@
 
             errorCaptured(error) {
                 console.error('ProductCustomization error:', error);
+                console.error('Error stack:', error.stack);
                 return false;
             },
 
