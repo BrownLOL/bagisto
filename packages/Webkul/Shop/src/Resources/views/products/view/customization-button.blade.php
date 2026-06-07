@@ -66,7 +66,7 @@ alert('脚本开始执行！');
     function loadPrintAreas(productId) {
         dialogContent.innerHTML = '<p style="text-align: center; padding: 40px;">加载中...</p>';
         
-        fetch('/api/product/' + productId + '/print-areas')
+        fetch('/print-areas/' + productId)
             .then(function(response) { return response.json(); })
             .then(function(data) {
                 console.log('Print areas data:', data);
