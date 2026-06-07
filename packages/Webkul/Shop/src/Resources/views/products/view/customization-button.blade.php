@@ -40,7 +40,7 @@
 <script>
     // 全局变量存储商品信息
     window.productCustomizationData = {
-        productId: {{ $product->id }},
+        productId: @json($product->id),
         printAreas: [],
         images: []
     };
