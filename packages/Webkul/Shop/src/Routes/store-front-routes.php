@@ -4,7 +4,7 @@ use Illuminate\Support\Facades\Route;
 use Webkul\Core\Http\Middleware\NoCacheMiddleware;
 use Webkul\Shop\Http\Controllers\BookingProductController;
 use Webkul\Shop\Http\Controllers\CompareController;
-use Webkul\Shop\Http\Controllers\CustomizationController;
+use Webkul\Shop\Http\Controllers\ProductCustomizationController;
 use Webkul\Shop\Http\Controllers\EUWithdrawalController;
 use Webkul\Shop\Http\Controllers\HomeController;
 use Webkul\Shop\Http\Controllers\PageController;
@@ -114,30 +114,30 @@ Route::get('booking-slots/{id}', [BookingProductController::class, 'index'])
 /**
  * Product customization routes
  */
-use Webkul\Shop\Http\Controllers\ProductCustomizationController;
+use Webkul\Shop\Http\Controllers\ProductProductCustomizationController;
 
 Route::prefix('customization')->group(function () {
-    Route::get('print-areas/{productId}', [ProductCustomizationController::class, 'getPrintAreas'])
+    Route::get('print-areas/{productId}', [ProductProductCustomizationController::class, 'getPrintAreas'])
         ->name('shop.customization.print-areas');
     
-    Route::post('print-areas/save', [ProductCustomizationController::class, 'savePrintAreas'])
+    Route::post('print-areas/save', [ProductProductCustomizationController::class, 'savePrintAreas'])
         ->name('shop.customization.print-areas.save');
     
-    Route::post('upload-image', [ProductCustomizationController::class, 'uploadImage'])
+    Route::post('upload-image', [ProductProductCustomizationController::class, 'uploadImage'])
         ->name('shop.customization.upload-image');
     
-    Route::post('save-base64-image', [ProductCustomizationController::class, 'saveBase64Image'])
+    Route::post('save-base64-image', [ProductProductCustomizationController::class, 'saveBase64Image'])
         ->name('shop.customization.save-base64-image');
 });
 
 /**
  * Customization Designer Page
  */
-Route::get('customization/designer/{id}', [CustomizationController::class, 'designer'])
+Route::get('customization/designer/{id}', [ProductCustomizationController::class, 'designer'])
     ->name('shop.customization.designer');
 
-Route::post('api/customization/upload-preview', [CustomizationController::class, 'uploadPreview'])
+Route::post('api/customization/upload-preview', [ProductCustomizationController::class, 'uploadPreview'])
     ->name('shop.customization.upload-preview');
 
-Route::post('api/cart/add-customization', [CustomizationController::class, 'addToCart'])
+Route::post('api/cart/add-customization', [ProductCustomizationController::class, 'addToCart'])
     ->name('shop.customization.add-cart');
