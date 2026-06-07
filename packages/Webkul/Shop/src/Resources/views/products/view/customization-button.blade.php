@@ -1,16 +1,15 @@
-<div id="test-customization">
-    <p>Customization Test - Product ID: <?php echo $product->id; ?></p>
-    
-    <button id="test-btn" class="px-4 py-2 bg-blue-500 text-white rounded">
-        Test Button
+<div id="customization-app">
+    <button
+        id="customize-btn"
+        class="px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary-darker transition-colors"
+        onclick="window.location.href = '/customization/designer/' + 1"
+    >
+        立即定制
     </button>
-    
+
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            var btn = document.getElementById('test-btn');
-            btn.addEventListener('click', function() {
-                console.log('Button clicked');
-            });
+            console.log('Customization initialized');
         });
     </script>
 </div>
