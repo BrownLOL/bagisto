@@ -114,19 +114,19 @@ Route::get('booking-slots/{id}', [BookingProductController::class, 'index'])
 /**
  * Product customization routes
  */
-use Webkul\Shop\Http\Controllers\ProductProductCustomizationController;
+use Webkul\Shop\Http\Controllers\ProductCustomizationController;
 
 Route::prefix('customization')->group(function () {
-    Route::get('print-areas/{productId}', [ProductProductCustomizationController::class, 'getPrintAreas'])
+    Route::get('print-areas/{productId}', [ProductCustomizationController::class, 'getPrintAreas'])
         ->name('shop.customization.print-areas');
     
-    Route::post('print-areas/save', [ProductProductCustomizationController::class, 'savePrintAreas'])
+    Route::post('print-areas/save', [ProductCustomizationController::class, 'savePrintAreas'])
         ->name('shop.customization.print-areas.save');
     
-    Route::post('upload-image', [ProductProductCustomizationController::class, 'uploadImage'])
+    Route::post('upload-image', [ProductCustomizationController::class, 'uploadImage'])
         ->name('shop.customization.upload-image');
     
-    Route::post('save-base64-image', [ProductProductCustomizationController::class, 'saveBase64Image'])
+    Route::post('save-base64-image', [ProductCustomizationController::class, 'saveBase64Image'])
         ->name('shop.customization.save-base64-image');
 });
 
