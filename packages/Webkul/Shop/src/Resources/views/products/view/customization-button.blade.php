@@ -1,7 +1,3 @@
 <div id="test-customization">
-    <p>Customization Test - Product ID: {{ $product->id }}</p>
+    <p>Customization Test</p>
 </div>
-
-<script>
-console.log('Customization script loaded for product {{ $product->id }}');
-</script>
