@@ -206,17 +206,353 @@
     </div>
 </div>
 
-<!-- Load JS -->
-@vite(['src/Resources/assets/js/components/customization/designer.js'])
+
 
 <script>
 window.productId = {{ $productId }};
 window.printAreas = @json($printAreas ?? []);
 window.productImage = @json($productImage ?? null);
-window.baseUrl = '{{ url('/') }}';
+window.baseUrl = '{{ url('/') }};
+
+// State
+var state = {
+    selectedElement: null,
+    elements: [],
+    zoom: 1,
+    currentTab: 'product',
+    uploadedImages: []
+};
 
 // Initialize
 document.addEventListener('DOMContentLoaded', function() {
     initDesigner();
 });
+
+function initDesigner() {
+    console.log('Designer initialized');
+    console.log('Product ID:', window.productId);
+    console.log('Print Areas:', window.printAreas);
+    console.log('Product Image:', window.productImage);
+    
+    // Display product images if available
+    if (window.productImage) {
+        displayProductImage(window.productImage);
+    }
+}
+
+function displayProductImage(image) {
+    var canvasProductImage = document.getElementById('canvas-product-image');
+    if (canvasProductImage && image.url) {
+        canvasProductImage.src = window.baseUrl + image.url;
+        canvasProductImage.onload = function() {
+            // Update print area indicator based on first area
+            if (window.printAreas && window.printAreas.length > 0) {
+                updatePrintAreaIndicator(window.printAreas[0]);
+            }
+        };
+    }
+}
+
+function updatePrintAreaIndicator(area) {
+    var indicator = document.getElementById('print-area-indicator');
+    if (indicator) {
+        indicator.style.left = area.x + '%';
+        indicator.style.top = area.y + '%';
+        indicator.style.width = area.width + '%';
+        indicator.style.height = area.height + '%';
+    }
+}
+
+function switchTab(tab) {
+    // Update tab buttons
+    document.querySelectorAll('.tab-btn').forEach(function(btn) {
+        if (btn.dataset.tab === tab) {
+            btn.classList.add('border-blue-500', 'text-blue-500');
+            btn.classList.remove('border-transparent', 'text-gray-500');
+        } else {
+            btn.classList.remove('border-blue-500', 'text-blue-500');
+            btn.classList.add('border-transparent', 'text-gray-500');
+        }
+    });
+    
+    // Update tab content
+    document.querySelectorAll('.tab-content').forEach(function(content) {
+        content.classList.add('hidden');
+    });
+    document.getElementById('tab-' + tab).classList.remove('hidden');
+    
+    state.currentTab = tab;
+}
+
+function handleImageUpload(input) {
+    var file = input.files[0];
+    if (!file) return;
+    
+    var reader = new FileReader();
+    reader.onload = function(e) {
+        var imageData = e.target.result;
+        addUploadedImage(imageData);
+    };
+    reader.readAsDataURL(file);
+}
+
+function addUploadedImage(dataUrl) {
+    state.uploadedImages.push(dataUrl);
+    var container = document.getElementById('uploaded-images');
+    var div = document.createElement('div');
+    div.className = 'cursor-pointer border rounded p-1 hover:border-blue-500';
+    div.innerHTML = '<img src="' + dataUrl + '" class="w-full aspect-square object-cover">';
+    div.onclick = function() {
+        addImageToCanvas(dataUrl);
+    };
+    container.appendChild(div);
+}
+
+function addImageToCanvas(dataUrl) {
+    var img = document.createElement('img');
+    img.src = dataUrl;
+    img.className = 'absolute cursor-move custom-element';
+    img.style.width = '100px';
+    img.style.height = '100px';
+    img.style.left = '50%';
+    img.style.top = '50%';
+    img.style.transform = 'translate(-50%, -50%)';
+    img.style.zIndex = 10;
+    img.onclick = function(e) {
+        e.stopPropagation();
+        selectElement(img);
+    };
+    
+    makeDraggable(img);
+    
+    var elements = document.getElementById('custom-elements');
+    elements.appendChild(img);
+    
+    state.elements.push({
+        type: 'image',
+        element: img,
+        dataUrl: dataUrl
+    });
+    
+    selectElement(img);
+}
+
+function addTextElement() {
+    var content = document.getElementById('text-content').value || 'Text';
+    var size = document.getElementById('text-size').value || 24;
+    var color = document.getElementById('text-color').value || '#000000';
+    var font = document.getElementById('text-font').value || 'Arial';
+    
+    var text = document.createElement('div');
+    text.className = 'absolute cursor-move custom-element flex items-center justify-center';
+    text.textContent = content;
+    text.style.fontSize = size + 'px';
+    text.style.color = color;
+    text.style.fontFamily = font;
+    text.style.left = '50%';
+    text.style.top = '50%';
+    text.style.transform = 'translate(-50%, -50%)';
+    text.style.zIndex = 10;
+    text.style.minWidth = '50px';
+    text.style.minHeight = size + 'px';
+    text.onclick = function(e) {
+        e.stopPropagation();
+        selectElement(text);
+    };
+    
+    makeDraggable(text);
+    
+    var elements = document.getElementById('custom-elements');
+    elements.appendChild(text);
+    
+    state.elements.push({
+        type: 'text',
+        element: text
+    });
+    
+    selectElement(text);
+}
+
+function makeDraggable(element) {
+    var pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+    
+    element.onmousedown = dragMouseDown;
+    element.ontouchstart = dragTouchStart;
+    
+    function dragMouseDown(e) {
+        if (e.target !== element) return;
+        e.preventDefault();
+        pos3 = e.clientX;
+        pos4 = e.clientY;
+        document.onmouseup = closeDragElement;
+        document.onmousemove = elementDrag;
+    }
+    
+    function dragTouchStart(e) {
+        if (e.target !== element) return;
+        e.preventDefault();
+        var touch = e.touches[0];
+        pos3 = touch.clientX;
+        pos4 = touch.clientY;
+        document.ontouchend = closeDragElement;
+        document.ontouchmove = elementDragTouch;
+    }
+    
+    function elementDrag(e) {
+        e.preventDefault();
+        pos1 = pos3 - e.clientX;
+        pos2 = pos4 - e.clientY;
+        pos3 = e.clientX;
+        pos4 = e.clientY;
+        element.style.top = (element.offsetTop - pos2) + 'px';
+        element.style.left = (element.offsetLeft - pos1) + 'px';
+    }
+    
+    function elementDragTouch(e) {
+        e.preventDefault();
+        var touch = e.touches[0];
+        pos1 = pos3 - touch.clientX;
+        pos2 = pos4 - touch.clientY;
+        pos3 = touch.clientX;
+        pos4 = touch.clientY;
+        element.style.top = (element.offsetTop - pos2) + 'px';
+        element.style.left = (element.offsetLeft - pos1) + 'px';
+    }
+    
+    function closeDragElement() {
+        document.onmouseup = null;
+        document.onmousemove = null;
+        document.ontouchend = null;
+        document.ontouchmove = null;
+    }
+}
+
+function selectElement(el) {
+    // Deselect previous
+    if (state.selectedElement) {
+        state.selectedElement.style.outline = '';
+    }
+    
+    state.selectedElement = el;
+    el.style.outline = '2px solid blue';
+    
+    document.getElementById('element-actions').classList.remove('hidden');
+    document.getElementById('no-selection').classList.add('hidden');
+}
+
+function deselectAll() {
+    if (state.selectedElement) {
+        state.selectedElement.style.outline = '';
+        state.selectedElement = null;
+    }
+    document.getElementById('element-actions').classList.add('hidden');
+    document.getElementById('no-selection').classList.remove('hidden');
+}
+
+document.getElementById('design-canvas').onclick = function(e) {
+    if (e.target.id === 'design-canvas' || e.target.id === 'custom-elements') {
+        deselectAll();
+    }
+};
+
+function maximizeElement() {
+    if (!state.selectedElement) return;
+    state.selectedElement.style.width = '100%';
+    state.selectedElement.style.height = '100%';
+    state.selectedElement.style.left = '0';
+    state.selectedElement.style.top = '0';
+    state.selectedElement.style.transform = 'none';
+}
+
+function flipHorizontal() {
+    if (!state.selectedElement) return;
+    var transform = state.selectedElement.style.transform || '';
+    if (transform.includes('scaleX(-1)')) {
+        transform = transform.replace('scaleX(-1)', '');
+    } else {
+        transform += ' scaleX(-1)';
+    }
+    state.selectedElement.style.transform = transform.trim();
+}
+
+function flipVertical() {
+    if (!state.selectedElement) return;
+    var transform = state.selectedElement.style.transform || '';
+    if (transform.includes('scaleY(-1)')) {
+        transform = transform.replace('scaleY(-1)', '');
+    } else {
+        transform += ' scaleY(-1)';
+    }
+    state.selectedElement.style.transform = transform.trim();
+}
+
+function rotateLeft() {
+    if (!state.selectedElement) return;
+    var current = state.selectedElement.style.transform || '';
+    var match = current.match(/rotate\(([-\d.]+)deg\)/);
+    var angle = match ? parseFloat(match[1]) - 90 : -90;
+    current = current.replace(/rotate\([-\d.]+deg\)/, '');
+    state.selectedElement.style.transform = (current.trim() + ' rotate(' + angle + 'deg)').trim();
+}
+
+function rotateRight() {
+    if (!state.selectedElement) return;
+    var current = state.selectedElement.style.transform || '';
+    var match = current.match(/rotate\(([-\d.]+)deg\)/);
+    var angle = match ? parseFloat(match[1]) + 90 : 90;
+    current = current.replace(/rotate\([-\d.]+deg\)/, '');
+    state.selectedElement.style.transform = (current.trim() + ' rotate(' + angle + 'deg)').trim();
+}
+
+function bringToFront() {
+    if (!state.selectedElement) return;
+    var maxZ = 10;
+    state.elements.forEach(function(item) {
+        var z = parseInt(item.element.style.zIndex) || 10;
+        if (z > maxZ) maxZ = z;
+    });
+    state.selectedElement.style.zIndex = maxZ + 1;
+}
+
+function sendToBack() {
+    if (!state.selectedElement) return;
+    var minZ = 1;
+    state.elements.forEach(function(item) {
+        var z = parseInt(item.element.style.zIndex) || 10;
+        if (z < minZ) minZ = z;
+    });
+    state.selectedElement.style.zIndex = Math.max(1, minZ - 1);
+}
+
+function deleteElement() {
+    if (!state.selectedElement) return;
+    state.selectedElement.remove();
+    state.elements = state.elements.filter(function(item) {
+        return item.element !== state.selectedElement;
+    });
+    state.selectedElement = null;
+    deselectAll();
+}
+
+function zoomIn() {
+    state.zoom = Math.min(2, state.zoom + 0.1);
+    document.getElementById('design-canvas').style.transform = 'scale(' + state.zoom + ')';
+    document.getElementById('zoom-level').textContent = Math.round(state.zoom * 100) + '%';
+}
+
+function zoomOut() {
+    state.zoom = Math.max(0.5, state.zoom - 0.1);
+    document.getElementById('design-canvas').style.transform = 'scale(' + state.zoom + ')';
+    document.getElementById('zoom-level').textContent = Math.round(state.zoom * 100) + '%';
+}
+
+function cancelDesign() {
+    if (confirm('Are you sure you want to cancel?')) {
+        history.back();
+    }
+}
+
+function saveDesign() {
+    alert('Design saved! (Integration with cart coming soon)');
+}
 </script>
