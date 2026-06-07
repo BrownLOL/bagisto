@@ -36,6 +36,8 @@
     // Open dialog on button click
     btn.addEventListener('click', function(e) {
         e.preventDefault();
+        e.stopPropagation();
+        alert('按钮被点击了！');
         var productId = this.getAttribute('data-product-id');
         console.log('Customize clicked, product ID:', productId);
         
