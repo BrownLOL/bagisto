@@ -77,7 +77,7 @@ alert('脚本开始执行！');
                     
                     data.data.forEach(function(item) {
                         html += '<div style="border: 1px solid #ddd; border-radius: 8px; padding: 12px; text-align: center; cursor: pointer;" onclick="window.location.href=\'/customization/designer/' + productId + '\'">';
-                        html += '<img src="' + item.image_url + '" style="width: 100%; height: 120px; object-fit: contain; margin-bottom: 8px;" />';
+                        html += '<img src="' + (item.image_url || item.url || item.src || 'https://via.placeholder.com/150') + '" style="width: 100%; height: 120px; object-fit: contain; margin-bottom: 8px;" />';
                         html += '<p style="margin: 0; font-size: 14px;">区域 ' + item.id + '</p>';
                         html += '</div>';
                     });
