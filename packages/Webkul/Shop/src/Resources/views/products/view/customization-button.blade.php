@@ -150,12 +150,49 @@
             .then(function(data) {
                 if (data.success && data.data.length > 0) {
                     printAreas = data.data;
+                    
+                    // Display product images list
+                    displayProductImagesList(data.data);
+                    
+                    // Display first image
                     productImage = data.data[0].image_url;
                     displayProductImage();
                 } else {
                     document.getElementById('no-areas-msg').classList.remove('hidden');
                 }
             });
+    }
+    
+    function displayProductImagesList(areas) {
+        var container = document.getElementById('product-images');
+        container.innerHTML = '';
+        
+        // Group by image URL to show unique images
+        var imagesMap = {};
+        areas.forEach(function(area) {
+            if (area.image_url && !imagesMap[area.image_url]) {
+                imagesMap[area.image_url] = area;
+            }
+        });
+        
+        Object.keys(imagesMap).forEach(function(url) {
+            var area = imagesMap[url];
+            var div = document.createElement('div');
+            div.className = 'cursor-pointer border-2 border-transparent hover:border-blue-500 rounded overflow-hidden';
+            div.innerHTML = '<img src="' + area.image_url + '" class="w-full h-16 object-cover">';
+            div.onclick = (function(imgUrl) {
+                return function() {
+                    productImage = imgUrl;
+                    displayProductImage();
+                    // Update selection visual
+                    container.querySelectorAll('div').forEach(function(d) {
+                        d.classList.remove('border-blue-500');
+                    });
+                    this.classList.add('border-blue-500');
+                };
+            })(area.image_url);
+            container.appendChild(div);
+        });
     }
     
     function displayProductImage() {
