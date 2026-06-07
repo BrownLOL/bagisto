@@ -3,10 +3,10 @@
     window.productId = <?php echo $productId; ?>;
 </script>
 
-<div id="customization-app">
+<div id="customization-app" style="margin: 20px 0;">
     <button
         id="customize-btn"
-        class="px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary-darker transition-colors"
+        style="display: inline-block; padding: 12px 24px; background-color: #3b82f6; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 16px;"
     >
         立即定制
     </button>
