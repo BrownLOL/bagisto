@@ -128,11 +128,10 @@
     console.log('Button:', customizeBtn);
     
     if (customizeBtn) {
-        customizeBtn.onclick = function() {
-            console.log('Button clicked!');
+        customizeBtn.addEventListener('click', function() {
+            alert('Button clicked!');
             dialog.style.display = 'flex';
-            loadPrintAreas();
-        };
+        });
     } else {
         console.error('Customize button not found!');
     }
