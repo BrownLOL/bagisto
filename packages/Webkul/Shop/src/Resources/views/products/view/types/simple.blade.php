@@ -1,3 +1,3 @@
 {{-- @include('shop::products.view.customizable-options') --}}
 
-@include('shop::products.view.customization-button')
+{{-- Customization button moved to view.blade.php outside v-product --}}
