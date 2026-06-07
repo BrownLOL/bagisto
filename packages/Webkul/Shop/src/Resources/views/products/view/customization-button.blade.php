@@ -109,9 +109,7 @@
 
 <script>
 (function() {
-    alert('Script loaded!');
     var productId = {{ $product->id }};
-    alert('Product ID: ' + productId);
     var printAreas = [];
     var productImage = null;
     var selectedElement = null;
