@@ -10,10 +10,6 @@
             var btn = document.getElementById('test-btn');
             btn.addEventListener('click', function() {
                 console.log('Button clicked');
-                fetch('/api/test', { method: 'GET' })
-                    .then(function(response) { return response.json(); })
-                    .then(function(data) { console.log(data); })
-                    .catch(function(error) { console.error('Error:', error); });
             });
         });
     </script>
