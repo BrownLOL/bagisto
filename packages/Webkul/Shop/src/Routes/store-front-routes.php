@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use Webkul\Core\Http\Middleware\NoCacheMiddleware;
 use Webkul\Shop\Http\Controllers\BookingProductController;
 use Webkul\Shop\Http\Controllers\CompareController;
+use Webkul\Shop\Http\Controllers\CustomizationController;
 use Webkul\Shop\Http\Controllers\EUWithdrawalController;
 use Webkul\Shop\Http\Controllers\HomeController;
 use Webkul\Shop\Http\Controllers\PageController;
@@ -128,3 +129,15 @@ Route::prefix('customization')->group(function () {
     Route::post('save-base64-image', [ProductCustomizationController::class, 'saveBase64Image'])
         ->name('shop.customization.save-base64-image');
 });
+
+/**
+ * Customization Designer Page
+ */
+Route::get('customization/designer/{id}', [CustomizationController::class, 'designer'])
+    ->name('shop.customization.designer');
+
+Route::post('api/customization/upload-preview', [CustomizationController::class, 'uploadPreview'])
+    ->name('shop.customization.upload-preview');
+
+Route::post('api/cart/add-customization', [CustomizationController::class, 'addToCart'])
+    ->name('shop.customization.add-cart');

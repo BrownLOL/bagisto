@@ -1,314 +1,222 @@
-<!DOCTYPE html>
-<html lang="{{ app()->getLocale() }}">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ __('shop::app.products.customization.designer-title') }}</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/fabric@5.3.0/dist/fabric.min.js"></script>
-    <style>
-        .print-area-highlight {
-            border: 2px dashed #3b82f6;
-            background-color: rgba(59, 130, 246, 0.1);
-        }
-        .canvas-container {
-            display: inline-block;
-        }
-        .toolbar-btn {
-            @apply px-4 py-2 rounded transition-colors;
-        }
-        .toolbar-btn:hover {
-            @apply bg-blue-100;
-        }
-        .toolbar-btn.active {
-            @apply bg-blue-500 text-white;
-        }
-    </style>
-</head>
-<body class="bg-gray-100 min-h-screen">
-    <div class="container mx-auto px-4 py-8">
-        <div class="bg-white rounded-lg shadow-lg p-6">
-            <h1 class="text-2xl font-bold mb-6">{{ __('shop::app.products.customization.designer-title') }}</h1>
+@php
+    $productId = $product->id;
+@endphp
+
+<div class="container mx-auto max-w-[1200px] px-4 py-8">
+    <h1 class="text-2xl font-bold mb-6">{{ __('Customization Designer') }}</h1>
+    
+    <div class="flex gap-4" style="height: 600px;">
+        <!-- Left Panel - Selection -->
+        <div class="w-64 bg-white border rounded-lg flex flex-col">
+            <!-- Tabs -->
+            <div class="flex border-b">
+                <button 
+                    onclick="switchTab('product')"
+                    class="tab-btn flex-1 px-4 py-2 text-sm font-medium border-b-2 border-blue-500 text-blue-500"
+                    data-tab="product">
+                    {{ __('Product') }}
+                </button>
+                <button 
+                    onclick="switchTab('image')"
+                    class="tab-btn flex-1 px-4 py-2 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700"
+                    data-tab="image">
+                    {{ __('Image') }}
+                </button>
+                <button 
+                    onclick="switchTab('text')"
+                    class="tab-btn flex-1 px-4 py-2 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700"
+                    data-tab="text">
+                    {{ __('Text') }}
+                </button>
+            </div>
             
-            <div class="flex flex-wrap gap-8">
-                <!-- Left: Product Image with Print Areas -->
-                <div class="flex-1 min-w-0">
-                    <div class="mb-4">
-                        <h3 class="font-semibold mb-2">{{ __('shop::app.products.customization.select-area') }}</h3>
-                        <div id="print-areas-container" class="relative inline-block border border-gray-300 rounded">
-                            <img id="product-image" src="" alt="Product" class="max-w-full">
-                            <div id="print-areas-overlay" class="absolute inset-0 pointer-events-none"></div>
-                        </div>
-                    </div>
-                    
-                    <!-- Preview Section -->
-                    <div id="preview-section" class="hidden">
-                        <h3 class="font-semibold mb-2">{{ __('shop::app.products.customization.preview') }}</h3>
-                        <div class="border border-gray-300 rounded p-4 bg-gray-50">
-                            <canvas id="preview-canvas" width="400" height="400"></canvas>
-                        </div>
+            <!-- Tab Content -->
+            <div class="flex-1 overflow-auto p-4">
+                <!-- Product Tab -->
+                <div id="tab-product" class="tab-content">
+                    <div id="product-images" class="grid grid-cols-2 gap-2">
+                        <!-- Product images will be loaded here -->
                     </div>
                 </div>
                 
-                <!-- Right: Tools and Options -->
-                <div class="w-full md:w-80">
-                    <!-- Print Areas List -->
-                    <div class="mb-6">
-                        <h3 class="font-semibold mb-2">{{ __('shop::app.products.customization.print-areas') }}</h3>
-                        <div id="areas-list" class="space-y-2">
-                            <!-- Print areas will be listed here -->
-                        </div>
-                        @if(count($printAreas) == 0)
-                            <p class="text-gray-500 text-sm">{{ __('shop::app.products.customization.no-areas') }}</p>
-                        @endif
+                <!-- Image Tab -->
+                <div id="tab-image" class="tab-content hidden">
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium mb-2">{{ __('Upload Image') }}</label>
+                        <input 
+                            type="file" 
+                            id="custom-image-upload" 
+                            accept="image/*"
+                            class="w-full border rounded p-2"
+                            onchange="handleImageUpload(this)">
                     </div>
-                    
-                    <!-- Upload Section -->
-                    <div class="mb-6">
-                        <h3 class="font-semibold mb-2">{{ __('shop::app.products.customization.upload-image') }}</h3>
-                        <div class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
-                            <input type="file" id="custom-image-input" accept="image/*" class="hidden">
-                            <label for="custom-image-input" class="cursor-pointer">
-                                <div class="text-gray-500">
-                                    <svg class="w-12 h-12 mx-auto mb-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                                    </svg>
-                                    <p>{{ __('shop::app.products.customization.click-to-upload') }}</p>
-                                </div>
-                            </label>
-                        </div>
-                        
-                        <!-- Text Tool -->
-                        <div class="mt-4">
-                            <button id="add-text-btn" class="toolbar-btn w-full border border-gray-300">
-                                {{ __('shop::app.products.customization.add-text') }}
-                            </button>
-                        </div>
+                    <div id="uploaded-images" class="grid grid-cols-2 gap-2">
+                        <!-- Uploaded images will appear here -->
                     </div>
-                    
-                    <!-- Actions -->
-                    <div class="space-y-3">
-                        <button id="preview-btn" class="toolbar-btn w-full bg-blue-500 text-white hover:bg-blue-600" disabled>
-                            {{ __('shop::app.products.customization.preview') }}
+                </div>
+                
+                <!-- Text Tab -->
+                <div id="tab-text" class="tab-content hidden">
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium mb-2">{{ __('Text Content') }}</label>
+                            <input 
+                                type="text" 
+                                id="text-content" 
+                                class="w-full border rounded p-2"
+                                placeholder="{{ __('Enter text') }}">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium mb-2">{{ __('Font Size') }}</label>
+                            <input 
+                                type="number" 
+                                id="text-size" 
+                                value="24" 
+                                min="12" 
+                                max="72"
+                                class="w-full border rounded p-2">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium mb-2">{{ __('Text Color') }}</label>
+                            <input 
+                                type="color" 
+                                id="text-color" 
+                                value="#000000"
+                                class="w-full h-10 border rounded">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium mb-2">{{ __('Font Family') }}</label>
+                            <select id="text-font" class="w-full border rounded p-2">
+                                <option value="Arial">Arial</option>
+                                <option value="Times New Roman">Times New Roman</option>
+                                <option value="Courier New">Courier New</option>
+                                <option value="Georgia">Georgia</option>
+                                <option value="Verdana">Verdana</option>
+                            </select>
+                        </div>
+                        <button 
+                            onclick="addTextElement()"
+                            class="w-full bg-blue-500 text-white rounded py-2 px-4 hover:bg-blue-600">
+                            {{ __('Add Text') }}
                         </button>
-                        <button id="add-to-cart-btn" class="toolbar-btn w-full bg-green-500 text-white hover:bg-green-600" disabled>
-                            {{ __('shop::app.products.customization.add-to-cart') }}
-                        </button>
-                        <a href="{{ route('shop.product_or_category.index') }}" class="block text-center py-2 text-gray-600 hover:text-gray-800">
-                            {{ __('shop::app.products.customization.continue-shopping') }}
-                        </a>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
-
-    <script>
-        // Product and print area data
-        const productId = {{ $product->id }};
-        const printAreas = @json($printAreas);
-        const productImage = @json($productImage);
         
-        // State
-        let selectedArea = null;
-        let uploadedImage = null;
-        let canvas = null;
+        <!-- Center Panel - Design Canvas -->
+        <div class="flex-1 bg-gray-100 border rounded-lg p-4 relative overflow-hidden">
+            <div id="design-canvas" class="relative w-full h-full bg-white rounded overflow-hidden" style="aspect-ratio: 1;">
+                <!-- Product image with print area overlay -->
+                <img 
+                    id="canvas-product-image" 
+                    src="" 
+                    class="absolute top-0 left-0 w-full h-full object-contain"
+                    draggable="false">
+                
+                <!-- Print area indicator -->
+                <div 
+                    id="print-area-indicator"
+                    class="absolute border-2 border-dashed border-blue-500 bg-blue-100 bg-opacity-30 pointer-events-none">
+                </div>
+                
+                <!-- Custom elements will be added here -->
+                <div id="custom-elements" class="absolute top-0 left-0 w-full h-full pointer-events-none">
+                </div>
+            </div>
+            
+            <!-- Zoom Controls -->
+            <div class="absolute bottom-4 right-4 flex gap-2">
+                <button onclick="zoomIn()" class="bg-white border rounded px-3 py-1 hover:bg-gray-50">+</button>
+                <span id="zoom-level" class="bg-white border rounded px-3 py-1">100%</span>
+                <button onclick="zoomOut()" class="bg-white border rounded px-3 py-1 hover:bg-gray-50">-</button>
+            </div>
+        </div>
         
-        // Initialize
-        document.addEventListener('DOMContentLoaded', function() {
-            // Display product image
-            if (productImage && productImage.url) {
-                document.getElementById('product-image').src = productImage.url;
-            }
+        <!-- Right Panel - Properties -->
+        <div class="w-64 bg-white border rounded-lg flex flex-col">
+            <div class="p-4 border-b">
+                <h3 class="font-medium">{{ __('Properties') }}</h3>
+            </div>
             
-            // Display print areas
-            displayPrintAreas();
-            
-            // Setup event listeners
-            setupEventListeners();
-        });
-        
-        function displayPrintAreas() {
-            const container = document.getElementById('areas-list');
-            container.innerHTML = '';
-            
-            printAreas.forEach((area, index) => {
-                const div = document.createElement('div');
-                div.className = 'p-3 border border-gray-200 rounded cursor-pointer hover:bg-gray-50';
-                div.innerHTML = `
-                    <div class="flex justify-between items-center">
-                        <span>{{ __('shop::app.products.customization.area') }} ${index + 1}</span>
-                        <span class="text-sm text-gray-500">${Math.round(area.width)} x ${Math.round(area.height)}px</span>
+            <div class="flex-1 overflow-auto p-4">
+                <!-- Element Actions -->
+                <div id="element-actions" class="hidden space-y-3">
+                    <h4 class="font-medium text-sm text-gray-700">{{ __('Selected Element') }}</h4>
+                    
+                    <div class="grid grid-cols-2 gap-2">
+                        <button onclick="maximizeElement()" class="border rounded py-2 px-3 text-sm hover:bg-gray-50">
+                            {{ __('Maximize') }}
+                        </button>
+                        <button onclick="flipHorizontal()" class="border rounded py-2 px-3 text-sm hover:bg-gray-50">
+                            {{ __('Flip H') }}
+                        </button>
+                        <button onclick="flipVertical()" class="border rounded py-2 px-3 text-sm hover:bg-gray-50">
+                            {{ __('Flip V') }}
+                        </button>
+                        <button onclick="rotateLeft()" class="border rounded py-2 px-3 text-sm hover:bg-gray-50">
+                            {{ __('Rotate L') }}
+                        </button>
+                        <button onclick="rotateRight()" class="border rounded py-2 px-3 text-sm hover:bg-gray-50">
+                            {{ __('Rotate R') }}
+                        </button>
                     </div>
-                `;
-                div.onclick = () => selectArea(area);
-                container.appendChild(div);
-            });
-            
-            document.getElementById('preview-btn').disabled = printAreas.length === 0;
-        }
-        
-        function selectArea(area) {
-            selectedArea = area;
-            
-            // Highlight selected area on image
-            const overlay = document.getElementById('print-areas-overlay');
-            overlay.innerHTML = '';
-            
-            const highlight = document.createElement('div');
-            highlight.className = 'absolute border-2 border-blue-500 bg-blue-100 bg-opacity-30 print-area-highlight';
-            highlight.style.left = area.x + 'px';
-            highlight.style.top = area.y + 'px';
-            highlight.style.width = area.width + 'px';
-            highlight.style.height = area.height + 'px';
-            overlay.appendChild(highlight);
-            
-            document.getElementById('preview-btn').disabled = false;
-        }
-        
-        function setupEventListeners() {
-            // Image upload
-            document.getElementById('custom-image-input').addEventListener('change', handleImageUpload);
-            
-            // Add text
-            document.getElementById('add-text-btn').addEventListener('click', addText);
-            
-            // Preview
-            document.getElementById('preview-btn').addEventListener('click', showPreview);
-            
-            // Add to cart
-            document.getElementById('add-to-cart-btn').addEventListener('click', addToCart);
-        }
-        
-        function handleImageUpload(e) {
-            const file = e.target.files[0];
-            if (!file) return;
-            
-            const reader = new FileReader();
-            reader.onload = function(event) {
-                uploadedImage = event.target.result;
-                document.getElementById('add-to-cart-btn').disabled = false;
+                    
+                    <div class="border-t pt-3">
+                        <p class="text-sm font-medium mb-2">{{ __('Layer') }}</p>
+                        <div class="grid grid-cols-2 gap-2">
+                            <button onclick="bringToFront()" class="border rounded py-2 px-3 text-sm hover:bg-gray-50">
+                                {{ __('Front') }}
+                            </button>
+                            <button onclick="sendToBack()" class="border rounded py-2 px-3 text-sm hover:bg-gray-50">
+                                {{ __('Back') }}
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <button onclick="deleteElement()" class="w-full bg-red-500 text-white rounded py-2 px-4 hover:bg-red-600">
+                        {{ __('Delete') }}
+                    </button>
+                </div>
                 
-                // Show preview section
-                document.getElementById('preview-section').classList.remove('hidden');
-                showPreview();
-            };
-            reader.readAsDataURL(file);
-        }
-        
-        function addText() {
-            const text = prompt('{{ __('shop::app.products.customization.enter-text') }}:');
-            if (text) {
-                uploadedImage = { type: 'text', content: text };
-                document.getElementById('add-to-cart-btn').disabled = false;
-                document.getElementById('preview-section').classList.remove('hidden');
-                showPreview();
-            }
-        }
-        
-        function showPreview() {
-            if (!selectedArea) {
-                alert('{{ __('shop::app.products.customization.select-area-first') }}');
-                return;
-            }
+                <!-- No Selection Message -->
+                <div id="no-selection" class="text-center text-gray-500 py-8">
+                    <p class="text-sm">{{ __('Select an element to edit') }}</p>
+                </div>
+            </div>
             
-            const canvas = document.getElementById('preview-canvas');
-            const ctx = canvas.getContext('2d');
-            
-            // Clear canvas
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            
-            // Draw product image
-            const img = new Image();
-            img.onload = function() {
-                // Draw image scaled to fit canvas
-                const scale = Math.min(canvas.width / img.width, canvas.height / img.height);
-                const x = (canvas.width - img.width * scale) / 2;
-                const y = (canvas.height - img.height * scale) / 2;
-                ctx.drawImage(img, x, y, img.width * scale, img.height * scale);
-                
-                // Calculate scaled area position
-                const scaledArea = {
-                    x: x + selectedArea.x * scale,
-                    y: y + selectedArea.y * scale,
-                    width: selectedArea.width * scale,
-                    height: selectedArea.height * scale
-                };
-                
-                // Draw print area border
-                ctx.strokeStyle = '#3b82f6';
-                ctx.lineWidth = 2;
-                ctx.setLineDash([5, 5]);
-                ctx.strokeRect(scaledArea.x, scaledArea.y, scaledArea.width, scaledArea.height);
-                ctx.setLineDash([]);
-                
-                // Draw uploaded content in print area
-                if (uploadedImage) {
-                    if (typeof uploadedImage === 'string' && !uploadedImage.startsWith('{')) {
-                        // It's an image
-                        const uploadImg = new Image();
-                        uploadImg.onload = function() {
-                            // Draw image to fit in print area
-                            ctx.drawImage(uploadImg, scaledArea.x, scaledArea.y, scaledArea.width, scaledArea.height);
-                        };
-                        uploadImg.src = uploadedImage;
-                    } else if (uploadedImage.type === 'text') {
-                        // It's text
-                        ctx.fillStyle = '#000';
-                        ctx.font = '24px Arial';
-                        ctx.textAlign = 'center';
-                        ctx.textBaseline = 'middle';
-                        ctx.fillText(
-                            uploadedImage.content,
-                            scaledArea.x + scaledArea.width / 2,
-                            scaledArea.y + scaledArea.height / 2
-                        );
-                    }
-                }
-            };
-            img.src = productImage.url;
-        }
-        
-        async function addToCart() {
-            if (!selectedArea) {
-                alert('{{ __('shop::app.products.customization.select-area-first') }}');
-                return;
-            }
-            
-            // Prepare customization data
-            const customizationData = {
-                area_id: selectedArea.id,
-                image_url: typeof uploadedImage === 'string' ? uploadedImage : null,
-                text_content: uploadedImage?.type === 'text' ? uploadedImage.content : null,
-            };
-            
-            try {
-                const response = await fetch('/api/cart/add-customization', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                    },
-                    body: JSON.stringify({
-                        product_id: productId,
-                        quantity: 1,
-                        customization: customizationData,
-                    }),
-                });
-                
-                const result = await response.json();
-                
-                if (result.success) {
-                    alert('{{ __('shop::app.products.customization.added-to-cart') }}');
-                    window.location.href = '{{ route('shop.checkout.cart.index') }}';
-                } else {
-                    alert(result.message || '{{ __('shop::app.products.customization.error') }}');
-                }
-            } catch (error) {
-                console.error('Error:', error);
-                alert('{{ __('shop::app.products.customization.error') }}');
-            }
-        }
-    </script>
-</body>
-</html>
+            <!-- Preview -->
+            <div class="border-t p-4">
+                <h4 class="font-medium text-sm mb-2">{{ __('Preview') }}</h4>
+                <div id="preview-container" class="bg-gray-100 rounded overflow-hidden" style="aspect-ratio: 1;">
+                    <canvas id="preview-canvas" class="w-full h-full"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Action Buttons -->
+    <div class="mt-6 flex justify-end gap-4">
+        <button onclick="cancelDesign()" class="px-6 py-2 border rounded hover:bg-gray-50">
+            {{ __('Cancel') }}
+        </button>
+        <button onclick="saveDesign()" class="px-6 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
+            {{ __('Save & Add to Cart') }}
+        </button>
+    </div>
+</div>
+
+<!-- Load JS -->
+@vite(['src/Resources/assets/js/components/customization/designer.js'])
+
+<script>
+window.productId = {{ $productId }};
+window.printAreas = @json($printAreas ?? []);
+window.productImage = @json($productImage ?? null);
+window.baseUrl = '{{ url('/') }}';
+
+// Initialize
+document.addEventListener('DOMContentLoaded', function() {
+    initDesigner();
+});
+</script>
