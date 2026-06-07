@@ -129,11 +129,10 @@
     console.log('Button:', customizeBtn);
     
     if (customizeBtn) {
-        document.addEventListener('click', function(e) {
-            if (e.target === customizeBtn || customizeBtn.contains(e.target)) {
-                alert('Button clicked!');
-                dialog.style.display = 'flex';
-            }
+        customizeBtn.addEventListener('click', function() {
+            dialog.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+            loadPrintAreas();
         });
     } else {
         console.error('Customize button not found!');
