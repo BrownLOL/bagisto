@@ -147,14 +147,43 @@
         fetch('/customization/print-areas/' + productId)
             .then(function(r) { return r.json(); })
             .then(function(data) {
+                var productImagesDiv = document.getElementById('product-images');
                 if (data.success && data.data.length > 0) {
                     printAreas = data.data;
-                    productImage = data.data[0].image_url;
-                    displayProductImage();
+                    // Display product images list
+                    data.data.forEach(function(item, index) {
+                        var imgWrapper = document.createElement('div');
+                        imgWrapper.className = 'cursor-pointer border-2 border-gray-300 rounded p-1 hover:border-blue-500';
+                        imgWrapper.onclick = (function(imgUrl, area) {
+                            return function() {
+                                selectProductImage(imgUrl, area);
+                            };
+                        })(item.image_url, item);
+                        
+                        var img = document.createElement('img');
+                        img.src = item.image_url;
+                        img.className = 'w-full h-auto';
+                        img.style.aspectRatio = '1/1';
+                        img.style.objectFit = 'cover';
+                        
+                        imgWrapper.appendChild(img);
+                        productImagesDiv.appendChild(imgWrapper);
+                    });
+                    
+                    // Select first image by default
+                    if (data.data[0].image_url) {
+                        selectProductImage(data.data[0].image_url, data.data[0]);
+                    }
                 } else {
                     document.getElementById('no-areas-msg').classList.remove('hidden');
                 }
             });
+    }
+    
+    function selectProductImage(imgUrl, area) {
+        productImage = imgUrl;
+        printAreas = [area];
+        displayProductImage();
     }
     
     function displayProductImage() {
