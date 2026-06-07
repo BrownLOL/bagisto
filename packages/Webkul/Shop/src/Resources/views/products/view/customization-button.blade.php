@@ -108,7 +108,7 @@ function openCustomizationDialog() {
     
     dialogContent.innerHTML = '<p style="text-align: center; padding: 40px;">加载中...</p>';
     
-    fetch('/api/product/' + productId + '/print-areas')
+    fetch('/print-areas/' + productId)
         .then(function(response) { return response.json(); })
         .then(function(data) {
             if (data.data && data.data.length > 0) {
