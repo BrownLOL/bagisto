@@ -107,7 +107,6 @@
     </div>
 </div>
 
-@verbatim
 <script>
 (function() {
     var productId = {{ $product->id }};
