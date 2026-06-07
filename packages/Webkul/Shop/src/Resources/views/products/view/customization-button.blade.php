@@ -2,6 +2,7 @@
     <button
         id="customize-btn"
         data-product-id="{{ $product->id }}"
+        onclick="document.getElementById('customization-dialog').style.display='flex'; window.loadPrintAreas && window.loadPrintAreas();"
         style="display: inline-block; padding: 12px 24px; background-color: #3b82f6; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 16px;"
     >
         {{ __('Customize Now') }}
