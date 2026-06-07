@@ -109,7 +109,9 @@
 
 <script>
 (function() {
+    console.log('Customization script starting...');
     var productId = {{ $product->id }};
+    console.log('Product ID:', productId);
     var printAreas = [];
     var productImage = null;
     var selectedElement = null;
@@ -122,10 +124,18 @@
     var closeBtn = document.getElementById('close-dialog');
     var cancelBtn = document.getElementById('cancel-btn');
     
-    customizeBtn.onclick = function() {
-        dialog.style.display = 'flex';
-        loadPrintAreas();
-    };
+    console.log('Dialog:', dialog);
+    console.log('Button:', customizeBtn);
+    
+    if (customizeBtn) {
+        customizeBtn.onclick = function() {
+            console.log('Button clicked!');
+            dialog.style.display = 'flex';
+            loadPrintAreas();
+        };
+    } else {
+        console.error('Customize button not found!');
+    }
     
     closeBtn.onclick = cancelBtn.onclick = function() {
         dialog.style.display = 'none';
