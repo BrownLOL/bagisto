@@ -11,7 +11,9 @@ document.addEventListener('DOMContentLoaded', function() {
     const productId = btn.dataset.productId;
     console.log('Product ID:', productId);
     
-    btn.addEventListener('click', function() {
+    btn.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
         console.log('Button clicked');
         
         // Check if product has print areas
