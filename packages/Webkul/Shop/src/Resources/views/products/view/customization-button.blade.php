@@ -2,7 +2,7 @@
     <button
         id="customize-btn"
         data-product-id="{{ $product->id }}"
-        onclick="document.getElementById('customization-dialog').style.display='flex'; document.body.style.overflow='hidden'; window.loadPrintAreas && window.loadPrintAreas();"
+        onclick="document.getElementById('customization-dialog').style.display='flex'; document.body.style.overflow='hidden'; if (typeof loadPrintAreas === 'function') { loadPrintAreas(); } else { console.log('loadPrintAreas not found'); }"
         style="display: inline-block; padding: 12px 24px; background-color: #3b82f6; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 16px;"
     >
         {{ __('Customize Now') }}
@@ -145,9 +145,11 @@
     };
     
     function loadPrintAreas() {
+        console.log('loadPrintAreas called, productId:', productId);
         fetch('/customization/print-areas/' + productId)
             .then(function(r) { return r.json(); })
             .then(function(data) {
+                console.log('API response:', data);
                 if (data.success && data.data.length > 0) {
                     printAreas = data.data;
                     
@@ -160,6 +162,9 @@
                 } else {
                     document.getElementById('no-areas-msg').classList.remove('hidden');
                 }
+            })
+            .catch(function(err) {
+                console.error('API error:', err);
             });
     }
     
