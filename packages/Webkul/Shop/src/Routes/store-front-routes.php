@@ -114,8 +114,6 @@ Route::get('booking-slots/{id}', [BookingProductController::class, 'index'])
 /**
  * Product customization routes
  */
-use Webkul\Shop\Http\Controllers\ProductCustomizationController;
-
 Route::prefix('customization')->group(function () {
     Route::get('print-areas/{productId}', [ProductCustomizationController::class, 'getPrintAreas'])
         ->name('shop.customization.print-areas');
