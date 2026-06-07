@@ -167,9 +167,7 @@
                         
                         var img = document.createElement('img');
                         img.src = item.image_url;
-                        img.className = 'w-full h-auto';
-                        img.style.aspectRatio = '1/1';
-                        img.style.objectFit = 'cover';
+                        img.className = 'w-28 h-28 object-cover rounded';
                         
                         imgWrapper.appendChild(img);
                         productImagesDiv.appendChild(imgWrapper);
