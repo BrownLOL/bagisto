@@ -7,3 +7,5 @@
         立即定制
     </button>
 </div>
+
+@vite(['src/Resources/assets/js/components/customization/button.js'])
