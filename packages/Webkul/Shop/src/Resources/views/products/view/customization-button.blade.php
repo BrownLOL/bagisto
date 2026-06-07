@@ -31,12 +31,10 @@
             images: []
         };
 
-        // Load print areas data
-        async function loadPrintAreas() {
-            try {
-                var response = await fetch('/customization/api/print-areas/' + productId);
-                var data = await response.json();
-
+        // Load print areas data - using Promise chain instead of async/await
+        fetch('/customization/api/print-areas/' + productId)
+            .then(function(response) { return response.json(); })
+            .then(function(data) {
                 if (data.success && data.data && data.data.length > 0) {
                     window.productCustomizationData.printAreas = data.data;
                     var section = document.getElementById('customization-section');
@@ -47,16 +45,14 @@
                         btn.style.cssText = 'width:100%;padding:15px;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:white;border:none;border-radius:8px;font-size:16px;font-weight:600;cursor:pointer;transition:all 0.3s ease;box-shadow:0 4px 15px rgba(102,126,234,0.4);';
                     }
                 }
-            } catch (error) {
+            })
+            .catch(function(error) {
                 console.error('Failed to load print areas:', error);
-            }
-        }
+            });
 
         // Expose method to open modal
         window.openCustomizationModal = function() {
             window.dispatchEvent(new CustomEvent('open-customization-modal'));
         };
-
-        loadPrintAreas();
     });
 </script>
