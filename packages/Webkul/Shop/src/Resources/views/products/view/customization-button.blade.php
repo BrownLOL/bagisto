@@ -2,6 +2,7 @@
     <button
         id="customize-btn"
         data-product-id="{{ $product->id }}"
+        onclick="document.getElementById('customization-dialog').style.display='flex'; window.loadPrintAreas && window.loadPrintAreas();"
         style="display: inline-block; padding: 12px 24px; background-color: #3b82f6; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 16px;"
     >
         {{ __('Customize Now') }}
@@ -9,11 +10,11 @@
 </div>
 
 <!-- Customization Dialog -->
-<div id="customization-dialog" class="fixed inset-0 bg-black bg-opacity-50" style="display: none; z-index: 99999; overflow-y: auto;">
+<div id="customization-dialog" class="fixed inset-0 bg-black bg-opacity-50 z-50" style="display: none;">
     <div class="bg-white rounded-lg shadow-xl" style="width: 90%; max-width: 1200px; height: 80vh; margin: 5vh auto; display: flex; flex-direction: column;">
         <div class="flex justify-between items-center p-4 border-b" style="background: #f9fafb;">
             <h2 class="text-xl font-bold">Product Customization</h2>
-            <button id="close-dialog" onclick="document.getElementById('customization-dialog').style.display='none'; document.body.style.overflow='auto';" style="padding: 8px 16px; background: #e5e7eb; border: none; border-radius: 6px; cursor: pointer;">Close</button>
+            <button id="close-dialog" style="padding: 8px 16px; background: #e5e7eb; border: none; border-radius: 6px; cursor: pointer;">Close</button>
         </div>
         
         <div class="flex flex-1 overflow-hidden">
@@ -128,12 +129,11 @@
     console.log('Button:', customizeBtn);
     
     if (customizeBtn) {
-        customizeBtn.addEventListener('click', function() {
-            alert('Button clicked! Opening dialog...');
-            dialog.style.display = 'flex';
-            dialog.style.zIndex = '99999';
-            document.body.style.overflow = 'hidden';
-            loadPrintAreas();
+        document.addEventListener('click', function(e) {
+            if (e.target === customizeBtn || customizeBtn.contains(e.target)) {
+                alert('Button clicked!');
+                dialog.style.display = 'flex';
+            }
         });
     } else {
         console.error('Customize button not found!');
@@ -141,63 +141,20 @@
     
     closeBtn.onclick = cancelBtn.onclick = function() {
         dialog.style.display = 'none';
-        document.body.style.overflow = 'auto';
     };
     
     function loadPrintAreas() {
-        console.log('loadPrintAreas called, productId:', productId);
         fetch('/customization/print-areas/' + productId)
             .then(function(r) { return r.json(); })
             .then(function(data) {
-                console.log('API response:', data);
                 if (data.success && data.data.length > 0) {
                     printAreas = data.data;
-                    
-                    // Display product images list
-                    displayProductImagesList(data.data);
-                    
-                    // Display first image
                     productImage = data.data[0].image_url;
                     displayProductImage();
                 } else {
                     document.getElementById('no-areas-msg').classList.remove('hidden');
                 }
-            })
-            .catch(function(err) {
-                console.error('API error:', err);
             });
-    }
-    
-    function displayProductImagesList(areas) {
-        var container = document.getElementById('product-images');
-        container.innerHTML = '';
-        
-        // Group by image URL to show unique images
-        var imagesMap = {};
-        areas.forEach(function(area) {
-            if (area.image_url && !imagesMap[area.image_url]) {
-                imagesMap[area.image_url] = area;
-            }
-        });
-        
-        Object.keys(imagesMap).forEach(function(url) {
-            var area = imagesMap[url];
-            var div = document.createElement('div');
-            div.className = 'cursor-pointer border-2 border-transparent hover:border-blue-500 rounded overflow-hidden';
-            div.innerHTML = '<img src="' + area.image_url + '" class="w-full h-16 object-cover">';
-            div.onclick = (function(imgUrl) {
-                return function() {
-                    productImage = imgUrl;
-                    displayProductImage();
-                    // Update selection visual
-                    container.querySelectorAll('div').forEach(function(d) {
-                        d.classList.remove('border-blue-500');
-                    });
-                    this.classList.add('border-blue-500');
-                };
-            })(area.image_url);
-            container.appendChild(div);
-        });
     }
     
     function displayProductImage() {
@@ -436,14 +393,6 @@
     document.getElementById('save-btn').onclick = function() {
         alert('Customization saved! (Integration with cart coming soon)');
         dialog.style.display = 'none';
-    };
-    
-    // Expose functions to global scope
-    window.loadPrintAreas = loadPrintAreas;
-    window.openCustomizationDialog = function() {
-        dialog.style.display = 'flex';
-        document.body.style.overflow = 'hidden';
-        loadPrintAreas();
     };
 })();
 </script>
