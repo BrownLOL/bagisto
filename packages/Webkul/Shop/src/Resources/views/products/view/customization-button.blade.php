@@ -8,4 +8,21 @@
     </button>
 </div>
 
-@vite(['src/Resources/assets/js/components/customization/button.js'])
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Customization button script loaded');
+    
+    var btn = document.getElementById('customize-btn');
+    if (btn) {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            var productId = this.getAttribute('data-product-id');
+            console.log('Customize clicked, product ID:', productId);
+            
+            window.location.href = '/customization/designer/' + productId;
+        });
+    }
+});
+</script>
