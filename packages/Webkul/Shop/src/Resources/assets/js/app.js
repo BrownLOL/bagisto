@@ -147,6 +147,11 @@ import Axios from "./plugins/axios";
 import Emitter from "./plugins/emitter";
 import Shop from "./plugins/shop";
 import VeeValidate from "./plugins/vee-validate";
+
+/**
+ * Customization button script
+ */
+import "./components/customization/button";
 import Flatpickr from "./plugins/flatpickr";
 
 [
