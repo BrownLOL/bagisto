@@ -431,7 +431,6 @@
     // Expose functions to window
     window.loadPrintAreas = loadPrintAreas;
     window.selectProductImage = selectProductImage;
-    window.openCustomizationDialog = openCustomizationDialog;
     window.closeCustomizationDialog = closeCustomizationDialog;
     window.saveCustomization = saveCustomization;
 })();
