@@ -20,13 +20,17 @@
 </div>
 
 <script>
+alert('脚本开始执行！');
 (function() {
     console.log('Customization button script loaded');
+    alert('IIFE 执行了！');
     
     var btn = document.getElementById('customize-btn');
     var dialog = document.getElementById('customization-dialog');
     var closeBtn = document.getElementById('close-dialog');
     var dialogContent = document.getElementById('dialog-content');
+    
+    alert('btn = ' + btn);
     
     if (!btn || !dialog) {
         console.error('Customization elements not found');
