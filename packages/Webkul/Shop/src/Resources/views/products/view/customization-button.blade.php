@@ -6,3 +6,11 @@
         立即定制
     </button>
 </div>
+
+@verbatim
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Customization initialized');
+});
+</script>
+@endverbatim
