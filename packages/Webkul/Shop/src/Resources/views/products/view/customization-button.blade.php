@@ -429,5 +429,16 @@
         alert('Customization saved! (Integration with cart coming soon)');
         dialog.style.display = 'none';
     };
+    
+    // Expose functions to window
+    window.loadPrintAreas = loadPrintAreas;
+    window.selectProductImage = selectProductImage;
+    window.selectCustomizationElement = selectCustomizationElement;
+    window.updateSelectedElementTransform = updateSelectedElementTransform;
+    window.bringToFront = bringToFront;
+    window.sendToBack = sendToBack;
+    window.removeSelectedElement = removeSelectedElement;
+    window.resetCanvas = resetCanvas;
+    window.saveCustomization = saveCustomization;
 })();
 </script>
