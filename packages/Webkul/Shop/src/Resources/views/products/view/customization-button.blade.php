@@ -2,7 +2,7 @@
     <button
         id="customize-btn"
         data-product-id="{{ $product->id }}"
-        onclick="document.getElementById('customization-dialog').style.display='flex'; document.body.style.overflow='hidden'; if (typeof loadPrintAreas === 'function') { loadPrintAreas(); } else { console.log('loadPrintAreas not found'); }"
+        onclick="openCustomizationDialog()"
         style="display: inline-block; padding: 12px 24px; background-color: #3b82f6; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 16px;"
     >
         {{ __('Customize Now') }}
@@ -436,6 +436,14 @@
     document.getElementById('save-btn').onclick = function() {
         alert('Customization saved! (Integration with cart coming soon)');
         dialog.style.display = 'none';
+    };
+    
+    // Expose functions to global scope
+    window.loadPrintAreas = loadPrintAreas;
+    window.openCustomizationDialog = function() {
+        dialog.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+        loadPrintAreas();
     };
 })();
 </script>
