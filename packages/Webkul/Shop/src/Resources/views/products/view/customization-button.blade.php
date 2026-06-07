@@ -130,7 +130,9 @@
     
     if (customizeBtn) {
         customizeBtn.addEventListener('click', function() {
+            alert('Button clicked! Opening dialog...');
             dialog.style.display = 'flex';
+            dialog.style.zIndex = '99999';
             document.body.style.overflow = 'hidden';
             loadPrintAreas();
         });
