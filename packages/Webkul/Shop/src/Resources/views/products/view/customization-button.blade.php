@@ -2,7 +2,7 @@
     <button
         id="customize-btn"
         data-product-id="{{ $product->id }}"
-        onclick="document.getElementById('customization-dialog').style.display='flex'; window.loadPrintAreas && window.loadPrintAreas();"
+        onclick="document.getElementById('customization-dialog').style.display='flex'; document.body.style.overflow='hidden'; window.loadPrintAreas && window.loadPrintAreas();"
         style="display: inline-block; padding: 12px 24px; background-color: #3b82f6; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 16px;"
     >
         {{ __('Customize Now') }}
@@ -10,11 +10,11 @@
 </div>
 
 <!-- Customization Dialog -->
-<div id="customization-dialog" class="fixed inset-0 bg-black bg-opacity-50 z-50" style="display: none;">
+<div id="customization-dialog" class="fixed inset-0 bg-black bg-opacity-50" style="display: none; z-index: 99999; overflow-y: auto;">
     <div class="bg-white rounded-lg shadow-xl" style="width: 90%; max-width: 1200px; height: 80vh; margin: 5vh auto; display: flex; flex-direction: column;">
         <div class="flex justify-between items-center p-4 border-b" style="background: #f9fafb;">
             <h2 class="text-xl font-bold">Product Customization</h2>
-            <button id="close-dialog" style="padding: 8px 16px; background: #e5e7eb; border: none; border-radius: 6px; cursor: pointer;">Close</button>
+            <button id="close-dialog" onclick="document.getElementById('customization-dialog').style.display='none'; document.body.style.overflow='auto';" style="padding: 8px 16px; background: #e5e7eb; border: none; border-radius: 6px; cursor: pointer;">Close</button>
         </div>
         
         <div class="flex flex-1 overflow-hidden">
@@ -141,6 +141,7 @@
     
     closeBtn.onclick = cancelBtn.onclick = function() {
         dialog.style.display = 'none';
+        document.body.style.overflow = 'auto';
     };
     
     function loadPrintAreas() {
