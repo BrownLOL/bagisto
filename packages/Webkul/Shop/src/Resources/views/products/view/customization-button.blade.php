@@ -1,3 +1,8 @@
+<?php $productId = $product->id; ?>
+<script>
+    window.productId = <?php echo $productId; ?>;
+</script>
+
 <div id="customization-app">
     <button
         id="customize-btn"
