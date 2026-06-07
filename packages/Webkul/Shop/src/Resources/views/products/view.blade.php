@@ -65,6 +65,9 @@
         </div>
     @endif
 
+    <!-- Product Customization Button -->
+    @include('shop::products.view.customization-button')
+
     <!-- Product Information Vue Component -->
     <v-product>
         <x-shop::shimmer.products.view />
