@@ -2,7 +2,7 @@
     <button
         id="customize-btn"
         data-product-id="{{ $product->id }}"
-        onclick="alert('按钮点击了！'); openCustomizationDialog();"
+        onclick="openCustomizationDialog();"
         style="display: inline-block; padding: 12px 24px; background-color: #3b82f6; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 16px;"
     >
         立即定制
@@ -21,17 +21,13 @@
 </div>
 
 <script>
-alert('脚本开始执行！');
 (function() {
     console.log('Customization button script loaded');
-    alert('IIFE 执行了！');
     
     var btn = document.getElementById('customize-btn');
     var dialog = document.getElementById('customization-dialog');
     var closeBtn = document.getElementById('close-dialog');
     var dialogContent = document.getElementById('dialog-content');
-    
-    alert('btn = ' + btn);
     
     if (!btn || !dialog) {
         console.error('Customization elements not found');
@@ -42,7 +38,6 @@ alert('脚本开始执行！');
     btn.addEventListener('click', function(e) {
         e.preventDefault();
         e.stopPropagation();
-        alert('按钮被点击了！');
         var productId = this.getAttribute('data-product-id');
         console.log('Customize clicked, product ID:', productId);
         
@@ -98,7 +93,6 @@ alert('脚本开始执行！');
 })();
 
 function openCustomizationDialog() {
-    alert('openCustomizationDialog 被调用了！');
     var btn = document.getElementById('customize-btn');
     var productId = btn.getAttribute('data-product-id');
     var dialog = document.getElementById('customization-dialog');
@@ -117,7 +111,7 @@ function openCustomizationDialog() {
                 
                 data.data.forEach(function(item) {
                     html += '<div style="border: 1px solid #ddd; border-radius: 8px; padding: 12px; text-align: center; cursor: pointer;" onclick="window.location.href=\'/customization/designer/' + productId + '\'">';
-                    html += '<img src="' + item.image_url + '" style="width: 100%; height: 120px; object-fit: contain; margin-bottom: 8px;" />';
+                    html += '<img src="' + (item.image_url || item.url || item.src || 'https://via.placeholder.com/150') + '" style="width: 100%; height: 120px; object-fit: contain; margin-bottom: 8px;" />';
                     html += '<p style="margin: 0; font-size: 14px;">区域 ' + item.id + '</p>';
                     html += '</div>';
                 });
