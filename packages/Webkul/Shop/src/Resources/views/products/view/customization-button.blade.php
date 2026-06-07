@@ -144,14 +144,19 @@
     };
     
     function loadPrintAreas() {
+        console.log('loadPrintAreas called, productId:', productId);
         fetch('/customization/print-areas/' + productId)
             .then(function(r) { return r.json(); })
             .then(function(data) {
+                console.log('API response:', data);
                 var productImagesDiv = document.getElementById('product-images');
+                console.log('productImagesDiv:', productImagesDiv);
                 if (data.success && data.data.length > 0) {
                     printAreas = data.data;
+                    console.log('Displaying', data.data.length, 'images');
                     // Display product images list
                     data.data.forEach(function(item, index) {
+                        console.log('Item', index, ':', item);
                         var imgWrapper = document.createElement('div');
                         imgWrapper.className = 'cursor-pointer border-2 border-gray-300 rounded p-1 hover:border-blue-500';
                         imgWrapper.onclick = (function(imgUrl, area) {
@@ -175,6 +180,7 @@
                         selectProductImage(data.data[0].image_url, data.data[0]);
                     }
                 } else {
+                    console.log('No print areas found');
                     document.getElementById('no-areas-msg').classList.remove('hidden');
                 }
             });
