@@ -1,6 +1,5 @@
-<?php $productId = $product->id; ?>
 <script>
-    window.productId = <?php echo $productId; ?>;
+    window.productId = {{ $product->id }};
 </script>
 
 <div id="customization-app" style="margin: 20px 0;">
