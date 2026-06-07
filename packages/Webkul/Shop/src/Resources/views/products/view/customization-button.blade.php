@@ -128,9 +128,11 @@
     console.log('Button:', customizeBtn);
     
     if (customizeBtn) {
-        customizeBtn.addEventListener('click', function() {
-            alert('Button clicked!');
-            dialog.style.display = 'flex';
+        document.addEventListener('click', function(e) {
+            if (e.target === customizeBtn || customizeBtn.contains(e.target)) {
+                alert('Button clicked!');
+                dialog.style.display = 'flex';
+            }
         });
     } else {
         console.error('Customize button not found!');
