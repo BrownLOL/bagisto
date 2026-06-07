@@ -22,6 +22,7 @@
 @endphp
 
 <footer class="mt-9 bg-lightOrange max-sm:mt-10">
+    <div class="container mx-auto max-w-[1200px]">
     <div class="flex justify-between gap-x-6 gap-y-8 p-[60px] max-1060:flex-col-reverse max-md:gap-5 max-md:p-8 max-sm:px-4 max-sm:py-5">
         <!-- For Desktop View -->
         <div
@@ -137,6 +138,7 @@
         {!! view_render_event('bagisto.shop.layout.footer.newsletter_subscription.after') !!}
     </div>
 
+    <div class="container mx-auto max-w-[1200px]">
     <div class="flex justify-between bg-[#F1EADF] px-[60px] py-3.5 max-md:justify-center max-sm:px-5">
         {!! view_render_event('bagisto.shop.layout.footer.footer_text.before') !!}
 
@@ -149,6 +151,7 @@
         </p>
 
         {!! view_render_event('bagisto.shop.layout.footer.footer_text.after') !!}
+    </div>
     </div>
 </footer>
 
