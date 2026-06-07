@@ -431,12 +431,8 @@
     // Expose functions to window
     window.loadPrintAreas = loadPrintAreas;
     window.selectProductImage = selectProductImage;
-    window.selectCustomizationElement = selectCustomizationElement;
-    window.updateSelectedElementTransform = updateSelectedElementTransform;
-    window.bringToFront = bringToFront;
-    window.sendToBack = sendToBack;
-    window.removeSelectedElement = removeSelectedElement;
-    window.resetCanvas = resetCanvas;
+    window.openCustomizationDialog = openCustomizationDialog;
+    window.closeCustomizationDialog = closeCustomizationDialog;
     window.saveCustomization = saveCustomization;
 })();
 </script>
