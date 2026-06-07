@@ -62,9 +62,12 @@
         dialogContent.innerHTML = '<p style="text-align: center; padding: 40px;">加载中...</p>';
         
         fetch('/customization/print-areas/' + productId)
-            .then(function(response) { return response.json(); })
+            .then(function(response) { 
+                console.log('API Response status:', response.status);
+                return response.json(); 
+            })
             .then(function(data) {
-                console.log('Print areas data:', data);
+                console.log('Print areas data:', JSON.stringify(data, null, 2));
                 
                 if (data.data && data.data.length > 0) {
                     var html = '<p style="margin-bottom: 16px;">该商品支持定制区域 ' + data.data.length + ' 个</p>';
