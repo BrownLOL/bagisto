@@ -9,7 +9,7 @@
 </div>
 
 <!-- Customization Dialog -->
-<div id="customization-dialog" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden" style="display: none;">
+<div id="customization-dialog" class="fixed inset-0 bg-black bg-opacity-50 z-50" style="display: none;">
     <div class="bg-white rounded-lg shadow-xl" style="width: 90%; max-width: 1200px; height: 80vh; margin: 5vh auto; display: flex; flex-direction: column;">
         <div class="flex justify-between items-center p-4 border-b" style="background: #f9fafb;">
             <h2 class="text-xl font-bold">Product Customization</h2>
