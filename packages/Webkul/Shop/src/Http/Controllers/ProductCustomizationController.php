@@ -29,7 +29,15 @@ class ProductCustomizationController extends Controller
 
         $areas = [];
         foreach ($printAreas as $area) {
-            $areas[] = $area->toAreaArray();
+            $areaData = $area->toAreaArray();
+            
+            // Add image URL
+            $productImage = $area->productImage;
+            if ($productImage) {
+                $areaData['image_url'] = $productImage->url;
+            }
+            
+            $areas[] = $areaData;
         }
 
         return response()->json([
