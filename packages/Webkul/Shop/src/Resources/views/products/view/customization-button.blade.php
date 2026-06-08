@@ -26,6 +26,7 @@ function openCustomizationDialog() {
     currentCanvas.selectedElement = null;
     updateOperationButtons();
     loadPrintAreas();
+    initTextControls();
 }
 
 function closeDialog() {
@@ -475,28 +476,33 @@ document.addEventListener('DOMContentLoaded', function() {
     };
 });
 
-// Font size slider
-document.addEventListener('DOMContentLoaded', function() {
+// Initialize text controls
+function initTextControls() {
     var fontSizeInput = document.getElementById('font-size');
     var fontSizeLabel = document.getElementById('font-size-label');
     if (fontSizeInput && fontSizeLabel) {
         fontSizeInput.addEventListener('input', function() {
             fontSizeLabel.textContent = this.value + 'px';
         });
+        fontSizeInput.addEventListener('change', function() {
+            fontSizeLabel.textContent = this.value + 'px';
+        });
+        fontSizeLabel.textContent = fontSizeInput.value + 'px';
     }
     
     document.querySelectorAll('.color-swatch').forEach(function(swatch) {
-        swatch.addEventListener('click', function() {
+        swatch.onclick = function() {
             document.querySelectorAll('.color-swatch').forEach(function(s) {
                 s.classList.remove('border-blue-500');
                 s.classList.add('border-gray-300');
             });
-            this.classList.remove('border-gray-300');
-            this.classList.add('border-blue-500');
-            document.getElementById('text-color-custom').value = this.dataset.color;
-        });
+            swatch.classList.remove('border-gray-300');
+            swatch.classList.add('border-blue-500');
+            var color = swatch.dataset.color;
+            setTextColor(color);
+        };
     });
-});
+}
 
 var currentTextColor = '#000000';
 

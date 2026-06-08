@@ -122,15 +122,15 @@
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Text Color</label>
                         <div class="flex items-center gap-2 flex-wrap">
-                            <button type="button" onclick="setTextColor('#000000')" class="color-swatch w-8 h-8 rounded border-2 border-gray-300 bg-black" data-color="#000000"></button>
-                            <button type="button" onclick="setTextColor('#FFFFFF')" class="color-swatch w-8 h-8 rounded border-2 border-gray-300 bg-white" data-color="#FFFFFF"></button>
-                            <button type="button" onclick="setTextColor('#FF0000')" class="color-swatch w-8 h-8 rounded border-2 border-gray-300 bg-red-500" data-color="#FF0000"></button>
-                            <button type="button" onclick="setTextColor('#00FF00')" class="color-swatch w-8 h-8 rounded border-2 border-gray-300 bg-green-500" data-color="#00FF00"></button>
-                            <button type="button" onclick="setTextColor('#0000FF')" class="color-swatch w-8 h-8 rounded border-2 border-gray-300 bg-blue-500" data-color="#0000FF"></button>
-                            <button type="button" onclick="setTextColor('#FFFF00')" class="color-swatch w-8 h-8 rounded border-2 border-gray-300 bg-yellow-500" data-color="#FFFF00"></button>
-                            <button type="button" onclick="setTextColor('#FF00FF')" class="color-swatch w-8 h-8 rounded border-2 border-gray-300 bg-pink-500" data-color="#FF00FF"></button>
-                            <button type="button" onclick="setTextColor('#00FFFF')" class="color-swatch w-8 h-8 rounded border-2 border-gray-300 bg-cyan-500" data-color="#00FFFF"></button>
-                            <input type="color" id="text-color-custom" value="#000000" class="w-8 h-8 rounded cursor-pointer border border-gray-300" onchange="setTextColor(this.value)" />
+                            <button type="button" onclick="setTextColor('#000000')" class="color-swatch w-8 h-8 rounded border-2 border-gray-300 !bg-black" data-color="#000000" style="background-color: #000000;"></button>
+                            <button type="button" onclick="setTextColor('#FFFFFF')" class="color-swatch w-8 h-8 rounded border-2 border-gray-300 !bg-white" data-color="#FFFFFF" style="background-color: #FFFFFF;"></button>
+                            <button type="button" onclick="setTextColor('#FF0000')" class="color-swatch w-8 h-8 rounded border-2 border-gray-300 !bg-red-500" data-color="#FF0000" style="background-color: #FF0000;"></button>
+                            <button type="button" onclick="setTextColor('#00FF00')" class="color-swatch w-8 h-8 rounded border-2 border-gray-300 !bg-green-500" data-color="#00FF00" style="background-color: #00FF00;"></button>
+                            <button type="button" onclick="setTextColor('#0000FF')" class="color-swatch w-8 h-8 rounded border-2 border-gray-300 !bg-blue-500" data-color="#0000FF" style="background-color: #0000FF;"></button>
+                            <button type="button" onclick="setTextColor('#FFFF00')" class="color-swatch w-8 h-8 rounded border-2 border-gray-300 !bg-yellow-500" data-color="#FFFF00" style="background-color: #FFFF00;"></button>
+                            <button type="button" onclick="setTextColor('#FF00FF')" class="color-swatch w-8 h-8 rounded border-2 border-gray-300 !bg-pink-500" data-color="#FF00FF" style="background-color: #FF00FF;"></button>
+                            <button type="button" onclick="setTextColor('#00FFFF')" class="color-swatch w-8 h-8 rounded border-2 border-gray-300 !bg-cyan-500" data-color="#00FFFF" style="background-color: #00FFFF;"></button>
+                            <input type="color" id="text-color-custom" value="#000000" class="w-8 h-8 rounded cursor-pointer border-2 border-gray-300" onchange="setTextColor(this.value)" style="padding: 0; background: linear-gradient(135deg, #ff0000, #ff8800, #ffff00, #00ff00, #00ffff, #0000ff, #8800ff, #ff00ff);" />
                         </div>
                     </div>
                     
