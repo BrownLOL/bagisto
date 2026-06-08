@@ -105,7 +105,7 @@ class CartController extends APIController
             'quantity'      => 'integer|min:1',
             'customization' => 'required|array',
             'customization.print_area_id' => 'required|integer|exists:product_image_print_areas,id',
-            'customization.preview_image' => 'required|string',
+            'customization.preview_image' => 'sometimes|string',
         ]);
 
         $product = $this->productRepository->with('parent')->findOrFail(request()->input('product_id'));

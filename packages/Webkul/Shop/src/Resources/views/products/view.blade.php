@@ -13,6 +13,7 @@
 
 <!-- SEO Meta Content -->
 @push('meta')
+    <meta name="csrf-token" content="{{ csrf_token() }}"/>
     <meta name="description" content="{{ trim($product->meta_description) != "" ? $product->meta_description : \Illuminate\Support\Str::limit(strip_tags($product->description), 120, '') }}"/>
 
     <meta name="keywords" content="{{ $product->meta_keywords }}"/>
@@ -234,7 +235,7 @@
         
         <div class="flex justify-end gap-2 mt-4 pt-4 border-t">
             <button id="cancel-btn" onclick="closeDialog()" class="px-4 py-2 border rounded hover:bg-gray-100">Cancel</button>
-            <button class="px-4 py-2 bg-blue-600 border rounded hover:bg-blue-700">Save</button>
+            <button id="save-customization-btn" class="px-4 py-2 bg-blue-600 border rounded hover:bg-blue-700">Save</button>
         </div>
     </div>
 </div>

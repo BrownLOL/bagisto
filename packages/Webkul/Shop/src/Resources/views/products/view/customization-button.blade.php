@@ -2,6 +2,10 @@
     $productId = $product->id ?? 0;
 @endphp
 
+<script>
+window.customizationProductId = {{ $productId }};
+</script>
+
 <button
     type="button"
     onclick="event.preventDefault(); openCustomizationDialog();"
@@ -36,6 +40,101 @@ function closeDialog() {
     document.body.style.overflow = '';
     currentCanvas.selectedElement = null;
 }
+
+function saveCustomization() {
+    var areaData = window.currentAreaData;
+    if (!areaData) {
+        alert('Please select a product image first.');
+        return;
+    }
+    
+    var printAreaId = areaData.id || areaData.print_area_id;
+    
+    if (!printAreaId) {
+        alert('This image has no customizable area. Please select an image with print area.');
+        return;
+    }
+    
+    // Get elements for this print area
+    var areaElemId = 'print-area-' + printAreaId;
+    var printArea = document.getElementById(areaElemId);
+    if (!printArea) {
+        alert('Print area not found.');
+        return;
+    }
+    
+    var elements = [];
+    var elemDivs = printArea.querySelectorAll('.canvas-elem');
+    elemDivs.forEach(function(div) {
+        var elemData = div._elemData;
+        if (elemData) {
+            var elem = {
+                type: elemData.type,
+                content: elemData.content,
+                x: parseFloat(div.style.left) || 0,
+                y: parseFloat(div.style.top) || 0,
+                width: parseFloat(div.style.width) || 0,
+                height: parseFloat(div.style.height) || 0,
+                rotation: elemData.rotation || 0,
+                scaleX: elemData.scaleX || 1,
+                scaleY: elemData.scaleY || 1,
+                styles: elemData.styles || {}
+            };
+            elements.push(elem);
+        }
+    });
+    
+    // Get preview image (base64)
+    var previewCanvas = document.getElementById('preview-canvas');
+    var previewImage = previewCanvas.querySelector('img') ? previewCanvas.querySelector('img').src : '';
+    
+    // Prepare customization data
+    var customizationData = {
+        product_id: window.customizationProductId,
+        quantity: 1,
+        customization: {
+            print_area_id: parseInt(printAreaId),
+            preview_image: previewImage,
+            elements: elements
+        }
+    };
+    
+    // Send to API
+    fetch('/api/checkout/cart/add-customization', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+            'Accept': 'application/json'
+        },
+        body: JSON.stringify(customizationData)
+    })
+    .then(function(response) { return response.json(); })
+    .then(function(data) {
+        if (data.message) {
+            alert(data.message);
+        }
+        if (data.data) {
+            closeDialog();
+            // Optionally redirect to cart
+            if (confirm('Product added to cart! Go to cart?')) {
+                window.location.href = '/checkout/cart';
+            }
+        }
+    })
+    .catch(function(error) {
+        console.error('Error:', error);
+        alert('Failed to add to cart. Please try again.');
+    });
+}
+
+// Add event listener for save button
+document.addEventListener('DOMContentLoaded', function() {
+    var saveBtn = document.getElementById('save-customization-btn');
+    if (saveBtn) {
+        saveBtn.addEventListener('click', saveCustomization);
+    }
+});
 
 var canvasZoom = 100;
 var panX = 0, panY = 0;
@@ -123,7 +222,7 @@ function updatePreview() {
 }
 
 function loadPrintAreas() {
-    var productId = {{ $productId }};
+    var productId = window.customizationProductId;
     
     fetch('/customization/print-areas/' + productId)
         .then(function(response) { return response.json(); })
@@ -148,6 +247,9 @@ function loadPrintAreas() {
 }
 
 function selectProductImage(imgUrl, areaData) {
+    // Save current area data
+    window.currentAreaData = areaData;
+    
     var canvas = document.getElementById('design-canvas-inner');
     
     if (currentCanvas.currentImageKey && currentCanvas.elements.length > 0) {
@@ -175,8 +277,9 @@ function selectProductImage(imgUrl, areaData) {
     canvas.appendChild(bgImg);
     
     if (areaData && areaData.x !== undefined) {
+        var printAreaId = 'print-area-' + (areaData.id || areaData.print_area_id || 'default');
         var printArea = document.createElement('div');
-        printArea.id = 'print-area';
+        printArea.id = printAreaId;
         printArea.style.cssText = 'position:absolute;left:' + areaData.x + '%;top:' + areaData.y + '%;width:' + areaData.width + '%;height:' + areaData.height + '%;border:2px dashed red;background:rgba(255,255,255,0.3);overflow:hidden;';
         canvas.appendChild(printArea);
         
@@ -210,7 +313,9 @@ function selectProductImage(imgUrl, areaData) {
 }
 
 function addUploadedImage(dataUrl) {
-    var printArea = document.getElementById('print-area');
+    var areaData = window.currentAreaData;
+    var areaElemId = 'print-area-' + (areaData && (areaData.id || areaData.print_area_id) ? (areaData.id || areaData.print_area_id) : 'default');
+    var printArea = document.getElementById(areaElemId);
     if (!printArea) return;
     
     var wrapper = document.createElement('div');
@@ -680,7 +785,9 @@ function addText() {
 }
 
 function addTextToCanvas(text, size, color, font) {
-    var printArea = document.getElementById('print-area');
+    var areaData = window.currentAreaData;
+    var areaElemId = 'print-area-' + (areaData && (areaData.id || areaData.print_area_id) ? (areaData.id || areaData.print_area_id) : 'default');
+    var printArea = document.getElementById(areaElemId);
     if (!printArea) return;
     
     var wrapper = document.createElement('div');
