@@ -115,19 +115,175 @@ function addElementToCanvas(type, content, styles) {
     }
     
     if (elem) {
-        elem.style.cssText += 'position:absolute;left:0;top:0;width:80%;height:80%;object-fit:contain;';
+        elem.style.cssText += 'position:absolute;left:10%;top:10%;width:80%;height:80%;object-fit:contain;transform-origin:center center;';
         elem.style.userSelect = 'none';
         elem.dataset.elementId = currentCanvas.elements.length;
+        
+        makeTransformable(elem);
         printArea.appendChild(elem);
         
-        currentCanvas.elements.push({
+        var elementData = {
             type: type,
             content: content,
             styles: styles,
-            dom: elem
-        });
+            dom: elem,
+            transform: { x: 10, y: 10, width: 80, height: 80, rotation: 0 }
+        };
+        currentCanvas.elements.push(elementData);
+        currentCanvas.selectedElement = elementData;
     }
 }
+
+function makeTransformable(elem) {
+    var isDragging = false;
+    var isRotating = false;
+    var startX, startY, startLeft, startTop, startRotation;
+    var elementData = null;
+    
+    for (var i = 0; i < currentCanvas.elements.length; i++) {
+        if (currentCanvas.elements[i].dom === elem) {
+            elementData = currentCanvas.elements[i];
+            break;
+        }
+    }
+    
+    elem.addEventListener('mousedown', function(e) {
+        if (e.target.classList.contains('rotate-handle')) return;
+        
+        isDragging = true;
+        startX = e.clientX;
+        startY = e.clientY;
+        startLeft = parseFloat(elem.style.left) || 10;
+        startTop = parseFloat(elem.style.top) || 10;
+        
+        selectElement(elem);
+        e.stopPropagation();
+    });
+    
+    document.addEventListener('mousemove', function(e) {
+        if (isDragging && elementData) {
+            var dx = e.clientX - startX;
+            var dy = e.clientY - startY;
+            var parent = elem.parentElement;
+            var parentWidth = parent.offsetWidth;
+            var parentHeight = parent.offsetHeight;
+            
+            var newLeft = Math.max(0, Math.min(100 - elementData.transform.width, startLeft + (dx / parentWidth) * 100));
+            var newTop = Math.max(0, Math.min(100 - elementData.transform.height, startTop + (dy / parentHeight) * 100));
+            
+            elem.style.left = newLeft + '%';
+            elem.style.top = newTop + '%';
+            elementData.transform.x = newLeft;
+            elementData.transform.y = newTop;
+        }
+        
+        if (isRotating && elementData) {
+            var rect = elem.getBoundingClientRect();
+            var centerX = rect.left + rect.width / 2;
+            var centerY = rect.top + rect.height / 2;
+            var angle = Math.atan2(e.clientY - centerY, e.clientX - centerX) * 180 / Math.PI + 90;
+            
+            elem.style.transform = 'rotate(' + angle + 'deg)';
+            elementData.transform.rotation = angle;
+        }
+    });
+    
+    document.addEventListener('mouseup', function() {
+        isDragging = false;
+        isRotating = false;
+    });
+    
+    elem.addEventListener('click', function(e) {
+        if (!e.target.classList.contains('rotate-handle')) {
+            selectElement(elem);
+        }
+    });
+}
+
+function selectElement(elem) {
+    document.querySelectorAll('.transform-controls').forEach(function(c) { c.remove(); });
+    
+    var elementData = null;
+    for (var i = 0; i < currentCanvas.elements.length; i++) {
+        if (currentCanvas.elements[i].dom === elem) {
+            elementData = currentCanvas.elements[i];
+            break;
+        }
+    }
+    currentCanvas.selectedElement = elementData;
+    
+    var controls = document.createElement('div');
+    controls.className = 'transform-controls';
+    controls.style.cssText = 'position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none;';
+    
+    // 旋转手柄（顶部中心）
+    var rotateHandle = document.createElement('div');
+    rotateHandle.className = 'rotate-handle';
+    rotateHandle.style.cssText = 'position:absolute;top:-25px;left:50%;transform:translateX(-50%);width:16px;height:16px;background:#3b82f6;border-radius:50%;cursor:grab;pointer-events:auto;';
+    rotateHandle.addEventListener('mousedown', function(e) {
+        isRotating = true;
+        e.stopPropagation();
+    });
+    controls.appendChild(rotateHandle);
+    
+    // 连接线
+    var line = document.createElement('div');
+    line.style.cssText = 'position:absolute;top:-20px;left:50%;width:1px;height:20px;background:#3b82f6;';
+    controls.appendChild(line);
+    
+    // 四角缩放手柄
+    var handles = ['nw', 'ne', 'sw', 'se'];
+    var handlePositions = {
+        nw: 'top:-4px;left:-4px;cursor:nw-resize;',
+        ne: 'top:-4px;right:-4px;cursor:ne-resize;',
+        sw: 'bottom:-4px;left:-4px;cursor:sw-resize;',
+        se: 'bottom:-4px;right:-4px;cursor:se-resize;'
+    };
+    
+    handles.forEach(function(h) {
+        var handle = document.createElement('div');
+        handle.className = 'resize-handle';
+        handle.style.cssText = 'position:absolute;width:8px;height:8px;background:#3b82f6;border:1px solid #fff;' + handlePositions[h];
+        handle.style.pointerEvents = 'auto';
+        
+        handle.addEventListener('mousedown', function(e) {
+            isResizing = true;
+            startX = e.clientX;
+            startY = e.clientY;
+            startLeft = parseFloat(elem.style.left) || 0;
+            startTop = parseFloat(elem.style.top) || 0;
+            startWidth = parseFloat(elem.style.width) || 80;
+            startHeight = parseFloat(elem.style.height) || 80;
+            e.stopPropagation();
+        });
+        
+        controls.appendChild(handle);
+    });
+    
+    elem.parentElement.appendChild(controls);
+    
+    // 添加元素自身的缩放监听
+    document.addEventListener('mousemove', function(e) {
+        if (isResizing && elementData) {
+            var dx = e.clientX - startX;
+            var dy = e.clientY - startY;
+            var parent = elem.parentElement;
+            var parentWidth = parent.offsetWidth;
+            var parentHeight = parent.offsetHeight;
+            
+            var newWidth = Math.max(10, Math.min(100, startWidth + (dx / parentWidth) * 100));
+            var newHeight = Math.max(10, Math.min(100, startHeight + (dy / parentHeight) * 100));
+            
+            elem.style.width = newWidth + '%';
+            elem.style.height = newHeight + '%';
+            elementData.transform.width = newWidth;
+            elementData.transform.height = newHeight;
+        }
+    });
+}
+
+var isResizing = false;
+var startX, startY, startLeft, startTop, startWidth, startHeight;
 
 function switchTab(tab) {
     console.log('Switching to tab:', tab);
