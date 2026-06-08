@@ -68,7 +68,7 @@ function selectProductImage(imgUrl, areaData) {
     
     var bgImg = document.createElement('img');
     bgImg.src = imgUrl;
-    bgImg.style.cssText = 'position:absolute;left:0;top:0;width:100%;height:100%;object-fit:fill;pointer-events:none;';
+    bgImg.style.cssText = 'position:absolute;left:0;top:0;width:100%;height:100%;object-fit:contain;pointer-events:none;';
     canvas.appendChild(bgImg);
     
     if (areaData && areaData.x !== undefined) {
@@ -99,10 +99,7 @@ function addUploadedImage(dataUrl) {
         x: 10, y: 10, w: 80, h: 80, rotation: 0
     };
     
-    setupElemControls(wrapper, elemData);
-    setupDrag(wrapper, elemData);
-    setupResize(wrapper, elemData);
-    setupRotate(wrapper, elemData);
+    setupElemEvents(wrapper, elemData);
     
     printArea.appendChild(wrapper);
     currentCanvas.elements.push(elemData);
@@ -119,7 +116,6 @@ function selectElem(elemData) {
     control.style.cssText = 'position:absolute;left:' + elemData.x + '%;top:' + elemData.y + '%;width:' + elemData.w + '%;height:' + elemData.h + '%;border:2px solid #3b82f6;transform:rotate(' + elemData.rotation + 'deg);pointer-events:none;';
     wrapper.parentNode.appendChild(control);
     
-    // 旋转手柄
     var rotH = document.createElement('div');
     rotH.style.cssText = 'position:absolute;top:-30px;left:50%;transform:translateX(-50%);width:14px;height:14px;background:#3b82f6;border-radius:50%;cursor:grab;pointer-events:auto;';
     rotH.dataset.action = 'rotate';
@@ -129,7 +125,6 @@ function selectElem(elemData) {
     line.style.cssText = 'position:absolute;top:-15px;left:50%;width:1px;height:15px;background:#3b82f6;';
     control.appendChild(line);
     
-    // 四角
     var corners = [
         {css: 'top:-4px;left:-4px;cursor:nw-resize;', action: 'nw'},
         {css: 'top:-4px;right:-4px;cursor:ne-resize;', action: 'ne'},
@@ -155,8 +150,9 @@ function updateControl(elemData) {
     }
 }
 
-function setupDrag(wrapper, elemData) {
-    var isDrag = false, startX, startY, startX2, startY2;
+function setupElemEvents(wrapper, elemData) {
+    var isDrag = false, isResize = false, isRotate = false;
+    var startX, startY, startX2, startY2, startW, startH, startAngle, startRot;
     
     wrapper.addEventListener('mousedown', function(e) {
         if (e.target.dataset.action) return;
@@ -170,115 +166,68 @@ function setupDrag(wrapper, elemData) {
         e.preventDefault();
     });
     
-    document.addEventListener('mousemove', function(e) {
-        if (!isDrag || currentCanvas.selectedElement !== elemData) return;
-        var pa = wrapper.parentElement;
-        var dx = e.clientX - startX;
-        var dy = e.clientY - startY;
-        var newX = Math.max(0, Math.min(100 - elemData.w, startX2 + (dx / pa.offsetWidth) * 100));
-        var newY = Math.max(0, Math.min(100 - elemData.h, startY2 + (dy / pa.offsetHeight) * 100));
-        elemData.x = newX;
-        elemData.y = newY;
-        wrapper.style.left = newX + '%';
-        wrapper.style.top = newY + '%';
-        updateControl(elemData);
-    });
-    
-    document.addEventListener('mouseup', function() { isDrag = false; });
-}
-
-function setupResize(wrapper, elemData) {
-    var isResize = false, action = '', startX, startY, startW, startH, startX2, startY2;
-    
     document.addEventListener('mousedown', function(e) {
-        if (!e.target.dataset.action || e.target.dataset.action === 'rotate') return;
-        isResize = true;
-        action = e.target.dataset.action;
-        startX = e.clientX;
-        startY = e.clientY;
-        startW = elemData.w;
-        startH = elemData.h;
-        startX2 = elemData.x;
-        startY2 = elemData.y;
+        if (!e.target.dataset.action) return;
+        var action = e.target.dataset.action;
+        if (action === 'rotate') {
+            isRotate = true;
+            startRot = elemData.rotation;
+            var rect = wrapper.getBoundingClientRect();
+            startAngle = Math.atan2(e.clientY - (rect.top + rect.height/2), e.clientX - (rect.left + rect.width/2)) * 180 / Math.PI;
+        } else {
+            isResize = true;
+            startX = e.clientX;
+            startY = e.clientY;
+            startW = elemData.w;
+            startH = elemData.h;
+            startX2 = elemData.x;
+            startY2 = elemData.y;
+        }
         e.stopPropagation();
         e.preventDefault();
     });
     
     document.addEventListener('mousemove', function(e) {
-        if (!isResize || currentCanvas.selectedElement !== elemData) return;
+        if (!currentCanvas.selectedElement || currentCanvas.selectedElement !== elemData) return;
         var pa = wrapper.parentElement;
-        var dx = e.clientX - startX;
-        var dy = e.clientY - startY;
         
-        if (action === 'se') {
-            elemData.w = Math.max(10, Math.min(100 - elemData.x, startW + (dx / pa.offsetWidth) * 100));
-            elemData.h = Math.max(10, Math.min(100 - elemData.y, startH + (dy / pa.offsetHeight) * 100));
-        } else if (action === 'nw') {
-            var newW = Math.max(10, startW - (dx / pa.offsetWidth) * 100);
-            var newH = Math.max(10, startH - (dy / pa.offsetHeight) * 100);
-            var newX = startX2 + (startW - newW);
-            var newY = startY2 + (startH - newH);
-            if (newX >= 0 && newY >= 0) {
-                elemData.x = newX;
-                elemData.y = newY;
-                elemData.w = newW;
-                elemData.h = newH;
-            }
-        } else if (action === 'ne') {
-            elemData.w = Math.max(10, Math.min(100 - elemData.x, startW + (dx / pa.offsetWidth) * 100));
-            var newH = Math.max(10, startH - (dy / pa.offsetHeight) * 100);
-            var newY = startY2 + (startH - newH);
-            if (newY >= 0) {
-                elemData.y = newY;
-                elemData.h = newH;
-            }
-        } else if (action === 'sw') {
-            var newW = Math.max(10, startW - (dx / pa.offsetWidth) * 100);
-            var newX = startX2 + (startW - newW);
-            elemData.h = Math.max(10, Math.min(100 - elemData.y, startH + (dy / pa.offsetHeight) * 100));
-            if (newX >= 0) {
-                elemData.x = newX;
-                elemData.w = newW;
-            }
+        if (isDrag) {
+            var dx = e.clientX - startX;
+            var dy = e.clientY - startY;
+            elemData.x = startX2 + (dx / pa.offsetWidth) * 100;
+            elemData.y = startY2 + (dy / pa.offsetHeight) * 100;
+            wrapper.style.left = elemData.x + '%';
+            wrapper.style.top = elemData.y + '%';
+            updateControl(elemData);
         }
         
-        wrapper.style.left = elemData.x + '%';
-        wrapper.style.top = elemData.y + '%';
-        wrapper.style.width = elemData.w + '%';
-        wrapper.style.height = elemData.h + '%';
-        updateControl(elemData);
+        if (isResize) {
+            var dx = e.clientX - startX;
+            var dy = e.clientY - startY;
+            var newW = startW + (dx / pa.offsetWidth) * 100;
+            var newH = startH + (dy / pa.offsetHeight) * 100;
+            elemData.w = Math.max(10, newW);
+            elemData.h = Math.max(10, newH);
+            wrapper.style.width = elemData.w + '%';
+            wrapper.style.height = elemData.h + '%';
+            updateControl(elemData);
+        }
+        
+        if (isRotate) {
+            var rect = wrapper.getBoundingClientRect();
+            var angle = Math.atan2(e.clientY - (rect.top + rect.height/2), e.clientX - (rect.left + rect.width/2)) * 180 / Math.PI;
+            elemData.rotation = startRot + (angle - startAngle);
+            wrapper.style.transform = 'rotate(' + elemData.rotation + 'deg)';
+            updateControl(elemData);
+        }
     });
     
-    document.addEventListener('mouseup', function() { isResize = false; });
-}
-
-function setupRotate(wrapper, elemData) {
-    var isRotate = false, startAngle, startRot;
-    
-    document.addEventListener('mousedown', function(e) {
-        if (!e.target.dataset.action || e.target.dataset.action !== 'rotate') return;
-        isRotate = true;
-        startRot = elemData.rotation;
-        var rect = wrapper.getBoundingClientRect();
-        var cx = rect.left + rect.width / 2;
-        var cy = rect.top + rect.height / 2;
-        startAngle = Math.atan2(e.clientY - cy, e.clientX - cx) * 180 / Math.PI;
-        e.stopPropagation();
-        e.preventDefault();
+    document.addEventListener('mouseup', function() {
+        isDrag = false;
+        isResize = false;
+        isRotate = false;
     });
     
-    document.addEventListener('mousemove', function(e) {
-        if (!isRotate || currentCanvas.selectedElement !== elemData) return;
-        var angle = Math.atan2(e.clientY - (wrapper.getBoundingClientRect().top + wrapper.offsetHeight/2), e.clientX - (wrapper.getBoundingClientRect().left + wrapper.offsetWidth/2)) * 180 / Math.PI;
-        elemData.rotation = startRot + (angle - startAngle);
-        wrapper.style.transform = 'rotate(' + elemData.rotation + 'deg)';
-        updateControl(elemData);
-    });
-    
-    document.addEventListener('mouseup', function() { isRotate = false; });
-}
-
-function setupElemControls(wrapper, elemData) {
     wrapper.addEventListener('click', function(e) {
         if (!e.target.dataset.action) {
             selectElem(elemData);
