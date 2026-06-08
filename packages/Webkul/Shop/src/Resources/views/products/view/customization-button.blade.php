@@ -40,7 +40,7 @@ function loadPrintAreas() {
                     var div = document.createElement('div');
                     div.className = 'cursor-pointer border-2 border-gray-300 rounded p-1 hover:border-blue-500';
                     div.style.cssText = 'width: 120px; height: 120px;';
-                    div.innerHTML = '<img src="' + imgUrl + '" style="width: 120px; height: 120px; object-fit: contain;" />';
+                    div.innerHTML = '<img src="' + imgUrl + '" class="w-full h-full object-contain" />';
                     div.onclick = function() { selectProductImage(imgUrl, item); };
                     productImagesDiv.appendChild(div);
                 });

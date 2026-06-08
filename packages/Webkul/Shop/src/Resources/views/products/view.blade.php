@@ -94,7 +94,7 @@
                 </div>
                 
                 <div id="tab-product" class="tab-content flex-1 overflow-auto">
-                    <div id="product-images" class="flex flex-col gap-2"></div>
+                    <div id="product-images" class="flex flex-col gap-2 items-center"></div>
                 </div>
                 
                 <div id="tab-image" class="tab-content hidden flex-1">
