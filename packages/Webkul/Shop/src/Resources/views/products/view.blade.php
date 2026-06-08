@@ -71,14 +71,14 @@
     </v-product>
 
 <!-- Customization Dialog - Outside Vue component for proper z-index -->
-<div id="customization-dialog" class="fixed inset-0 bg-black bg-opacity-50 z-[99999] hidden">
-    <div class="bg-white rounded-lg shadow-xl max-w-6xl mx-auto mt-20 p-6 max-h-[90vh] overflow-auto">
+<div id="customization-dialog" class="fixed inset-0 bg-black bg-opacity-50 z-[99999] hidden overflow-y-auto">
+    <div class="bg-white rounded-lg shadow-xl max-w-6xl mx-auto my-20 p-6 h-[80vh] flex flex-col">
         <div class="flex justify-between items-center mb-4">
             <h2 class="text-xl font-bold">Custom Design</h2>
             <button id="close-dialog" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
         </div>
         
-        <div class="flex gap-4">
+        <div class="flex gap-4 flex-1 overflow-auto">
             <div class="w-1/4 border-r pr-4">
                 <div class="flex gap-2 mb-4">
                     <button class="tab-btn border-b-2 border-blue-500 text-blue-500 pb-2 px-2" data-tab="product">Product</button>
@@ -112,7 +112,7 @@
             
             <div class="w-1/2">
                 <h3 class="font-semibold mb-2">Design Area</h3>
-                <div id="design-canvas" class="border-2 border-dashed border-gray-300 rounded-lg w-full aspect-square bg-gray-50 flex items-center justify-center overflow-hidden"></div>
+                <div id="design-canvas" class="border-2 border-dashed border-gray-300 rounded-lg w-full h-full bg-gray-50 flex items-center justify-center overflow-hidden"></div>
             </div>
             
             <div class="w-1/4">
