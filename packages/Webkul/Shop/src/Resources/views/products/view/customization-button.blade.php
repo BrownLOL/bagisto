@@ -149,39 +149,6 @@ function addUploadedImage(dataUrl) {
     updateLayersList();
 }
 
-
-function addTextToCanvas(text, size, color, font) {
-    var printArea = document.getElementById('print-area');
-    if (!printArea) return;
-    
-    var wrapper = document.createElement('div');
-    wrapper.className = 'canvas-elem';
-    wrapper.style.cssText = 'position:absolute;left:10%;top:10%;width:80%;height:80%;cursor:move;transform-origin:center center;';
-    wrapper.textContent = text;
-    wrapper.style.fontSize = (size || 24) + 'px';
-    wrapper.style.color = color || '#000';
-    wrapper.style.fontFamily = font || 'Noto Sans TC, sans-serif';
-    wrapper.style.display = 'flex';
-    wrapper.style.alignItems = 'center';
-    wrapper.style.justifyContent = 'center';
-    wrapper.style.wordBreak = 'break-word';
-    wrapper.style.textAlign = 'center';
-    
-    var elemData = {
-        dom: wrapper,
-        type: 'text',
-        content: text,
-        x: 10, y: 10, w: 80, h: 80, rotation: 0,
-        styles: { color: color || '#000', fontSize: size || 24, fontFamily: font || 'Noto Sans TC, sans-serif' },
-        id: Date.now()
-    };
-    
-    setupElemEvents(wrapper, elemData);
-    printArea.appendChild(wrapper);
-    currentCanvas.elements.push(elemData);
-    selectElem(elemData);
-    updateLayersList();
-}
 function updateLayersList() {
     var layersDiv = document.getElementById('layers-list');
     layersDiv.innerHTML = '';
@@ -507,10 +474,8 @@ document.addEventListener('DOMContentLoaded', function() {
         if (e.target === this) closeDialog();
     };
 });
-</script>
-@endpushOnce
 
-// Font size slider update label
+// Font size slider
 document.addEventListener('DOMContentLoaded', function() {
     var fontSizeInput = document.getElementById('font-size');
     var fontSizeLabel = document.getElementById('font-size-label');
@@ -520,7 +485,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // Update color swatch selection
     document.querySelectorAll('.color-swatch').forEach(function(swatch) {
         swatch.addEventListener('click', function() {
             document.querySelectorAll('.color-swatch').forEach(function(s) {
@@ -561,5 +525,37 @@ function addText() {
     textInput.value = '';
 }
 
+function addTextToCanvas(text, size, color, font) {
+    var printArea = document.getElementById('print-area');
+    if (!printArea) return;
+    
+    var wrapper = document.createElement('div');
+    wrapper.className = 'canvas-elem';
+    wrapper.style.cssText = 'position:absolute;left:10%;top:10%;width:80%;height:80%;cursor:move;transform-origin:center center;';
+    wrapper.textContent = text;
+    wrapper.style.fontSize = (size || 24) + 'px';
+    wrapper.style.color = color || '#000';
+    wrapper.style.fontFamily = font || 'Noto Sans TC, sans-serif';
+    wrapper.style.display = 'flex';
+    wrapper.style.alignItems = 'center';
+    wrapper.style.justifyContent = 'center';
+    wrapper.style.wordBreak = 'break-word';
+    wrapper.style.textAlign = 'center';
+    
+    var elemData = {
+        dom: wrapper,
+        type: 'text',
+        content: text,
+        x: 10, y: 10, w: 80, h: 80, rotation: 0,
+        styles: { color: color || '#000', fontSize: size || 24, fontFamily: font || 'Noto Sans TC, sans-serif' },
+        id: Date.now()
+    };
+    
+    setupElemEvents(wrapper, elemData);
+    printArea.appendChild(wrapper);
+    currentCanvas.elements.push(elemData);
+    selectElem(elemData);
+    updateLayersList();
+}
 </script>
 @endpushOnce
