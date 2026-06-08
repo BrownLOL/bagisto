@@ -68,13 +68,13 @@ function selectProductImage(imgUrl, areaData) {
     
     var bgImg = document.createElement('img');
     bgImg.src = imgUrl;
-    bgImg.style.cssText = 'position:absolute;left:0;top:0;width:100%;height:100%;object-fit:contain;pointer-events:none;';
+    bgImg.style.cssText = 'position:absolute;left:0;top:0;width:100%;height:100%;object-fit:fill;pointer-events:none;';
     canvas.appendChild(bgImg);
     
     if (areaData && areaData.x !== undefined) {
         var printArea = document.createElement('div');
         printArea.id = 'print-area';
-        printArea.style.cssText = 'position:absolute;left:' + areaData.x + '%;top:' + areaData.y + '%;width:' + areaData.width + '%;height:' + areaData.height + '%;border:2px dashed red;background:rgba(255,255,255,0.3);';
+        printArea.style.cssText = 'position:absolute;left:' + areaData.x + '%;top:' + areaData.y + '%;width:' + areaData.width + '%;height:' + areaData.height + '%;border:2px dashed red;background:rgba(255,255,255,0.3);overflow:hidden;';
         canvas.appendChild(printArea);
     }
 }
@@ -89,7 +89,7 @@ function addUploadedImage(dataUrl) {
     
     var img = document.createElement('img');
     img.src = dataUrl;
-    img.style.cssText = 'width:100%;height:100%;object-fit:contain;pointer-events:none;';
+    img.style.cssText = 'width:100%;height:100%;object-fit:fill;pointer-events:none;';
     wrapper.appendChild(img);
     
     var elemData = {
