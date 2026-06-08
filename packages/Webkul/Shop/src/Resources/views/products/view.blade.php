@@ -166,6 +166,7 @@
                     <button onclick="zoomOut()" class="px-3 py-1 bg-white border border-gray-300 rounded hover:bg-gray-100 text-sm">-</button>
                     <span id="zoom-level" class="px-3 py-1 bg-gray-100 border border-gray-300 rounded text-sm">100%</span>
                     <button onclick="zoomIn()" class="px-3 py-1 bg-white border border-gray-300 rounded hover:bg-gray-100 text-sm">+</button>
+                    <button onclick="resetZoom()" class="px-3 py-1 bg-white border border-gray-300 rounded hover:bg-gray-100 text-sm" title="Reset">⟲</button>
                 </div>
             </div>
             

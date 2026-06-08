@@ -27,6 +27,8 @@ function openCustomizationDialog() {
     updateOperationButtons();
     loadPrintAreas();
     initTextControls();
+    resetZoom();
+    initCanvasPan();
 }
 
 function closeDialog() {
@@ -36,6 +38,9 @@ function closeDialog() {
 }
 
 var canvasZoom = 100;
+var panX = 0, panY = 0;
+var isPanning = false;
+var panStartX, panStartY;
 
 function zoomIn() {
     if (canvasZoom < 200) {
@@ -55,10 +60,50 @@ function updateCanvasZoom() {
     var inner = document.getElementById('design-canvas-inner');
     var zoomLabel = document.getElementById('zoom-level');
     if (inner && zoomLabel) {
-        inner.style.transform = 'scale(' + (canvasZoom / 100) + ')';
+        inner.style.transform = 'translate(' + panX + 'px, ' + panY + 'px) scale(' + (canvasZoom / 100) + ')';
         zoomLabel.textContent = canvasZoom + '%';
     }
     updatePreview();
+}
+
+function resetZoom() {
+    canvasZoom = 100;
+    panX = 0;
+    panY = 0;
+    updateCanvasZoom();
+}
+
+function initCanvasPan() {
+    var wrapper = document.getElementById('design-canvas-wrapper');
+    if (!wrapper) return;
+    
+    wrapper.onmousedown = function(e) {
+        if (e.target === wrapper || e.target.id === 'design-canvas-inner' || e.target.classList.contains('bg-gray-50')) {
+            if (canvasZoom !== 100) {
+                isPanning = true;
+                panStartX = e.clientX - panX;
+                panStartY = e.clientY - panY;
+                wrapper.style.cursor = 'grabbing';
+                e.preventDefault();
+            }
+        }
+    };
+    
+    document.onmousemove = function(e) {
+        if (isPanning) {
+            panX = e.clientX - panStartX;
+            panY = e.clientY - panStartY;
+            updateCanvasZoom();
+        }
+    };
+    
+    document.onmouseup = function() {
+        if (isPanning) {
+            isPanning = false;
+            var wrapper = document.getElementById('design-canvas-wrapper');
+            if (wrapper) wrapper.style.cursor = '';
+        }
+    };
 }
 
 function updatePreview() {
