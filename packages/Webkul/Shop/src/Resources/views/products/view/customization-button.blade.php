@@ -35,6 +35,64 @@ function closeDialog() {
     currentCanvas.selectedElement = null;
 }
 
+var canvasZoom = 100;
+
+function zoomIn() {
+    if (canvasZoom < 200) {
+        canvasZoom += 25;
+        updateCanvasZoom();
+    }
+}
+
+function zoomOut() {
+    if (canvasZoom > 50) {
+        canvasZoom -= 25;
+        updateCanvasZoom();
+    }
+}
+
+function updateCanvasZoom() {
+    var wrapper = document.getElementById('design-canvas-wrapper');
+    var zoomLabel = document.getElementById('zoom-level');
+    if (wrapper && zoomLabel) {
+        wrapper.style.transform = 'scale(' + (canvasZoom / 100) + ')';
+        wrapper.style.transformOrigin = 'top center';
+        zoomLabel.textContent = canvasZoom + '%';
+    }
+    updatePreview();
+}
+
+function updatePreview() {
+    var previewCanvas = document.getElementById('preview-canvas');
+    var printArea = document.getElementById('print-area');
+    if (!previewCanvas || !printArea) return;
+    
+    previewCanvas.innerHTML = '';
+    
+    // Create a container with the same background/product image
+    var container = document.createElement('div');
+    container.style.cssText = 'position: relative; width: 100%; height: 100%;';
+    
+    // Copy print area content
+    var productImg = printArea.querySelector('img');
+    if (productImg) {
+        var bgImg = document.createElement('img');
+        bgImg.src = productImg.src;
+        bgImg.style.cssText = 'position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain;';
+        container.appendChild(bgImg);
+    }
+    
+    // Copy elements from print area (excluding product image)
+    var elements = printArea.querySelectorAll('.canvas-elem');
+    elements.forEach(function(elem) {
+        var clone = elem.cloneNode(true);
+        clone.style.pointerEvents = 'none';
+        container.appendChild(clone);
+    });
+    
+    previewCanvas.appendChild(container);
+}
+
 function loadPrintAreas() {
     var productId = {{ $productId }};
     
@@ -62,6 +120,7 @@ function loadPrintAreas() {
 
 function selectProductImage(imgUrl, areaData) {
     var canvas = document.getElementById('design-canvas');
+    var canvasWrapper = document.getElementById('design-canvas-wrapper');
     
     if (currentCanvas.currentImageKey && currentCanvas.elements.length > 0) {
         currentCanvas.layerStore[currentCanvas.currentImageKey] = currentCanvas.elements.slice();
@@ -119,6 +178,7 @@ function selectProductImage(imgUrl, areaData) {
     
     updateLayersList();
     updateOperationButtons();
+    updatePreview();
 }
 
 function addUploadedImage(dataUrl) {
@@ -148,6 +208,7 @@ function addUploadedImage(dataUrl) {
     currentCanvas.elements.push(elemData);
     selectElem(elemData);
     updateLayersList();
+    updatePreview();
 }
 
 function updateLayersList() {
@@ -610,6 +671,7 @@ function addTextToCanvas(text, size, color, font) {
     currentCanvas.elements.push(elemData);
     selectElem(elemData);
     updateLayersList();
+    updatePreview();
 }
 </script>
 @endpushOnce

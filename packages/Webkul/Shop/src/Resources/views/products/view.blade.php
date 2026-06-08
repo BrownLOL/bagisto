@@ -157,7 +157,17 @@
             </div>
             
             <!-- Center - Design Canvas -->
-            <div id="design-canvas" style="width: 500px; height: 500px;" class="border-2 border-dashed border-gray-300 rounded-lg bg-gray-50 flex items-center justify-center overflow-hidden"></div>
+            <div class="flex flex-col gap-2">
+                <div id="design-canvas-wrapper" style="width: 500px; height: 500px;" class="border-2 border-dashed border-gray-300 rounded-lg bg-gray-50 overflow-hidden">
+                    <div id="design-canvas" class="w-full h-full flex items-center justify-center"></div>
+                </div>
+                <!-- Zoom controls -->
+                <div class="flex justify-center gap-2">
+                    <button onclick="zoomOut()" class="px-3 py-1 bg-white border border-gray-300 rounded hover:bg-gray-100 text-sm">-</button>
+                    <span id="zoom-level" class="px-3 py-1 bg-gray-100 border border-gray-300 rounded text-sm">100%</span>
+                    <button onclick="zoomIn()" class="px-3 py-1 bg-white border border-gray-300 rounded hover:bg-gray-100 text-sm">+</button>
+                </div>
+            </div>
             
             <!-- Right Panel - Settings with Icons -->
             <div style="width: 300px; flex-shrink: 0;" class="flex flex-col">
@@ -215,7 +225,9 @@
                     </div>
                 </div>
                 <h3 class="font-semibold mt-4 mb-2 text-sm">Preview</h3>
-                <div id="preview" class="flex-1 border rounded bg-gray-50"></div>
+                <div id="preview" class="flex-1 border rounded bg-gray-50 overflow-hidden">
+                    <div id="preview-canvas" class="w-full h-full flex items-center justify-center"></div>
+                </div>
             </div>
         </div>
         
