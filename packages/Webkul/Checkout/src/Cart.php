@@ -285,13 +285,6 @@ class Cart
 
                 if (! $cartItem) {
                     $cartItem = $this->cartItemRepository->create(array_merge($cartProduct, ['cart_id' => $this->cart->id]));
-                    
-                    // Save customization data if present
-                    if (! empty($data['customization_data'])) {
-                        $this->cartItemRepository->update([
-                            'customization_data' => $data['customization_data'],
-                        ], $cartItem->id);
-                    }
                 } else {
                     if (
                         isset($cartProduct['parent_id'])

@@ -115,7 +115,13 @@ class CartController extends APIController
                 throw new \Exception(trans('shop::app.checkout.cart.inactive-add'));
             }
 
-            $cart = Cart::addProduct($product, request()->all());
+            // Move customization to additional for Cart::addProduct
+            $data = request()->all();
+            $data['additional'] = [
+                'customization' => $data['customization'],
+            ];
+
+            $cart = Cart::addProduct($product, $data);
 
             return new JsonResource([
                 'data'    => new CartResource($cart),
