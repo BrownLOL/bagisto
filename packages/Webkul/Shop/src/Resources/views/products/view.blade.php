@@ -106,7 +106,6 @@
                 </div>
                 
                 <div id="tab-text" class="tab-content hidden flex-1">
-                    <h3 class="font-semibold mb-2 text-sm">Add Text</h3>
                     <input type="text" id="text-input" placeholder="Enter text" class="w-full border rounded p-2 mb-2" />
                     <select id="text-color" class="w-full border rounded p-2 mb-2">
                         <option value="#000000">Black</option>
@@ -115,7 +114,7 @@
                         <option value="#00FF00">Green</option>
                     </select>
                     <input type="number" id="font-size" value="24" min="12" max="72" class="w-full border rounded p-2 mb-2" />
-                    <button onclick="addText()" class="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700">Add Text</button>
+                    <button onclick="addText()" class="w-full bg-blue-600 py-2 rounded hover:bg-blue-700 flex items-center justify-center"></button>
                 </div>
                 <div id="tab-layers" class="tab-content hidden flex-1 flex flex-col">
                     <h3 class="font-semibold mb-2 text-sm">Layers</h3>
