@@ -108,33 +108,18 @@ function initCanvasPan() {
 
 function updatePreview() {
     var previewCanvas = document.getElementById('preview-canvas');
-    var printArea = document.getElementById('print-area');
-    if (!previewCanvas || !printArea) return;
+    var inner = document.getElementById('design-canvas-inner');
+    if (!previewCanvas || !inner) return;
     
     previewCanvas.innerHTML = '';
     
-    // Create a container with the same background/product image
-    var container = document.createElement('div');
-    container.style.cssText = 'position: relative; width: 100%; height: 100%;';
-    
-    // Copy print area content
-    var productImg = printArea.querySelector('img');
-    if (productImg) {
-        var bgImg = document.createElement('img');
-        bgImg.src = productImg.src;
-        bgImg.style.cssText = 'position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain;';
-        container.appendChild(bgImg);
-    }
-    
-    // Copy elements from print area (excluding product image)
-    var elements = printArea.querySelectorAll('.canvas-elem');
-    elements.forEach(function(elem) {
-        var clone = elem.cloneNode(true);
-        clone.style.pointerEvents = 'none';
-        container.appendChild(clone);
+    // Clone the inner canvas content (100% centered view)
+    var clone = inner.cloneNode(true);
+    clone.style.cssText = 'position: absolute; top: 0; left: 0; width: 100%; height: 100%;';
+    clone.querySelectorAll('.canvas-elem').forEach(function(elem) {
+        elem.style.pointerEvents = 'none';
     });
-    
-    previewCanvas.appendChild(container);
+    previewCanvas.appendChild(clone);
 }
 
 function loadPrintAreas() {
