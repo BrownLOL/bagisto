@@ -1019,5 +1019,5 @@
         @if (core()->getConfigData('customer.captcha.credentials.status'))
             {!! \Webkul\Customer\Facades\Captcha::renderJS() !!}
         @endif
-    @endPushOnce
+    @endpushOnce
 </x-shop::layouts>
