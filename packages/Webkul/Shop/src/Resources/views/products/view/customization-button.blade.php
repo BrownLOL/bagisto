@@ -359,8 +359,9 @@ function maximizeElement() {
         var newFontSize = Math.round(elemData.styles.fontSize * scale);
         elemData.dom.style.fontSize = newFontSize + 'px';
     }
-    
+
     updateControl(elemData);
+    updatePreview();
 }
 
 function flipHorizontal() {
@@ -370,6 +371,7 @@ function flipHorizontal() {
     scaleX = scaleX * -1;
     elemData.scaleX = scaleX;
     elemData.dom.style.transform = 'rotate(' + elemData.rotation + 'deg) scaleX(' + scaleX + ')';
+    updatePreview();
 }
 
 function flipVertical() {
@@ -379,6 +381,7 @@ function flipVertical() {
     scaleY = scaleY * -1;
     elemData.scaleY = scaleY;
     elemData.dom.style.transform = 'rotate(' + elemData.rotation + 'deg) scaleY(' + scaleY + ')';
+    updatePreview();
 }
 
 function rotateLeft() {
@@ -387,6 +390,7 @@ function rotateLeft() {
     elemData.rotation -= 90;
     elemData.dom.style.transform = 'rotate(' + elemData.rotation + 'deg)';
     updateControl(elemData);
+    updatePreview();
 }
 
 function rotateRight() {
@@ -395,6 +399,7 @@ function rotateRight() {
     elemData.rotation += 90;
     elemData.dom.style.transform = 'rotate(' + elemData.rotation + 'deg)';
     updateControl(elemData);
+    updatePreview();
 }
 
 function bringForward() {
@@ -408,6 +413,7 @@ function bringForward() {
         pa.appendChild(elemData.dom);
         updateLayersList();
         updateOperationButtons();
+        updatePreview();
     }
 }
 
@@ -422,6 +428,7 @@ function sendBackward() {
         pa.insertBefore(elemData.dom, pa.firstChild);
         updateLayersList();
         updateOperationButtons();
+        updatePreview();
     }
 }
 
@@ -437,6 +444,7 @@ function deleteElement() {
     currentCanvas.selectedElement = null;
     updateLayersList();
     updateOperationButtons();
+    updatePreview();
 }
 
 function setupElemEvents(wrapper, elemData) {
@@ -549,6 +557,9 @@ function setupElemEvents(wrapper, elemData) {
     });
     
     document.addEventListener('mouseup', function() {
+        if (isDrag || isResize || isRotate) {
+            updatePreview();
+        }
         isDrag = false;
         isResize = false;
         isRotate = false;
