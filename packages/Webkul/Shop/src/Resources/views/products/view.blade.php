@@ -98,8 +98,8 @@
                 </div>
                 
                 <div id="tab-image" class="tab-content hidden flex-1">
-                    <h3 class="font-semibold mb-2 text-sm">Upload Image</h3>
-                    <input type="file" id="image-upload" accept="image/*" class="w-full border rounded p-2" />
+                    <input type="file" id="image-upload" accept="image/*" class="w-full border rounded p-2 mb-2" />
+                    <div id="uploaded-images" class="flex flex-col gap-2 items-center overflow-auto flex-1"></div>
                 </div>
                 
                 <div id="tab-text" class="tab-content hidden flex-1">

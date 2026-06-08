@@ -77,6 +77,36 @@ function switchTab(tab) {
     document.getElementById('tab-' + tab).classList.remove('hidden');
 }
 
+// Handle image upload
+document.addEventListener('change', function(e) {
+    if (e.target.id === 'image-upload') {
+        var files = e.target.files;
+        var uploadedImagesDiv = document.getElementById('uploaded-images');
+        
+        for (var i = 0; i < files.length; i++) {
+            var file = files[i];
+            if (file.type.startsWith('image/')) {
+                var reader = new FileReader();
+                reader.onload = function(event) {
+                    var dataUrl = event.target.result;
+                    
+                    var div = document.createElement('div');
+                    div.className = 'cursor-pointer border-2 border-gray-300 rounded p-1 hover:border-blue-500';
+                    div.style.cssText = 'width: 120px; height: 120px;';
+                    div.innerHTML = '<img src="' + dataUrl + '" class="w-full h-full object-contain" />';
+                    div.onclick = function() {
+                        addUploadedImage(dataUrl);
+                    };
+                    uploadedImagesDiv.appendChild(div);
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+        
+        e.target.value = '';
+    }
+});
+
 document.addEventListener('DOMContentLoaded', function() {
     console.log('Customization dialog script loaded');
     
