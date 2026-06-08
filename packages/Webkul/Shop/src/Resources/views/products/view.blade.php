@@ -82,14 +82,14 @@
             <!-- Left Panel - 3 Tabs -->
             <div style="width: 150px; flex-shrink: 0;" class="border-r pr-4 flex flex-col">
                 <div class="flex gap-1 mb-4">
-                    <button class="tab-btn p-2 rounded hover:bg-gray-200" data-tab="product" title="Product">
+                    <button class="tab-btn p-2 rounded hover:bg-gray-200 bg-blue-100 text-blue-600" data-tab="product" title="Product">
+                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M21.6 18.2L13 11.75v-.91a3.496 3.496 0 0 0-.18-6.75 3.5 3.5 0 0 0-3.32 3.35 3.5 3.5 0 0 0-3.32-3.35 3.5 3.5 0 0 0-6.4 1.9 1.2 1.2 0 0 0-.26 1.22L.4 18.2a1 1 0 0 0 .96 1.3h19.28a1 1 0 0 0 .96-1.3z"/></svg>
+                    </button>
+                    <button class="tab-btn p-2 rounded hover:bg-gray-200 text-gray-500" data-tab="image" title="Image">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                     </button>
-                    <button class="tab-btn p-2 rounded hover:bg-gray-200" data-tab="image" title="Image">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                    </button>
-                    <button class="tab-btn p-2 rounded hover:bg-gray-200" data-tab="text" title="Text">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                    <button class="tab-btn p-2 rounded hover:bg-gray-200 text-gray-500" data-tab="text" title="Text">
+                        <span class="text-lg font-bold">T</span>
                     </button>
                 </div>
                 
