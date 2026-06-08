@@ -13,8 +13,6 @@
 @pushOnce('scripts')
 <script>
 var currentCanvas = {
-    productImage: null,
-    printArea: null,
     elements: [],
     selectedElement: null
 };
@@ -22,6 +20,8 @@ var currentCanvas = {
 function openCustomizationDialog() {
     document.getElementById('customization-dialog').classList.remove('hidden');
     document.body.style.overflow = 'hidden';
+    currentCanvas.elements = [];
+    currentCanvas.selectedElement = null;
     loadPrintAreas();
 }
 
@@ -57,14 +57,11 @@ function loadPrintAreas() {
 
 function selectProductImage(imgUrl, areaData) {
     var canvas = document.getElementById('design-canvas');
-    var savedElements = currentCanvas.elements.slice();
     
-    currentCanvas = {
-        productImage: imgUrl,
-        printArea: areaData,
-        elements: [],
-        selectedElement: null
-    };
+    currentCanvas.elements = [];
+    currentCanvas.selectedElement = null;
+    document.querySelectorAll('.canvas-elem').forEach(function(e) { e.remove(); });
+    document.querySelectorAll('.elem-control').forEach(function(c) { c.remove(); });
     
     canvas.innerHTML = '';
     canvas.style.position = 'relative';
@@ -79,192 +76,214 @@ function selectProductImage(imgUrl, areaData) {
         printArea.id = 'print-area';
         printArea.style.cssText = 'position:absolute;left:' + areaData.x + '%;top:' + areaData.y + '%;width:' + areaData.width + '%;height:' + areaData.height + '%;border:2px dashed red;background:rgba(255,255,255,0.3);';
         canvas.appendChild(printArea);
-        currentCanvas.printAreaDom = printArea;
     }
-    
-    savedElements.forEach(function(elem) {
-        addElementToCanvas(elem.type, elem.content, elem.styles, false);
-    });
 }
 
 function addUploadedImage(dataUrl) {
-    addElementToCanvas('image', dataUrl, {}, true);
-}
-
-function addElementToCanvas(type, content, styles, autoSelect) {
     var printArea = document.getElementById('print-area');
     if (!printArea) return;
     
-    var elem = document.createElement('div');
-    elem.style.cssText = 'position:absolute;left:10%;top:10%;width:80%;height:80%;cursor:move;transform-origin:center center;';
+    var wrapper = document.createElement('div');
+    wrapper.className = 'canvas-elem';
+    wrapper.style.cssText = 'position:absolute;left:10%;top:10%;width:80%;height:80%;cursor:move;transform-origin:center center;';
     
-    if (type === 'image') {
-        var img = document.createElement('img');
-        img.src = content;
-        img.style.cssText = 'width:100%;height:100%;object-fit:contain;pointer-events:none;';
-        elem.appendChild(img);
-    } else if (type === 'text') {
-        elem.textContent = content;
-        elem.style.fontSize = '24px';
-        elem.style.color = styles.color || '#000';
-        elem.style.display = 'flex';
-        elem.style.alignItems = 'center';
-        elem.style.justifyContent = 'center';
-    }
+    var img = document.createElement('img');
+    img.src = dataUrl;
+    img.style.cssText = 'width:100%;height:100%;object-fit:contain;pointer-events:none;';
+    wrapper.appendChild(img);
     
-    var elementData = {
-        type: type,
-        content: content,
-        styles: styles,
-        dom: elem,
-        transform: { x: 10, y: 10, width: 80, height: 80, rotation: 0 }
+    var elemData = {
+        dom: wrapper,
+        type: 'image',
+        content: dataUrl,
+        x: 10, y: 10, w: 80, h: 80, rotation: 0
     };
     
-    setupElementControls(elem, elementData);
-    printArea.appendChild(elem);
-    currentCanvas.elements.push(elementData);
+    setupElemControls(wrapper, elemData);
+    setupDrag(wrapper, elemData);
+    setupResize(wrapper, elemData);
+    setupRotate(wrapper, elemData);
     
-    if (autoSelect || currentCanvas.elements.length === 1) {
-        selectElement(elementData);
+    printArea.appendChild(wrapper);
+    currentCanvas.elements.push(elemData);
+    selectElem(elemData);
+}
+
+function selectElem(elemData) {
+    currentCanvas.selectedElement = elemData;
+    document.querySelectorAll('.elem-control').forEach(function(c) { c.remove(); });
+    
+    var wrapper = elemData.dom;
+    var control = document.createElement('div');
+    control.className = 'elem-control';
+    control.style.cssText = 'position:absolute;left:' + elemData.x + '%;top:' + elemData.y + '%;width:' + elemData.w + '%;height:' + elemData.h + '%;border:2px solid #3b82f6;transform:rotate(' + elemData.rotation + 'deg);pointer-events:none;';
+    wrapper.parentNode.appendChild(control);
+    
+    // 旋转手柄
+    var rotH = document.createElement('div');
+    rotH.style.cssText = 'position:absolute;top:-30px;left:50%;transform:translateX(-50%);width:14px;height:14px;background:#3b82f6;border-radius:50%;cursor:grab;pointer-events:auto;';
+    rotH.dataset.action = 'rotate';
+    control.appendChild(rotH);
+    
+    var line = document.createElement('div');
+    line.style.cssText = 'position:absolute;top:-15px;left:50%;width:1px;height:15px;background:#3b82f6;';
+    control.appendChild(line);
+    
+    // 四角
+    var corners = [
+        {css: 'top:-4px;left:-4px;cursor:nw-resize;', action: 'nw'},
+        {css: 'top:-4px;right:-4px;cursor:ne-resize;', action: 'ne'},
+        {css: 'bottom:-4px;left:-4px;cursor:sw-resize;', action: 'sw'},
+        {css: 'bottom:-4px;right:-4px;cursor:se-resize;', action: 'se'}
+    ];
+    corners.forEach(function(c) {
+        var h = document.createElement('div');
+        h.style.cssText = 'position:absolute;' + c.css + 'width:8px;height:8px;background:#3b82f6;border:1px solid #fff;pointer-events:auto;';
+        h.dataset.action = c.action;
+        control.appendChild(h);
+    });
+}
+
+function updateControl(elemData) {
+    var control = document.querySelector('.elem-control');
+    if (control) {
+        control.style.left = elemData.x + '%';
+        control.style.top = elemData.y + '%';
+        control.style.width = elemData.w + '%';
+        control.style.height = elemData.h + '%';
+        control.style.transform = 'rotate(' + elemData.rotation + 'deg)';
     }
 }
 
-function setupElementControls(elem, elementData) {
-    var isDragging = false;
-    var isResizing = false;
-    var isRotating = false;
-    var startX, startY, startLeft, startTop, startW, startH, startAngle;
+function setupDrag(wrapper, elemData) {
+    var isDrag = false, startX, startY, startX2, startY2;
     
-    elem.addEventListener('mousedown', function(e) {
-        if (e.target.classList.contains('ctrl-handle')) return;
-        isDragging = true;
+    wrapper.addEventListener('mousedown', function(e) {
+        if (e.target.dataset.action) return;
+        isDrag = true;
         startX = e.clientX;
         startY = e.clientY;
-        startLeft = elementData.transform.x;
-        startTop = elementData.transform.y;
-        selectElement(elementData);
+        startX2 = elemData.x;
+        startY2 = elemData.y;
+        selectElem(elemData);
         e.stopPropagation();
         e.preventDefault();
     });
     
     document.addEventListener('mousemove', function(e) {
-        if (!currentCanvas.selectedElement) return;
-        
-        if (isDragging && currentCanvas.selectedElement === elementData) {
-            var dx = e.clientX - startX;
-            var dy = e.clientY - startY;
-            var parent = elem.parentElement;
-            var pw = parent.offsetWidth;
-            var ph = parent.offsetHeight;
-            
-            var newX = Math.max(0, Math.min(100 - elementData.transform.width, startLeft + (dx / pw) * 100));
-            var newY = Math.max(0, Math.min(100 - elementData.transform.height, startTop + (dy / ph) * 100));
-            
-            elementData.transform.x = newX;
-            elementData.transform.y = newY;
-            elem.style.left = newX + '%';
-            elem.style.top = newY + '%';
-        }
-        
-        if (isResizing && currentCanvas.selectedElement === elementData) {
-            var dx = e.clientX - startX;
-            var dy = e.clientY - startY;
-            var parent = elem.parentElement;
-            var pw = parent.offsetWidth;
-            var ph = parent.offsetHeight;
-            
-            var newW = Math.max(10, Math.min(100, startW + (dx / pw) * 100));
-            var newH = Math.max(10, Math.min(100, startH + (dy / ph) * 100));
-            
-            elementData.transform.width = newW;
-            elementData.transform.height = newH;
-            elem.style.width = newW + '%';
-            elem.style.height = newH + '%';
-        }
-        
-        if (isRotating && currentCanvas.selectedElement === elementData) {
-            var rect = elem.getBoundingClientRect();
-            var cx = rect.left + rect.width / 2;
-            var cy = rect.top + rect.height / 2;
-            var angle = Math.atan2(e.clientY - cy, e.clientX - cx) * 180 / Math.PI + 90;
-            
-            elementData.transform.rotation = angle;
-            elem.style.transform = 'rotate(' + angle + 'deg)';
-            updateControlPositions(elementData);
-        }
+        if (!isDrag || currentCanvas.selectedElement !== elemData) return;
+        var pa = wrapper.parentElement;
+        var dx = e.clientX - startX;
+        var dy = e.clientY - startY;
+        var newX = Math.max(0, Math.min(100 - elemData.w, startX2 + (dx / pa.offsetWidth) * 100));
+        var newY = Math.max(0, Math.min(100 - elemData.h, startY2 + (dy / pa.offsetHeight) * 100));
+        elemData.x = newX;
+        elemData.y = newY;
+        wrapper.style.left = newX + '%';
+        wrapper.style.top = newY + '%';
+        updateControl(elemData);
     });
     
-    document.addEventListener('mouseup', function() {
-        isDragging = false;
-        isResizing = false;
-        isRotating = false;
-    });
+    document.addEventListener('mouseup', function() { isDrag = false; });
 }
 
-function selectElement(elementData) {
-    document.querySelectorAll('.ctrl-panel').forEach(function(p) { p.remove(); });
-    currentCanvas.selectedElement = elementData;
+function setupResize(wrapper, elemData) {
+    var isResize = false, action = '', startX, startY, startW, startH, startX2, startY2;
     
-    var parent = elementData.dom.parentElement;
-    var panel = document.createElement('div');
-    panel.className = 'ctrl-panel';
-    panel.style.cssText = 'position:absolute;left:' + elementData.transform.x + '%;top:' + elementData.transform.y + '%;width:' + elementData.transform.width + '%;height:' + elementData.transform.height + ';border:2px solid #3b82f6;pointer-events:none;transform:rotate(' + elementData.transform.rotation + 'deg);';
-    parent.appendChild(panel);
-    
-    // 旋转手柄
-    var rotHandle = document.createElement('div');
-    rotHandle.className = 'ctrl-handle';
-    rotHandle.style.cssText = 'position:absolute;top:-30px;left:50%;transform:translateX(-50%);width:16px;height:16px;background:#3b82f6;border-radius:50%;cursor:grab;pointer-events:auto;';
-    rotHandle.addEventListener('mousedown', function(e) {
-        isRotating = true;
+    document.addEventListener('mousedown', function(e) {
+        if (!e.target.dataset.action || e.target.dataset.action === 'rotate') return;
+        isResize = true;
+        action = e.target.dataset.action;
+        startX = e.clientX;
+        startY = e.clientY;
+        startW = elemData.w;
+        startH = elemData.h;
+        startX2 = elemData.x;
+        startY2 = elemData.y;
         e.stopPropagation();
         e.preventDefault();
     });
-    panel.appendChild(rotHandle);
     
-    // 连接线
-    var line = document.createElement('div');
-    line.style.cssText = 'position:absolute;top:-15px;left:50%;width:1px;height:15px;background:#3b82f6;';
-    panel.appendChild(line);
-    
-    // 四角缩放手柄
-    var corners = [
-        { name: 'nw', top: '-4px', left: '-4px', cursor: 'nw-resize' },
-        { name: 'ne', top: '-4px', right: '-4px', cursor: 'ne-resize' },
-        { name: 'sw', bottom: '-4px', left: '-4px', cursor: 'sw-resize' },
-        { name: 'se', bottom: '-4px', right: '-4px', cursor: 'se-resize' }
-    ];
-    
-    corners.forEach(function(c) {
-        var h = document.createElement('div');
-        h.className = 'ctrl-handle';
-        var pos = 'position:absolute;';
-        if (c.top) pos += 'top:' + c.top + ';';
-        if (c.bottom) pos += 'bottom:' + c.bottom + ';';
-        if (c.left) pos += 'left:' + c.left + ';';
-        if (c.right) pos += 'right:' + c.right + ';';
-        h.style.cssText = pos + 'width:10px;height:10px;background:#3b82f6;border:1px solid #fff;cursor:' + c.cursor + ';pointer-events:auto;';
-        h.addEventListener('mousedown', function(e) {
-            isResizing = true;
-            startX = e.clientX;
-            startY = e.clientY;
-            startW = elementData.transform.width;
-            startH = elementData.transform.height;
-            e.stopPropagation();
-            e.preventDefault();
-        });
-        panel.appendChild(h);
+    document.addEventListener('mousemove', function(e) {
+        if (!isResize || currentCanvas.selectedElement !== elemData) return;
+        var pa = wrapper.parentElement;
+        var dx = e.clientX - startX;
+        var dy = e.clientY - startY;
+        
+        if (action === 'se') {
+            elemData.w = Math.max(10, Math.min(100 - elemData.x, startW + (dx / pa.offsetWidth) * 100));
+            elemData.h = Math.max(10, Math.min(100 - elemData.y, startH + (dy / pa.offsetHeight) * 100));
+        } else if (action === 'nw') {
+            var newW = Math.max(10, startW - (dx / pa.offsetWidth) * 100);
+            var newH = Math.max(10, startH - (dy / pa.offsetHeight) * 100);
+            var newX = startX2 + (startW - newW);
+            var newY = startY2 + (startH - newH);
+            if (newX >= 0 && newY >= 0) {
+                elemData.x = newX;
+                elemData.y = newY;
+                elemData.w = newW;
+                elemData.h = newH;
+            }
+        } else if (action === 'ne') {
+            elemData.w = Math.max(10, Math.min(100 - elemData.x, startW + (dx / pa.offsetWidth) * 100));
+            var newH = Math.max(10, startH - (dy / pa.offsetHeight) * 100);
+            var newY = startY2 + (startH - newH);
+            if (newY >= 0) {
+                elemData.y = newY;
+                elemData.h = newH;
+            }
+        } else if (action === 'sw') {
+            var newW = Math.max(10, startW - (dx / pa.offsetWidth) * 100);
+            var newX = startX2 + (startW - newW);
+            elemData.h = Math.max(10, Math.min(100 - elemData.y, startH + (dy / pa.offsetHeight) * 100));
+            if (newX >= 0) {
+                elemData.x = newX;
+                elemData.w = newW;
+            }
+        }
+        
+        wrapper.style.left = elemData.x + '%';
+        wrapper.style.top = elemData.y + '%';
+        wrapper.style.width = elemData.w + '%';
+        wrapper.style.height = elemData.h + '%';
+        updateControl(elemData);
     });
+    
+    document.addEventListener('mouseup', function() { isResize = false; });
 }
 
-function updateControlPositions(elementData) {
-    var panel = document.querySelector('.ctrl-panel');
-    if (panel) {
-        panel.style.left = elementData.transform.x + '%';
-        panel.style.top = elementData.transform.y + '%';
-        panel.style.width = elementData.transform.width + '%';
-        panel.style.height = elementData.transform.height + '%';
-    }
+function setupRotate(wrapper, elemData) {
+    var isRotate = false, startAngle, startRot;
+    
+    document.addEventListener('mousedown', function(e) {
+        if (!e.target.dataset.action || e.target.dataset.action !== 'rotate') return;
+        isRotate = true;
+        startRot = elemData.rotation;
+        var rect = wrapper.getBoundingClientRect();
+        var cx = rect.left + rect.width / 2;
+        var cy = rect.top + rect.height / 2;
+        startAngle = Math.atan2(e.clientY - cy, e.clientX - cx) * 180 / Math.PI;
+        e.stopPropagation();
+        e.preventDefault();
+    });
+    
+    document.addEventListener('mousemove', function(e) {
+        if (!isRotate || currentCanvas.selectedElement !== elemData) return;
+        var angle = Math.atan2(e.clientY - (wrapper.getBoundingClientRect().top + wrapper.offsetHeight/2), e.clientX - (wrapper.getBoundingClientRect().left + wrapper.offsetWidth/2)) * 180 / Math.PI;
+        elemData.rotation = startRot + (angle - startAngle);
+        wrapper.style.transform = 'rotate(' + elemData.rotation + 'deg)';
+        updateControl(elemData);
+    });
+    
+    document.addEventListener('mouseup', function() { isRotate = false; });
+}
+
+function setupElemControls(wrapper, elemData) {
+    wrapper.addEventListener('click', function(e) {
+        if (!e.target.dataset.action) {
+            selectElem(elemData);
+        }
+    });
 }
 
 function switchTab(tab) {
@@ -305,8 +324,7 @@ document.addEventListener('change', function(e) {
 
 document.addEventListener('click', function(e) {
     if (e.target.closest('.tab-btn')) {
-        var btn = e.target.closest('.tab-btn');
-        switchTab(btn.dataset.tab);
+        switchTab(e.target.closest('.tab-btn').dataset.tab);
     }
 });
 
@@ -317,7 +335,5 @@ document.addEventListener('DOMContentLoaded', function() {
         if (e.target === this) closeDialog();
     };
 });
-
-var isDragging, isResizing, isRotating, startX, startY, startLeft, startTop, startW, startH;
 </script>
 @endpushOnce
