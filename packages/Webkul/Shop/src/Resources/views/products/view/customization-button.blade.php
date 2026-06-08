@@ -134,7 +134,7 @@
             console.log('Button clicked!');
             dialog.style.display = 'flex';
             loadPrintAreas();
-        });
+        };
     } else {
         console.error('Customize button not found!');
     }
@@ -218,7 +218,7 @@
     console.log('Tab buttons found:', tabBtns.length);
     tabBtns.forEach(function(btn) {
         console.log('Adding onclick to tab:', btn.dataset.tab);
-        btn.addEventListener('click', function(e) { e.preventDefault();
+        btn.addEventListener('click', function(e) { e.preventDefault(); });
             console.log('Tab clicked:', this.dataset.tab);
             var tab = this.dataset.tab;
             document.querySelectorAll('.tab-btn').forEach(function(b) {
