@@ -14,7 +14,8 @@
 <script>
 var currentCanvas = {
     elements: [],
-    selectedElement: null
+    selectedElement: null,
+    currentImageKey: null
 };
 
 function openCustomizationDialog() {
@@ -40,7 +41,7 @@ function loadPrintAreas() {
                 var productImagesDiv = document.getElementById('product-images');
                 productImagesDiv.innerHTML = '';
                 
-                data.data.forEach(function(item) {
+                data.data.forEach(function(item, index) {
                     var imgUrl = item.image_url || item.url || '';
                     var div = document.createElement('div');
                     div.className = 'cursor-pointer border-2 border-gray-300 rounded p-1 hover:border-blue-500';
@@ -58,8 +59,22 @@ function loadPrintAreas() {
 function selectProductImage(imgUrl, areaData) {
     var canvas = document.getElementById('design-canvas');
     
-    currentCanvas.elements = [];
+    // 生成唯一key保存当前图层
+    if (currentCanvas.currentImageKey && currentCanvas.elements.length > 0) {
+        currentCanvas.layerStore[currentCanvas.currentImageKey] = currentCanvas.elements.slice();
+    }
+    
+    currentCanvas.currentImageKey = imgUrl;
+    if (!currentCanvas.layerStore) currentCanvas.layerStore = {};
+    
+    // 恢复或初始化图层
+    if (currentCanvas.layerStore[currentCanvas.currentImageKey]) {
+        currentCanvas.elements = currentCanvas.layerStore[currentCanvas.currentImageKey];
+    } else {
+        currentCanvas.elements = [];
+    }
     currentCanvas.selectedElement = null;
+    
     document.querySelectorAll('.canvas-elem').forEach(function(e) { e.remove(); });
     document.querySelectorAll('.elem-control').forEach(function(c) { c.remove(); });
     
@@ -76,7 +91,33 @@ function selectProductImage(imgUrl, areaData) {
         printArea.id = 'print-area';
         printArea.style.cssText = 'position:absolute;left:' + areaData.x + '%;top:' + areaData.y + '%;width:' + areaData.width + '%;height:' + areaData.height + '%;border:2px dashed red;background:rgba(255,255,255,0.3);overflow:hidden;';
         canvas.appendChild(printArea);
+        
+        // 重新渲染已有图层
+        currentCanvas.elements.forEach(function(elemData) {
+            var wrapper = document.createElement('div');
+            wrapper.className = 'canvas-elem';
+            wrapper.style.cssText = 'position:absolute;left:' + elemData.x + '%;top:' + elemData.y + '%;width:' + elemData.w + '%;height:' + elemData.h + '%;cursor:move;transform:rotate(' + elemData.rotation + 'deg);transform-origin:center center;';
+            
+            if (elemData.type === 'image') {
+                var img = document.createElement('img');
+                img.src = elemData.content;
+                img.style.cssText = 'width:100%;height:100%;object-fit:fill;pointer-events:none;';
+                wrapper.appendChild(img);
+            } else if (elemData.type === 'text') {
+                wrapper.textContent = elemData.content;
+                wrapper.style.fontSize = '24px';
+                wrapper.style.color = elemData.styles.color || '#000';
+                wrapper.style.display = 'flex';
+                wrapper.style.alignItems = 'center';
+                wrapper.style.justifyContent = 'center';
+            }
+            
+            setupElemEvents(wrapper, elemData);
+            printArea.appendChild(wrapper);
+        });
     }
+    
+    updateLayersList();
 }
 
 function addUploadedImage(dataUrl) {
@@ -96,14 +137,50 @@ function addUploadedImage(dataUrl) {
         dom: wrapper,
         type: 'image',
         content: dataUrl,
-        x: 10, y: 10, w: 80, h: 80, rotation: 0
+        x: 10, y: 10, w: 80, h: 80, rotation: 0,
+        styles: {},
+        id: Date.now()
     };
     
     setupElemEvents(wrapper, elemData);
-    
     printArea.appendChild(wrapper);
     currentCanvas.elements.push(elemData);
     selectElem(elemData);
+    updateLayersList();
+}
+
+function updateLayersList() {
+    var layersDiv = document.getElementById('layers-list');
+    layersDiv.innerHTML = '';
+    
+    // 倒序显示，最新的在前面
+    var reversed = currentCanvas.elements.slice().reverse();
+    reversed.forEach(function(elemData, index) {
+        var item = document.createElement('div');
+        item.className = 'flex items-center gap-2 p-2 border rounded cursor-pointer hover:bg-gray-100 ' + (currentCanvas.selectedElement === elemData ? 'bg-blue-50 border-blue-500' : 'border-gray-300');
+        item.style.cssText = 'width: 100%; height: 50px;';
+        
+        var icon = document.createElement('span');
+        icon.style.cssText = 'width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; background: #e5e7eb; border-radius: 4px;';
+        if (elemData.type === 'image') {
+            icon.innerHTML = '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>';
+        } else {
+            icon.innerHTML = '<span style="font-weight:bold;">T</span>';
+        }
+        item.appendChild(icon);
+        
+        var name = document.createElement('span');
+        name.className = 'flex-1 text-sm truncate';
+        name.textContent = elemData.type === 'image' ? 'Image ' + (currentCanvas.elements.length - index) : elemData.content;
+        item.appendChild(name);
+        
+        item.onclick = function() {
+            selectElem(elemData);
+            updateLayersList();
+        };
+        
+        layersDiv.appendChild(item);
+    });
 }
 
 function selectElem(elemData) {
@@ -231,6 +308,7 @@ function setupElemEvents(wrapper, elemData) {
     wrapper.addEventListener('click', function(e) {
         if (!e.target.dataset.action) {
             selectElem(elemData);
+            updateLayersList();
         }
     });
 }
