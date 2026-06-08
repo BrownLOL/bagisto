@@ -1,9 +1,5 @@
-@php
-    $productId = $product->id ?? 0;
-@endphp
-
 <script>
-window.customizationProductId = {{ $productId }};
+window.customizationProductId = {{ $product->id ?? 0 }};
 </script>
 
 <button
