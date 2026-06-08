@@ -72,32 +72,33 @@
 
 <!-- Customization Dialog - Outside Vue component for proper z-index -->
 <div id="customization-dialog" class="fixed inset-0 bg-black bg-opacity-50 z-[99999] hidden overflow-y-auto">
-    <div class="bg-white rounded-lg shadow-xl mx-auto p-6 flex flex-col" style="width: 1200px; height: 800px; margin-top: 100px;">
+    <div class="bg-white rounded-lg shadow-xl mx-auto p-4 flex flex-col" style="width: 1200px; height: 700px; margin-top: 100px;">
         <div class="flex justify-between items-center mb-4">
             <h2 class="text-xl font-bold">Custom Design</h2>
             <button id="close-dialog" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
         </div>
         
-        <div class="flex gap-4 flex-1 overflow-auto">
-            <div class="w-1/4 border-r pr-4">
+        <div class="flex gap-4 flex-1 min-h-0">
+            <!-- Left Panel - 3 Tabs -->
+            <div class="w-64 border-r pr-4 flex flex-col">
                 <div class="flex gap-2 mb-4">
-                    <button class="tab-btn border-b-2 border-blue-500 text-blue-500 pb-2 px-2" data-tab="product">Product</button>
-                    <button class="tab-btn border-b-2 border-transparent text-gray-500 pb-2 px-2" data-tab="image">Image</button>
-                    <button class="tab-btn border-b-2 border-transparent text-gray-500 pb-2 px-2" data-tab="text">Text</button>
+                    <button class="tab-btn border-b-2 border-blue-500 text-blue-500 pb-1 px-2 text-sm" data-tab="product">Product</button>
+                    <button class="tab-btn border-b-2 border-transparent text-gray-500 pb-1 px-2 text-sm" data-tab="image">Image</button>
+                    <button class="tab-btn border-b-2 border-transparent text-gray-500 pb-1 px-2 text-sm" data-tab="text">Text</button>
                 </div>
                 
-                <div id="tab-product" class="tab-content">
-                    <h3 class="font-semibold mb-2">Select Product Image</h3>
+                <div id="tab-product" class="tab-content flex-1 overflow-auto">
+                    <h3 class="font-semibold mb-2 text-sm">Select Product Image</h3>
                     <div id="product-images" class="grid grid-cols-2 gap-2"></div>
                 </div>
                 
-                <div id="tab-image" class="tab-content hidden">
-                    <h3 class="font-semibold mb-2">Upload Image</h3>
+                <div id="tab-image" class="tab-content hidden flex-1">
+                    <h3 class="font-semibold mb-2 text-sm">Upload Image</h3>
                     <input type="file" id="image-upload" accept="image/*" class="w-full border rounded p-2" />
                 </div>
                 
-                <div id="tab-text" class="tab-content hidden">
-                    <h3 class="font-semibold mb-2">Add Text</h3>
+                <div id="tab-text" class="tab-content hidden flex-1">
+                    <h3 class="font-semibold mb-2 text-sm">Add Text</h3>
                     <input type="text" id="text-input" placeholder="Enter text" class="w-full border rounded p-2 mb-2" />
                     <select id="text-color" class="w-full border rounded p-2 mb-2">
                         <option value="#000000">Black</option>
@@ -110,28 +111,44 @@
                 </div>
             </div>
             
-            <div class="w-1/2">
+            <!-- Center - Design Canvas -->
+            <div class="flex-1 flex flex-col min-w-0">
                 <h3 class="font-semibold mb-2">Design Area</h3>
-                <div id="design-canvas" class="border-2 border-dashed border-gray-300 rounded-lg w-full h-full bg-gray-50 flex items-center justify-center overflow-hidden"></div>
+                <div id="design-canvas" class="flex-1 border-2 border-dashed border-gray-300 rounded-lg bg-gray-50 flex items-center justify-center overflow-hidden"></div>
             </div>
             
-            <div class="w-1/4">
-                <h3 class="font-semibold mb-2">Settings</h3>
-                <div class="space-y-2">
-                    <button onclick="maximizeElement()" class="w-full bg-gray-200 py-2 rounded hover:bg-gray-300">Maximize</button>
-                    <button onclick="flipHorizontal()" class="w-full bg-gray-200 py-2 rounded hover:bg-gray-300">Flip H</button>
-                    <button onclick="flipVertical()" class="w-full bg-gray-200 py-2 rounded hover:bg-gray-300">Flip V</button>
-                    <button onclick="rotateLeft()" class="w-full bg-gray-200 py-2 rounded hover:bg-gray-300">Rotate Left</button>
-                    <button onclick="rotateRight()" class="w-full bg-gray-200 py-2 rounded hover:bg-gray-300">Rotate Right</button>
-                    <button onclick="bringForward()" class="w-full bg-gray-200 py-2 rounded hover:bg-gray-300">Layer Up</button>
-                    <button onclick="sendBackward()" class="w-full bg-gray-200 py-2 rounded hover:bg-gray-300">Layer Down</button>
-                    <button onclick="deleteElement()" class="w-full bg-red-500 text-white py-2 rounded hover:bg-red-600">Delete</button>
+            <!-- Right Panel - Settings with Icons -->
+            <div class="w-48 flex flex-col">
+                <h3 class="font-semibold mb-2 text-sm">Settings</h3>
+                <div class="grid grid-cols-3 gap-2">
+                    <button onclick="maximizeElement()" class="bg-gray-200 p-2 rounded hover:bg-gray-300" title="Maximize">
+                        <svg class="w-5 h-5 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/></svg>
+                    </button>
+                    <button onclick="flipHorizontal()" class="bg-gray-200 p-2 rounded hover:bg-gray-300" title="Flip Horizontal">
+                        <svg class="w-5 h-5 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
+                    </button>
+                    <button onclick="flipVertical()" class="bg-gray-200 p-2 rounded hover:bg-gray-300" title="Flip Vertical">
+                        <svg class="w-5 h-5 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16h12M7 16l4-4m-4-4l4 4m-8-8l-4 4m4-4l-4-4m0 12h12"/></svg>
+                    </button>
+                    <button onclick="rotateLeft()" class="bg-gray-200 p-2 rounded hover:bg-gray-300" title="Rotate Left">
+                        <svg class="w-5 h-5 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                    </button>
+                    <button onclick="rotateRight()" class="bg-gray-200 p-2 rounded hover:bg-gray-300" title="Rotate Right">
+                        <svg class="w-5 h-5 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                    </button>
+                    <button onclick="bringForward()" class="bg-gray-200 p-2 rounded hover:bg-gray-300" title="Layer Up">
+                        <svg class="w-5 h-5 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 11l7-7 7 7M12 4v16"/></svg>
+                    </button>
+                    <button onclick="sendBackward()" class="bg-gray-200 p-2 rounded hover:bg-gray-300" title="Layer Down">
+                        <svg class="w-5 h-5 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 13l-7 7-7-7m14-8l-7 7-7-7"/></svg>
+                    </button>
+                    <button onclick="deleteElement()" class="bg-red-500 p-2 rounded hover:bg-red-600" title="Delete">
+                        <svg class="w-5 h-5 mx-auto text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                    </button>
                 </div>
                 
-                <h3 class="font-semibold mt-4 mb-2">Preview</h3>
-                <div id="preview" class="border rounded p-2 bg-gray-50">
-                    <div id="preview-content" class="w-full aspect-square bg-white"></div>
-                </div>
+                <h3 class="font-semibold mt-4 mb-2 text-sm">Preview</h3>
+                <div id="preview" class="flex-1 border rounded bg-gray-50"></div>
             </div>
         </div>
         
