@@ -52,11 +52,10 @@ function zoomOut() {
 }
 
 function updateCanvasZoom() {
-    var wrapper = document.getElementById('design-canvas-wrapper');
+    var inner = document.getElementById('design-canvas-inner');
     var zoomLabel = document.getElementById('zoom-level');
-    if (wrapper && zoomLabel) {
-        wrapper.style.transform = 'scale(' + (canvasZoom / 100) + ')';
-        wrapper.style.transformOrigin = 'top center';
+    if (inner && zoomLabel) {
+        inner.style.transform = 'scale(' + (canvasZoom / 100) + ')';
         zoomLabel.textContent = canvasZoom + '%';
     }
     updatePreview();
@@ -119,8 +118,7 @@ function loadPrintAreas() {
 }
 
 function selectProductImage(imgUrl, areaData) {
-    var canvas = document.getElementById('design-canvas');
-    var canvasWrapper = document.getElementById('design-canvas-wrapper');
+    var canvas = document.getElementById('design-canvas-inner');
     
     if (currentCanvas.currentImageKey && currentCanvas.elements.length > 0) {
         currentCanvas.layerStore[currentCanvas.currentImageKey] = currentCanvas.elements.slice();

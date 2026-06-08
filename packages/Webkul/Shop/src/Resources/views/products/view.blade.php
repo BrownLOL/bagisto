@@ -158,8 +158,8 @@
             
             <!-- Center - Design Canvas -->
             <div class="flex flex-col gap-2">
-                <div id="design-canvas-wrapper" style="width: 500px; height: 500px;" class="border-2 border-dashed border-gray-300 rounded-lg bg-gray-50 overflow-hidden">
-                    <div id="design-canvas" class="w-full h-full flex items-center justify-center"></div>
+                <div id="design-canvas-wrapper" style="width: 500px; height: 500px;" class="border-2 border-dashed border-gray-300 rounded-lg bg-gray-50 overflow-hidden relative">
+                    <div id="design-canvas-inner" class="w-full h-full absolute" style="transform-origin: center center;"></div>
                 </div>
                 <!-- Zoom controls -->
                 <div class="flex justify-center gap-2">
