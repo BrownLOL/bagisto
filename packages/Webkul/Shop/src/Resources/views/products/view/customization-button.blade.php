@@ -85,13 +85,15 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('customization-dialog').onclick = function(e) {
         if (e.target === this) closeDialog();
     };
-    
-    document.querySelectorAll('.tab-btn').forEach(function(btn) {
-        btn.addEventListener('click', function() {
-            var tab = this.dataset.tab;
-            switchTab(tab);
-        });
-    });
+});
+
+// Use event delegation for tab buttons (they are inside hidden dialog)
+document.addEventListener('click', function(e) {
+    if (e.target.closest('.tab-btn')) {
+        var btn = e.target.closest('.tab-btn');
+        var tab = btn.dataset.tab;
+        switchTab(tab);
+    }
 });
 </script>
 @endpushOnce
