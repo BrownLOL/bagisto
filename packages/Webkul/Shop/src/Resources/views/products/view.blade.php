@@ -75,7 +75,7 @@
     <div class="bg-white rounded-lg shadow-xl mx-auto p-4 flex flex-col" style="width: 1200px; height: 700px; margin-top: 100px;">
         <div class="flex justify-between items-center mb-4">
             <h2 class="text-xl font-bold">Custom Design</h2>
-            <button id="close-dialog" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
+            <button id="close-dialog" onclick="closeDialog()" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
         </div>
         
         <div class="flex gap-4 flex-1 min-h-0">
@@ -233,7 +233,7 @@
         </div>
         
         <div class="flex justify-end gap-2 mt-4 pt-4 border-t">
-            <button id="cancel-btn" class="px-4 py-2 border rounded hover:bg-gray-100">Cancel</button>
+            <button id="cancel-btn" onclick="closeDialog()" class="px-4 py-2 border rounded hover:bg-gray-100">Cancel</button>
             <button class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Save</button>
         </div>
     </div>
