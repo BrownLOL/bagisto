@@ -356,6 +356,8 @@ function setupElemEvents(wrapper, elemData) {
         e.preventDefault();
     });
     
+    var currentResizeAction = null;
+    
     document.addEventListener('mousedown', function(e) {
         if (!e.target.dataset.action) return;
         var action = e.target.dataset.action;
@@ -366,6 +368,7 @@ function setupElemEvents(wrapper, elemData) {
             startAngle = Math.atan2(e.clientY - (rect.top + rect.height/2), e.clientX - (rect.left + rect.width/2)) * 180 / Math.PI;
         } else {
             isResize = true;
+            currentResizeAction = action;
             startX = e.clientX;
             startY = e.clientY;
             startW = elemData.w;
@@ -394,12 +397,38 @@ function setupElemEvents(wrapper, elemData) {
         if (isResize) {
             var dx = e.clientX - startX;
             var dy = e.clientY - startY;
-            var newW = startW + (dx / pa.offsetWidth) * 100;
-            var newH = startH + (dy / pa.offsetHeight) * 100;
+            var newW = startW;
+            var newH = startH;
+            var newX = startX2;
+            var newY = startY2;
+            
+            // Adjust based on resize handle position
+            if (currentResizeAction === 'se') {
+                newW = startW + (dx / pa.offsetWidth) * 100;
+                newH = startH + (dy / pa.offsetHeight) * 100;
+            } else if (currentResizeAction === 'sw') {
+                newW = startW - (dx / pa.offsetWidth) * 100;
+                newH = startH + (dy / pa.offsetHeight) * 100;
+                newX = startX2 + (dx / pa.offsetWidth) * 100;
+            } else if (currentResizeAction === 'ne') {
+                newW = startW + (dx / pa.offsetWidth) * 100;
+                newH = startH - (dy / pa.offsetHeight) * 100;
+                newY = startY2 + (dy / pa.offsetHeight) * 100;
+            } else if (currentResizeAction === 'nw') {
+                newW = startW - (dx / pa.offsetWidth) * 100;
+                newH = startH - (dy / pa.offsetHeight) * 100;
+                newX = startX2 + (dx / pa.offsetWidth) * 100;
+                newY = startY2 + (dy / pa.offsetHeight) * 100;
+            }
+            
             elemData.w = Math.max(10, newW);
             elemData.h = Math.max(10, newH);
+            elemData.x = newX;
+            elemData.y = newY;
             wrapper.style.width = elemData.w + '%';
             wrapper.style.height = elemData.h + '%';
+            wrapper.style.left = elemData.x + '%';
+            wrapper.style.top = elemData.y + '%';
             
             // Scale font size for text elements
             if (elemData.type === 'text' && elemData.styles && elemData.styles.fontSize) {
@@ -424,6 +453,7 @@ function setupElemEvents(wrapper, elemData) {
         isDrag = false;
         isResize = false;
         isRotate = false;
+        currentResizeAction = null;
     });
     
     wrapper.addEventListener('click', function(e) {
