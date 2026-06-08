@@ -155,8 +155,10 @@
                     <h3 class="font-semibold text-sm mb-2">Layers</h3>
                     <div id="layers-list" class="flex-1 overflow-auto"></div>
                 </div>
-                <div id="design-canvas" style="width: 500px; height: 500px;" class="border-2 border-dashed border-gray-300 rounded-lg bg-gray-50 flex items-center justify-center overflow-hidden"></div>
             </div>
+            
+            <!-- Center - Design Canvas -->
+            <div id="design-canvas" style="width: 500px; height: 500px;" class="border-2 border-dashed border-gray-300 rounded-lg bg-gray-50 flex items-center justify-center overflow-hidden"></div>
             
             <!-- Right Panel - Settings with Icons -->
             <div style="width: 300px; flex-shrink: 0;" class="flex flex-col">
