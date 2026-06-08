@@ -216,6 +216,7 @@
     
     document.querySelectorAll('.tab-btn').forEach(function(btn) {
         btn.onclick = function() {
+            console.log('Tab clicked:', this.dataset.tab);
             var tab = this.dataset.tab;
             document.querySelectorAll('.tab-btn').forEach(function(b) {
                 b.classList.remove('border-blue-500', 'text-blue-500');
