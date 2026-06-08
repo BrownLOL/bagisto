@@ -436,7 +436,5 @@
     // Expose functions to window
     window.loadPrintAreas = loadPrintAreas;
     window.selectProductImage = selectProductImage;
-    window.closeCustomizationDialog = closeCustomizationDialog;
-    window.saveCustomization = saveCustomization;
 })();
 </script>
