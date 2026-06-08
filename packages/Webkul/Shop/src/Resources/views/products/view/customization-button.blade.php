@@ -233,7 +233,7 @@ function updateControl(elemData) {
 
 function updateOperationButtons() {
     var enabled = !!currentCanvas.selectedElement;
-    var btns = ['btn-maximize', 'btn-flip-h', 'btn-flip-v', 'btn-forward', 'btn-backward', 'btn-delete'];
+    var btns = ['btn-maximize', 'btn-flip-h', 'btn-flip-v', 'btn-rotate-l', 'btn-rotate-r', 'btn-forward', 'btn-backward', 'btn-delete'];
     btns.forEach(function(id) {
         var btn = document.getElementById(id);
         if (btn) {

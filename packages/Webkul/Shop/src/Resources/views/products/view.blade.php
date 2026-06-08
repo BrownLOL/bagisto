@@ -134,37 +134,56 @@
                 <h3 class="font-semibold mb-2 text-sm">Settings</h3>
                 <div class="flex flex-col gap-2">
                     <!-- Maximize - full width -->
-                    <button id="btn-maximize" onclick="maximizeElement()" disabled class="w-full bg-gray-200 p-2 rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-300 flex items-center justify-center gap-2" title="Fill Area">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/></svg>
-                        <span>Fill Area</span>
-                    </button>
+                    <div class="col-span-2">
+                        <button id="btn-maximize" onclick="maximizeElement()" disabled class="w-full bg-white border border-gray-300 p-2 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:border-gray-400 flex items-center justify-center gap-2">
+                            <svg class="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/></svg>
+                            <span class="text-gray-700">Fill Area</span>
+                        </button>
+                    </div>
                     
-                    <!-- Flip Horizontal -->
-                    <button id="btn-flip-h" onclick="flipHorizontal()" disabled class="w-full bg-gray-200 p-2 rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-300 flex items-center justify-center gap-2" title="Flip Horizontal">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
-                        <span>Flip Horizontal</span>
-                    </button>
+                    <!-- Flip Horizontal & Flip Vertical -->
+                    <div class="flex gap-2">
+                        <button id="btn-flip-h" onclick="flipHorizontal()" disabled class="flex-1 bg-white border border-gray-300 p-2 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:border-gray-400 flex items-center justify-center gap-1">
+                            <svg class="w-4 h-4 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
+                            <span class="text-xs text-gray-700">Flip H</span>
+                        </button>
+                        <button id="btn-flip-v" onclick="flipVertical()" disabled class="flex-1 bg-white border border-gray-300 p-2 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:border-gray-400 flex items-center justify-center gap-1">
+                            <svg class="w-4 h-4 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16h12M7 16l4-4m-4-4l4 4m-8-8l-4 4m4-4l-4-4m0 12h12"/></svg>
+                            <span class="text-xs text-gray-700">Flip V</span>
+                        </button>
+                    </div>
                     
-                    <!-- Flip Vertical -->
-                    <button id="btn-flip-v" onclick="flipVertical()" disabled class="w-full bg-gray-200 p-2 rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-300 flex items-center justify-center gap-2" title="Flip Vertical">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16h12M7 16l4-4m-4-4l4 4m-8-8l-4 4m4-4l-4-4m0 12h12"/></svg>
-                        <span>Flip Vertical</span>
-                    </button>
+                    <!-- Rotate Left & Rotate Right -->
+                    <div class="flex gap-2">
+                        <button id="btn-rotate-l" onclick="rotateLeft()" disabled class="flex-1 bg-white border border-gray-300 p-2 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:border-gray-400 flex items-center justify-center gap-1">
+                            <svg class="w-4 h-4 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                            <span class="text-xs text-gray-700">Rotate L</span>
+                        </button>
+                        <button id="btn-rotate-r" onclick="rotateRight()" disabled class="flex-1 bg-white border border-gray-300 p-2 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:border-gray-400 flex items-center justify-center gap-1">
+                            <svg class="w-4 h-4 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m0 0a8.001 8.001 0 0115.356 2M4.582 9H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                            <span class="text-xs text-gray-700">Rotate R</span>
+                        </button>
+                    </div>
                     
-                    <!-- Move Up -->
-                    <button id="btn-forward" onclick="bringForward()" disabled class="w-full bg-gray-200 p-2 rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-300 flex items-center justify-center gap-2" title="Move Up">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"/></svg>
-                        <span>Move Up</span>
-                    </button>
+                    <!-- Move Up & Move Down -->
+                    <div class="flex gap-2">
+                        <button id="btn-forward" onclick="bringForward()" disabled class="flex-1 bg-white border border-gray-300 p-2 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:border-gray-400 flex items-center justify-center gap-1">
+                            <svg class="w-4 h-4 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"/></svg>
+                            <span class="text-xs text-gray-700">Up</span>
+                        </button>
+                        <button id="btn-backward" onclick="sendBackward()" disabled class="flex-1 bg-white border border-gray-300 p-2 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:border-gray-400 flex items-center justify-center gap-1">
+                            <svg class="w-4 h-4 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                            <span class="text-xs text-gray-700">Down</span>
+                        </button>
+                    </div>
                     
-                    <!-- Move Down -->
-                    <button id="btn-backward" onclick="sendBackward()" disabled class="w-full bg-gray-200 p-2 rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-300 flex items-center justify-center gap-2" title="Move Down">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
-                        <span>Move Down</span>
-                    </button>
-                    
-                    <!-- Delete -->
-                    <button id="btn-delete" onclick="deleteElement()" disabled class="w-full bg-red-500 text-white p-2 rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-red-600 flex items-center justify-center gap-2" title="Delete">
+                    <!-- Delete - full width red -->
+                    <div class="col-span-2">
+                        <button id="btn-delete" onclick="deleteElement()" disabled class="w-full bg-red-50 border border-red-300 p-2 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-red-100 hover:border-red-400 flex items-center justify-center gap-2">
+                            <svg class="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                            <span class="text-red-500">Delete</span>
+                        </button>
+                    </div>
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                         <span>Delete</span>
                     </button>
