@@ -133,28 +133,28 @@
             <div style="width: 300px; flex-shrink: 0;" class="flex flex-col">
                 <h3 class="font-semibold mb-2 text-sm">Settings</h3>
                 <div class="grid grid-cols-3 gap-2">
-                    <button onclick="maximizeElement()" class="bg-gray-200 p-2 rounded hover:bg-gray-300" title="Maximize">
+                    <button id="btn-maximize" onclick="maximizeElement()" disabled class="bg-gray-200 p-2 rounded opacity-50 cursor-not-allowed" title="Maximize">
                         <svg class="w-5 h-5 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/></svg>
                     </button>
-                    <button onclick="flipHorizontal()" class="bg-gray-200 p-2 rounded hover:bg-gray-300" title="Flip Horizontal">
+                    <button id="btn-flip-h" onclick="flipHorizontal()" disabled class="bg-gray-200 p-2 rounded opacity-50 cursor-not-allowed" title="Flip Horizontal">
                         <svg class="w-5 h-5 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
                     </button>
-                    <button onclick="flipVertical()" class="bg-gray-200 p-2 rounded hover:bg-gray-300" title="Flip Vertical">
+                    <button id="btn-flip-v" onclick="flipVertical()" disabled class="bg-gray-200 p-2 rounded opacity-50 cursor-not-allowed" title="Flip Vertical">
                         <svg class="w-5 h-5 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16h12M7 16l4-4m-4-4l4 4m-8-8l-4 4m4-4l-4-4m0 12h12"/></svg>
                     </button>
-                    <button onclick="rotateLeft()" class="bg-gray-200 p-2 rounded hover:bg-gray-300" title="Rotate Left">
+                    <button id="btn-rotate-l" onclick="rotateLeft()" disabled class="bg-gray-200 p-2 rounded opacity-50 cursor-not-allowed" title="Rotate Left">
                         <svg class="w-5 h-5 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
                     </button>
-                    <button onclick="rotateRight()" class="bg-gray-200 p-2 rounded hover:bg-gray-300" title="Rotate Right">
+                    <button id="btn-rotate-r" onclick="rotateRight()" disabled class="bg-gray-200 p-2 rounded opacity-50 cursor-not-allowed" title="Rotate Right">
                         <svg class="w-5 h-5 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
                     </button>
-                    <button onclick="bringForward()" class="bg-gray-200 p-2 rounded hover:bg-gray-300" title="Layer Up">
+                    <button id="btn-forward" onclick="bringForward()" disabled class="bg-gray-200 p-2 rounded opacity-50 cursor-not-allowed" title="Layer Up">
                         <svg class="w-5 h-5 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 11l7-7 7 7M12 4v16"/></svg>
                     </button>
-                    <button onclick="sendBackward()" class="bg-gray-200 p-2 rounded hover:bg-gray-300" title="Layer Down">
+                    <button id="btn-backward" onclick="sendBackward()" disabled class="bg-gray-200 p-2 rounded opacity-50 cursor-not-allowed" title="Layer Down">
                         <svg class="w-5 h-5 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 13l-7 7-7-7m14-8l-7 7-7-7"/></svg>
                     </button>
-                    <button onclick="deleteElement()" class="bg-red-500 p-2 rounded hover:bg-red-600" title="Delete">
+                    <button id="btn-delete" onclick="deleteElement()" disabled class="bg-red-500 p-2 rounded opacity-50 cursor-not-allowed" title="Delete">
                         <svg class="w-5 h-5 mx-auto text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                     </button>
                 </div>

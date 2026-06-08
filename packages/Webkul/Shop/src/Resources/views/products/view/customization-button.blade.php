@@ -28,6 +28,7 @@ function openCustomizationDialog() {
 }
 
 function closeDialog() {
+    currentCanvas.selectedElement = null;
     document.getElementById('customization-dialog').classList.add('hidden');
     document.body.style.overflow = '';
 }
@@ -115,6 +116,7 @@ function selectProductImage(imgUrl, areaData) {
     }
     
     updateLayersList();
+    updateOperationButtons();
 }
 
 function addUploadedImage(dataUrl) {
@@ -144,6 +146,7 @@ function addUploadedImage(dataUrl) {
     currentCanvas.elements.push(elemData);
     selectElem(elemData);
     updateLayersList();
+    updateOperationButtons();
 }
 
 function updateLayersList() {
@@ -176,6 +179,7 @@ function updateLayersList() {
         item.onclick = function() {
             selectElem(elemData);
             updateLayersList();
+    updateOperationButtons();
         };
         
         layersDiv.appendChild(item);
@@ -184,6 +188,7 @@ function updateLayersList() {
 
 function selectElem(elemData) {
     currentCanvas.selectedElement = elemData;
+    updateOperationButtons();
     document.querySelectorAll('.elem-control').forEach(function(c) { c.remove(); });
     
     var wrapper = elemData.dom;
@@ -308,6 +313,7 @@ function setupElemEvents(wrapper, elemData) {
         if (!e.target.dataset.action) {
             selectElem(elemData);
             updateLayersList();
+    updateOperationButtons();
         }
     });
 }
@@ -363,3 +369,104 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 @endpushOnce
+
+function updateOperationButtons() {
+    var btns = ['btn-maximize', 'btn-flip-h', 'btn-flip-v', 'btn-rotate-l', 'btn-rotate-r', 'btn-forward', 'btn-backward', 'btn-delete'];
+    btns.forEach(function(id) {
+        var btn = document.getElementById(id);
+        if (btn) {
+            btn.disabled = !currentCanvas.selectedElement;
+        }
+    });
+}
+
+function maximizeElement() {
+    if (!currentCanvas.selectedElement) return;
+    var elemData = currentCanvas.selectedElement;
+    elemData.x = 0;
+    elemData.y = 0;
+    elemData.w = 100;
+    elemData.h = 100;
+    elemData.dom.style.left = '0%';
+    elemData.dom.style.top = '0%';
+    elemData.dom.style.width = '100%';
+    elemData.dom.style.height = '100%';
+    updateControl(elemData);
+}
+
+function flipHorizontal() {
+    if (!currentCanvas.selectedElement) return;
+    var elemData = currentCanvas.selectedElement;
+    var scaleX = elemData.scaleX || 1;
+    scaleX = scaleX * -1;
+    elemData.scaleX = scaleX;
+    elemData.dom.style.transform = 'rotate(' + elemData.rotation + 'deg) scaleX(' + scaleX + ')';
+}
+
+function flipVertical() {
+    if (!currentCanvas.selectedElement) return;
+    var elemData = currentCanvas.selectedElement;
+    var scaleY = elemData.scaleY || 1;
+    scaleY = scaleY * -1;
+    elemData.scaleY = scaleY;
+    elemData.dom.style.transform = 'rotate(' + elemData.rotation + 'deg) scaleY(' + scaleY + ')';
+}
+
+function rotateLeft() {
+    if (!currentCanvas.selectedElement) return;
+    var elemData = currentCanvas.selectedElement;
+    elemData.rotation -= 90;
+    elemData.dom.style.transform = 'rotate(' + elemData.rotation + 'deg)';
+    updateControl(elemData);
+}
+
+function rotateRight() {
+    if (!currentCanvas.selectedElement) return;
+    var elemData = currentCanvas.selectedElement;
+    elemData.rotation += 90;
+    elemData.dom.style.transform = 'rotate(' + elemData.rotation + 'deg)';
+    updateControl(elemData);
+}
+
+function bringForward() {
+    if (!currentCanvas.selectedElement) return;
+    var elemData = currentCanvas.selectedElement;
+    var idx = currentCanvas.elements.indexOf(elemData);
+    if (idx < currentCanvas.elements.length - 1) {
+        currentCanvas.elements.splice(idx, 1);
+        currentCanvas.elements.push(elemData);
+        var pa = elemData.dom.parentElement;
+        pa.appendChild(elemData.dom);
+        updateLayersList();
+    updateOperationButtons();
+    }
+}
+
+function sendBackward() {
+    if (!currentCanvas.selectedElement) return;
+    var elemData = currentCanvas.selectedElement;
+    var idx = currentCanvas.elements.indexOf(elemData);
+    if (idx > 0) {
+        currentCanvas.elements.splice(idx, 1);
+        currentCanvas.elements.unshift(elemData);
+        var pa = elemData.dom.parentElement;
+        pa.insertBefore(elemData.dom, pa.firstChild);
+        updateLayersList();
+    updateOperationButtons();
+    }
+}
+
+function deleteElement() {
+    if (!currentCanvas.selectedElement) return;
+    var elemData = currentCanvas.selectedElement;
+    var idx = currentCanvas.elements.indexOf(elemData);
+    if (idx > -1) {
+        currentCanvas.elements.splice(idx, 1);
+    }
+    elemData.dom.remove();
+    document.querySelectorAll('.elem-control').forEach(function(c) { c.remove(); });
+    currentCanvas.selectedElement = null;
+    updateLayersList();
+    updateOperationButtons();
+    updateOperationButtons();
+}
