@@ -53,20 +53,79 @@ function loadPrintAreas() {
         });
 }
 
-function addUploadedImage(dataUrl) {
-    var canvas = document.getElementById('design-canvas');
-    canvas.innerHTML = '<img src="' + dataUrl + '" class="w-full h-full object-contain" />';
-}
+var currentCanvas = {
+    productImage: null,
+    printArea: null,
+    elements: []
+};
 
 function selectProductImage(imgUrl, areaData) {
     var canvas = document.getElementById('design-canvas');
-    canvas.innerHTML = '<img src="' + imgUrl + '" class="w-full h-full object-contain" />';
     
+    // 保存当前元素
+    var savedElements = currentCanvas.elements.slice();
+    
+    // 重置
+    currentCanvas = {
+        productImage: imgUrl,
+        printArea: areaData,
+        elements: []
+    };
+    
+    // 渲染设计区域
+    canvas.innerHTML = '';
+    canvas.style.position = 'relative';
+    
+    // 添加商品图片作为背景
+    var bgImg = document.createElement('img');
+    bgImg.src = imgUrl;
+    bgImg.style.cssText = 'position:absolute;left:0;top:0;width:100%;height:100%;object-fit:contain;';
+    canvas.appendChild(bgImg);
+    
+    // 添加可打印区域
     if (areaData && areaData.x !== undefined) {
-        var overlay = document.createElement('div');
-        overlay.style.cssText = 'position:absolute;left:' + areaData.x + '%;top:' + areaData.y + '%;width:' + areaData.width + '%;height:' + areaData.height + '%;border:2px dashed red;pointer-events:none;';
-        canvas.style.position = 'relative';
-        canvas.appendChild(overlay);
+        var printArea = document.createElement('div');
+        printArea.id = 'print-area';
+        printArea.style.cssText = 'position:absolute;left:' + areaData.x + '%;top:' + areaData.y + '%;width:' + areaData.width + '%;height:' + areaData.height + '%;border:2px dashed red;background:rgba(255,255,255,0.5);';
+        canvas.appendChild(printArea);
+    }
+    
+    // 恢复之前的元素
+    savedElements.forEach(function(elem) {
+        addElementToCanvas(elem.type, elem.content, elem.styles);
+    });
+}
+
+function addUploadedImage(dataUrl) {
+    addElementToCanvas('image', dataUrl, {});
+}
+
+function addElementToCanvas(type, content, styles) {
+    var printArea = document.getElementById('print-area');
+    if (!printArea) return;
+    
+    var elem;
+    if (type === 'image') {
+        elem = document.createElement('img');
+        elem.src = content;
+    } else if (type === 'text') {
+        elem = document.createElement('div');
+        elem.textContent = content;
+        elem.style.cssText = 'position:absolute;cursor:move;font-size:24px;color:' + (styles.color || '#000') + ';';
+    }
+    
+    if (elem) {
+        elem.style.cssText += 'position:absolute;left:0;top:0;width:80%;height:80%;object-fit:contain;';
+        elem.style.userSelect = 'none';
+        elem.dataset.elementId = currentCanvas.elements.length;
+        printArea.appendChild(elem);
+        
+        currentCanvas.elements.push({
+            type: type,
+            content: content,
+            styles: styles,
+            dom: elem
+        });
     }
 }
 
