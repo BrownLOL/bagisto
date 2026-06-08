@@ -80,7 +80,7 @@
         
         <div class="flex gap-4 flex-1 min-h-0">
             <!-- Left Panel - 3 Tabs -->
-            <div class="w-64 border-r pr-4 flex flex-col">
+            <div style="width: 150px; flex-shrink: 0;" class="border-r pr-4 flex flex-col">
                 <div class="flex gap-2 mb-4">
                     <button class="tab-btn border-b-2 border-blue-500 text-blue-500 pb-1 px-2 text-sm" data-tab="product">Product</button>
                     <button class="tab-btn border-b-2 border-transparent text-gray-500 pb-1 px-2 text-sm" data-tab="image">Image</button>
@@ -89,7 +89,7 @@
                 
                 <div id="tab-product" class="tab-content flex-1 overflow-auto">
                     <h3 class="font-semibold mb-2 text-sm">Select Product Image</h3>
-                    <div id="product-images" class="grid grid-cols-2 gap-2"></div>
+                    <div id="product-images" class="flex flex-col gap-2"></div>
                 </div>
                 
                 <div id="tab-image" class="tab-content hidden flex-1">
@@ -118,7 +118,7 @@
             </div>
             
             <!-- Right Panel - Settings with Icons -->
-            <div class="w-48 flex flex-col">
+            <div style="width: 150px; flex-shrink: 0;" class="flex flex-col">
                 <h3 class="font-semibold mb-2 text-sm">Settings</h3>
                 <div class="grid grid-cols-3 gap-2">
                     <button onclick="maximizeElement()" class="bg-gray-200 p-2 rounded hover:bg-gray-300" title="Maximize">
