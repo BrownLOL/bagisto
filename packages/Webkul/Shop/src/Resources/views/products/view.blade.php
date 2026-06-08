@@ -105,26 +105,56 @@
                     <div id="uploaded-images" class="flex flex-col gap-2 items-center overflow-auto flex-1"></div>
                 </div>
                 
-                <div id="tab-text" class="tab-content hidden flex-1">
-                    <input type="text" id="text-input" placeholder="Enter text" class="w-full border rounded p-2 mb-2" />
-                    <select id="text-color" class="w-full border rounded p-2 mb-2">
-                        <option value="#000000">Black</option>
-                        <option value="#FF0000">Red</option>
-                        <option value="#0000FF">Blue</option>
-                        <option value="#00FF00">Green</option>
-                    </select>
-                    <input type="number" id="font-size" value="24" min="12" max="72" class="w-full border rounded p-2 mb-2" />
+                <div id="tab-text" class="tab-content hidden flex-1 flex flex-col gap-3 p-2">
+                    <!-- Text Input -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Input Text</label>
+                        <textarea id="text-input" placeholder="Enter text here..." class="w-full border border-gray-300 rounded-lg p-2 h-20 resize-none"></textarea>
+                    </div>
+                    
+                    <!-- Font Size -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Font Size: <span id="font-size-label">24px</span></label>
+                        <input type="range" id="font-size" value="24" min="12" max="72" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer" />
+                    </div>
+                    
+                    <!-- Color -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Text Color</label>
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <button type="button" onclick="setTextColor('#000000')" class="color-swatch w-8 h-8 rounded border-2 border-gray-300 bg-black" data-color="#000000"></button>
+                            <button type="button" onclick="setTextColor('#FFFFFF')" class="color-swatch w-8 h-8 rounded border-2 border-gray-300 bg-white" data-color="#FFFFFF"></button>
+                            <button type="button" onclick="setTextColor('#FF0000')" class="color-swatch w-8 h-8 rounded border-2 border-gray-300 bg-red-500" data-color="#FF0000"></button>
+                            <button type="button" onclick="setTextColor('#00FF00')" class="color-swatch w-8 h-8 rounded border-2 border-gray-300 bg-green-500" data-color="#00FF00"></button>
+                            <button type="button" onclick="setTextColor('#0000FF')" class="color-swatch w-8 h-8 rounded border-2 border-gray-300 bg-blue-500" data-color="#0000FF"></button>
+                            <button type="button" onclick="setTextColor('#FFFF00')" class="color-swatch w-8 h-8 rounded border-2 border-gray-300 bg-yellow-500" data-color="#FFFF00"></button>
+                            <button type="button" onclick="setTextColor('#FF00FF')" class="color-swatch w-8 h-8 rounded border-2 border-gray-300 bg-pink-500" data-color="#FF00FF"></button>
+                            <button type="button" onclick="setTextColor('#00FFFF')" class="color-swatch w-8 h-8 rounded border-2 border-gray-300 bg-cyan-500" data-color="#00FFFF"></button>
+                            <input type="color" id="text-color-custom" value="#000000" class="w-8 h-8 rounded cursor-pointer border border-gray-300" onchange="setTextColor(this.value)" />
+                        </div>
+                    </div>
+                    
+                    <!-- Font -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Font</label>
+                        <select id="text-font" class="w-full border border-gray-300 rounded-lg p-2">
+                            <option value="Noto Sans TC, sans-serif">Noto Sans TC (系統預設)</option>
+                            <option value="Microsoft JhengHei, sans-serif">微軟正黑體</option>
+                            <option value="PingFang TC, sans-serif">蘋果麗黑體</option>
+                            <option value="Heiti TC, sans-serif">黑體-繁</option>
+                            <option value="Arial, sans-serif">Arial</option>
+                            <option value="Times New Roman, serif">Times New Roman</option>
+                            <option value="Georgia, serif">Georgia</option>
+                        </select>
+                    </div>
+                    
                     <button onclick="addText()" class="secondary-button mx-auto">Add Text</button>
                 </div>
+
                 <div id="tab-layers" class="tab-content hidden flex-1 flex flex-col">
-                    <h3 class="font-semibold mb-2 text-sm">Layers</h3>
+                    <h3 class="font-semibold text-sm mb-2">Layers</h3>
                     <div id="layers-list" class="flex-1 overflow-auto"></div>
                 </div>
-            </div>
-            
-            <!-- Center - Design Canvas -->
-            <div class="flex-1 flex flex-col min-w-0 items-center justify-center">
-                <h3 class="font-semibold mb-2">Design Area</h3>
                 <div id="design-canvas" style="width: 500px; height: 500px;" class="border-2 border-dashed border-gray-300 rounded-lg bg-gray-50 flex items-center justify-center overflow-hidden"></div>
             </div>
             

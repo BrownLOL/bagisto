@@ -149,6 +149,39 @@ function addUploadedImage(dataUrl) {
     updateLayersList();
 }
 
+
+function addTextToCanvas(text, size, color, font) {
+    var printArea = document.getElementById('print-area');
+    if (!printArea) return;
+    
+    var wrapper = document.createElement('div');
+    wrapper.className = 'canvas-elem';
+    wrapper.style.cssText = 'position:absolute;left:10%;top:10%;width:80%;height:80%;cursor:move;transform-origin:center center;';
+    wrapper.textContent = text;
+    wrapper.style.fontSize = (size || 24) + 'px';
+    wrapper.style.color = color || '#000';
+    wrapper.style.fontFamily = font || 'Noto Sans TC, sans-serif';
+    wrapper.style.display = 'flex';
+    wrapper.style.alignItems = 'center';
+    wrapper.style.justifyContent = 'center';
+    wrapper.style.wordBreak = 'break-word';
+    wrapper.style.textAlign = 'center';
+    
+    var elemData = {
+        dom: wrapper,
+        type: 'text',
+        content: text,
+        x: 10, y: 10, w: 80, h: 80, rotation: 0,
+        styles: { color: color || '#000', fontSize: size || 24, fontFamily: font || 'Noto Sans TC, sans-serif' },
+        id: Date.now()
+    };
+    
+    setupElemEvents(wrapper, elemData);
+    printArea.appendChild(wrapper);
+    currentCanvas.elements.push(elemData);
+    selectElem(elemData);
+    updateLayersList();
+}
 function updateLayersList() {
     var layersDiv = document.getElementById('layers-list');
     layersDiv.innerHTML = '';
@@ -474,5 +507,59 @@ document.addEventListener('DOMContentLoaded', function() {
         if (e.target === this) closeDialog();
     };
 });
+</script>
+@endpushOnce
+
+// Font size slider update label
+document.addEventListener('DOMContentLoaded', function() {
+    var fontSizeInput = document.getElementById('font-size');
+    var fontSizeLabel = document.getElementById('font-size-label');
+    if (fontSizeInput && fontSizeLabel) {
+        fontSizeInput.addEventListener('input', function() {
+            fontSizeLabel.textContent = this.value + 'px';
+        });
+    }
+    
+    // Update color swatch selection
+    document.querySelectorAll('.color-swatch').forEach(function(swatch) {
+        swatch.addEventListener('click', function() {
+            document.querySelectorAll('.color-swatch').forEach(function(s) {
+                s.classList.remove('border-blue-500');
+                s.classList.add('border-gray-300');
+            });
+            this.classList.remove('border-gray-300');
+            this.classList.add('border-blue-500');
+            document.getElementById('text-color-custom').value = this.dataset.color;
+        });
+    });
+});
+
+var currentTextColor = '#000000';
+
+function setTextColor(color) {
+    currentTextColor = color;
+    document.getElementById('text-color-custom').value = color;
+    document.querySelectorAll('.color-swatch').forEach(function(s) {
+        s.classList.remove('border-blue-500');
+        s.classList.add('border-gray-300');
+    });
+    document.getElementById('text-color-custom').classList.remove('border-gray-300');
+    document.getElementById('text-color-custom').classList.add('border-blue-500');
+}
+
+function addText() {
+    var textInput = document.getElementById('text-input');
+    var fontSize = document.getElementById('font-size').value;
+    var fontFamily = document.getElementById('text-font').value;
+    
+    if (!textInput.value.trim()) {
+        alert('Please enter text');
+        return;
+    }
+    
+    addTextToCanvas(textInput.value, fontSize, currentTextColor, fontFamily);
+    textInput.value = '';
+}
+
 </script>
 @endpushOnce
