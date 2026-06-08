@@ -214,7 +214,10 @@
         indicator.style.height = area.height + '%';
     }
     
-    document.querySelectorAll('.tab-btn').forEach(function(btn) {
+    var tabBtns = document.querySelectorAll('.tab-btn');
+    console.log('Tab buttons found:', tabBtns.length);
+    tabBtns.forEach(function(btn) {
+        console.log('Adding onclick to tab:', btn.dataset.tab);
         btn.onclick = function() {
             console.log('Tab clicked:', this.dataset.tab);
             var tab = this.dataset.tab;
