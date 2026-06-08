@@ -74,7 +74,7 @@
 <div id="customization-dialog" class="fixed inset-0 bg-black bg-opacity-50 z-[99999] hidden">
     <div class="bg-white rounded-lg shadow-xl max-w-6xl mx-auto mt-20 p-6 max-h-[90vh] overflow-auto">
         <div class="flex justify-between items-center mb-4">
-            <h2 class="text-xl font-bold">{{ __('shop::app.view.customization.title') }}</h2>
+            <h2 class="text-xl font-bold">Custom Design</h2>
             <button id="close-dialog" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
         </div>
         

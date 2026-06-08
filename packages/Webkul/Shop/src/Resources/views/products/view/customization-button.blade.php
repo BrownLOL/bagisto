@@ -6,7 +6,7 @@
     onclick="openCustomizationDialog()"
     class="w-full px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors mt-4"
 >
-    {{ __('shop::app.view.customization.customize_now') }}
+    Customize Now
 </button>
 
 @pushOnce('scripts')
