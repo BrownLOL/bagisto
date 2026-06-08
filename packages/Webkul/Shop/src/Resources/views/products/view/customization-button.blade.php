@@ -109,13 +109,14 @@ function initCanvasPan() {
 function updatePreview() {
     var previewCanvas = document.getElementById('preview-canvas');
     var inner = document.getElementById('design-canvas-inner');
-    if (!previewCanvas || !inner) return;
+    var wrapper = document.getElementById('design-canvas-wrapper');
+    if (!previewCanvas || !inner || !wrapper) return;
     
     previewCanvas.innerHTML = '';
     
-    // Clone the inner canvas content (100% centered view)
+    // Clone the inner canvas content with fixed dimensions
     var clone = inner.cloneNode(true);
-    clone.style.cssText = 'position: absolute; top: 0; left: 0; width: 100%; height: 100%;';
+    clone.style.cssText = 'position: relative; width: ' + wrapper.offsetWidth + 'px; height: ' + wrapper.offsetHeight + 'px; flex-shrink: 0;';
     clone.querySelectorAll('.canvas-elem').forEach(function(elem) {
         elem.style.pointerEvents = 'none';
     });
