@@ -263,6 +263,14 @@ function maximizeElement() {
     elemData.dom.style.top = '0%';
     elemData.dom.style.width = '100%';
     elemData.dom.style.height = '100%';
+    
+    // Scale font size for text elements
+    if (elemData.type === 'text' && elemData.styles && elemData.styles.fontSize) {
+        var scale = Math.min(elemData.w / 80, elemData.h / 80);
+        var newFontSize = Math.round(elemData.styles.fontSize * scale);
+        elemData.dom.style.fontSize = newFontSize + 'px';
+    }
+    
     updateControl(elemData);
 }
 
