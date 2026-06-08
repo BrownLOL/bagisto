@@ -233,13 +233,13 @@ function updateControl(elemData) {
 
 function updateOperationButtons() {
     var enabled = !!currentCanvas.selectedElement;
-    var btns = ['btn-maximize', 'btn-flip-h', 'btn-flip-v', 'btn-rotate-l', 'btn-rotate-r', 'btn-forward', 'btn-backward', 'btn-delete'];
+    var btns = ['btn-maximize', 'btn-flip-h', 'btn-flip-v', 'btn-forward', 'btn-backward', 'btn-delete'];
     btns.forEach(function(id) {
         var btn = document.getElementById(id);
         if (btn) {
             btn.disabled = !enabled;
             if (enabled) {
-                btn.classList.remove('opacity-50', 'cursor-not-allowed');
+                btn.classList.remove('opacity-50', 'cursor-not-allowed', 'disabled:opacity-50', 'disabled:cursor-not-allowed');
                 btn.classList.add('hover:bg-gray-300');
             } else {
                 btn.classList.add('opacity-50', 'cursor-not-allowed');
