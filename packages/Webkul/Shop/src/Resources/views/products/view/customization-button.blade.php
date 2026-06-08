@@ -161,6 +161,7 @@
                         imgWrapper.className = 'cursor-pointer border-2 border-gray-300 rounded p-1 hover:border-blue-500';
                         imgWrapper.onclick = (function(imgUrl, area) {
                             return function() {
+                                console.log('Image clicked:', imgUrl, area);
                                 selectProductImage(imgUrl, area);
                             };
                         })(item.image_url, item);
@@ -185,16 +186,19 @@
     }
     
     function selectProductImage(imgUrl, area) {
+        console.log('selectProductImage called:', imgUrl, area);
         productImage = imgUrl;
         printAreas = [area];
         displayProductImage();
     }
     
     function displayProductImage() {
+        console.log('displayProductImage called, productImage:', productImage);
         if (!productImage) return;
         var img = document.getElementById('canvas-product-image');
         img.src = productImage;
         img.onload = function() {
+            console.log('Image loaded');
             if (printAreas.length > 0) {
                 updatePrintAreaIndicator(printAreas[0]);
             }
