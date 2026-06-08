@@ -70,6 +70,78 @@
         <x-shop::shimmer.products.view />
     </v-product>
 
+<!-- Customization Dialog - Outside Vue component for proper z-index -->
+<div id="customization-dialog" class="fixed inset-0 bg-black bg-opacity-50 z-[99999] hidden">
+    <div class="bg-white rounded-lg shadow-xl max-w-6xl mx-auto mt-20 p-6 max-h-[90vh] overflow-auto">
+        <div class="flex justify-between items-center mb-4">
+            <h2 class="text-xl font-bold">{{ __('shop::app.view.customization.title') }}</h2>
+            <button id="close-dialog" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
+        </div>
+        
+        <div class="flex gap-4">
+            <div class="w-1/4 border-r pr-4">
+                <div class="flex gap-2 mb-4">
+                    <button class="tab-btn border-b-2 border-blue-500 text-blue-500 pb-2 px-2" data-tab="product">Product</button>
+                    <button class="tab-btn border-b-2 border-transparent text-gray-500 pb-2 px-2" data-tab="image">Image</button>
+                    <button class="tab-btn border-b-2 border-transparent text-gray-500 pb-2 px-2" data-tab="text">Text</button>
+                </div>
+                
+                <div id="tab-product" class="tab-content">
+                    <h3 class="font-semibold mb-2">Select Product Image</h3>
+                    <div id="product-images" class="grid grid-cols-2 gap-2"></div>
+                </div>
+                
+                <div id="tab-image" class="tab-content hidden">
+                    <h3 class="font-semibold mb-2">Upload Image</h3>
+                    <input type="file" id="image-upload" accept="image/*" class="w-full border rounded p-2" />
+                </div>
+                
+                <div id="tab-text" class="tab-content hidden">
+                    <h3 class="font-semibold mb-2">Add Text</h3>
+                    <input type="text" id="text-input" placeholder="Enter text" class="w-full border rounded p-2 mb-2" />
+                    <select id="text-color" class="w-full border rounded p-2 mb-2">
+                        <option value="#000000">Black</option>
+                        <option value="#FF0000">Red</option>
+                        <option value="#0000FF">Blue</option>
+                        <option value="#00FF00">Green</option>
+                    </select>
+                    <input type="number" id="font-size" value="24" min="12" max="72" class="w-full border rounded p-2 mb-2" />
+                    <button onclick="addText()" class="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700">Add Text</button>
+                </div>
+            </div>
+            
+            <div class="w-1/2">
+                <h3 class="font-semibold mb-2">Design Area</h3>
+                <div id="design-canvas" class="border-2 border-dashed border-gray-300 rounded-lg w-full aspect-square bg-gray-50 flex items-center justify-center overflow-hidden"></div>
+            </div>
+            
+            <div class="w-1/4">
+                <h3 class="font-semibold mb-2">Settings</h3>
+                <div class="space-y-2">
+                    <button onclick="maximizeElement()" class="w-full bg-gray-200 py-2 rounded hover:bg-gray-300">Maximize</button>
+                    <button onclick="flipHorizontal()" class="w-full bg-gray-200 py-2 rounded hover:bg-gray-300">Flip H</button>
+                    <button onclick="flipVertical()" class="w-full bg-gray-200 py-2 rounded hover:bg-gray-300">Flip V</button>
+                    <button onclick="rotateLeft()" class="w-full bg-gray-200 py-2 rounded hover:bg-gray-300">Rotate Left</button>
+                    <button onclick="rotateRight()" class="w-full bg-gray-200 py-2 rounded hover:bg-gray-300">Rotate Right</button>
+                    <button onclick="bringForward()" class="w-full bg-gray-200 py-2 rounded hover:bg-gray-300">Layer Up</button>
+                    <button onclick="sendBackward()" class="w-full bg-gray-200 py-2 rounded hover:bg-gray-300">Layer Down</button>
+                    <button onclick="deleteElement()" class="w-full bg-red-500 text-white py-2 rounded hover:bg-red-600">Delete</button>
+                </div>
+                
+                <h3 class="font-semibold mt-4 mb-2">Preview</h3>
+                <div id="preview" class="border rounded p-2 bg-gray-50">
+                    <div id="preview-content" class="w-full aspect-square bg-white"></div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="flex justify-end gap-2 mt-4 pt-4 border-t">
+            <button id="cancel-btn" class="px-4 py-2 border rounded hover:bg-gray-100">Cancel</button>
+            <button class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Save</button>
+        </div>
+    </div>
+</div>
+
     <!-- Information Section -->
     <div class="1180:mt-20">
         <div class="max-1180:hidden">
