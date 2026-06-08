@@ -6,9 +6,10 @@
     onclick="openCustomizationDialog()"
     class="w-full px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors mt-4"
 >
-    {{ __('customization::shop.customization.customize_now') }}
+    {{ __('shop::app.view.customization.customize_now') }}
 </button>
 
+@pushOnce('scripts')
 <script>
 function openCustomizationDialog() {
     document.getElementById('customization-dialog').classList.remove('hidden');
@@ -31,15 +32,10 @@ function loadPrintAreas() {
             console.log('API response:', data);
             if (data.success && data.data.length > 0) {
                 var productImagesDiv = document.getElementById('product-images');
-                console.log('productImagesDiv:', productImagesDiv);
                 productImagesDiv.innerHTML = '';
-                console.log('Displaying', data.data.length, 'images');
                 
                 data.data.forEach(function(item) {
-                    console.log('Item:', item);
                     var imgUrl = item.image_url || item.url || '';
-                    console.log('Image URL:', imgUrl);
-                    
                     var div = document.createElement('div');
                     div.className = 'cursor-pointer border-2 border-gray-300 rounded p-1 hover:border-blue-500';
                     div.innerHTML = '<img src="' + imgUrl + '" class="w-[120px] h-[120px] object-contain" />';
@@ -79,15 +75,6 @@ function switchTab(tab) {
     document.getElementById('tab-' + tab).classList.remove('hidden');
 }
 
-function addUploadedImage(dataUrl) {
-    var canvas = document.getElementById('design-canvas');
-    var img = document.createElement('img');
-    img.src = dataUrl;
-    img.className = 'w-full h-full object-contain';
-    canvas.innerHTML = '';
-    canvas.appendChild(img);
-}
-
 document.addEventListener('DOMContentLoaded', function() {
     console.log('Customization dialog script loaded');
     
@@ -105,3 +92,4 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 </script>
+@endpushOnce
