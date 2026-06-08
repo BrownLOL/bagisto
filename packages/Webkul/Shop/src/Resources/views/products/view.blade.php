@@ -81,14 +81,14 @@
         <div class="flex gap-4 flex-1 min-h-0">
             <!-- Left Panel - 3 Tabs -->
             <div style="width: 200px; flex-shrink: 0;" class="border-r pr-4 flex flex-col">
-                <div class="flex gap-1 mb-4 justify-around">
-                    <button class="tab-btn p-2 rounded hover:bg-gray-200 bg-blue-100 text-blue-600" data-tab="product" title="Product">
-                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M6 2l.2.6L4 6l3 1.5V22h10V7.5L20 6l-2.2-3.4.2-.6H6zm1 4h10l1.5 2H5.5l1.5-2zM7 10v10H5V10h2zm12 0v10h-2V10h2z"/></svg>
+                <div class="flex gap-1 mb-4 justify-between">
+                    <button class="tab-btn flex-1 p-2 rounded hover:bg-gray-200 bg-blue-100 text-blue-600" data-tab="product" title="Product">
+                        <svg class="w-5 h-5 mx-auto" fill="currentColor" viewBox="0 0 24 24"><path d="M6 2l.2.6L4 6l3 1.5V22h10V7.5L20 6l-2.2-3.4.2-.6H6zm1 4h10l1.5 2H5.5l1.5-2zM7 10v10H5V10h2zm12 0v10h-2V10h2z"/></svg>
                     </button>
-                    <button class="tab-btn p-2 rounded hover:bg-gray-200 text-gray-500" data-tab="image" title="Image">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                    <button class="tab-btn flex-1 p-2 rounded hover:bg-gray-200 text-gray-500" data-tab="image" title="Image">
+                        <svg class="w-5 h-5 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                     </button>
-                    <button class="tab-btn p-2 rounded hover:bg-gray-200 text-gray-500" data-tab="text" title="Text">
+                    <button class="tab-btn flex-1 p-2 rounded hover:bg-gray-200 text-gray-500" data-tab="text" title="Text">
                         <span class="text-lg font-bold">T</span>
                     </button>
                 </div>
