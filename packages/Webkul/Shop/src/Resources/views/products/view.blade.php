@@ -94,7 +94,6 @@
                 </div>
                 
                 <div id="tab-product" class="tab-content flex-1 overflow-auto">
-                    <h3 class="font-semibold mb-2 text-sm">Select Product Image</h3>
                     <div id="product-images" class="flex flex-col gap-2"></div>
                 </div>
                 
