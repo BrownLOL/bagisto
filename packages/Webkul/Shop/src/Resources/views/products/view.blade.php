@@ -152,7 +152,6 @@
                 </div>
 
                 <div id="tab-layers" class="tab-content hidden flex-1 flex flex-col">
-                    <h3 class="font-semibold text-sm mb-2">Layers</h3>
                     <div id="layers-list" class="flex-1 overflow-auto"></div>
                 </div>
             </div>
