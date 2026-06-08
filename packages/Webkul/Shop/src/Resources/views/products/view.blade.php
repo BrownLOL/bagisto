@@ -80,8 +80,8 @@
         
         <div class="flex gap-4 flex-1 min-h-0">
             <!-- Left Panel - 3 Tabs -->
-            <div style="width: 150px; flex-shrink: 0;" class="border-r pr-4 flex flex-col">
-                <div class="flex gap-1 mb-4">
+            <div style="width: 200px; flex-shrink: 0;" class="border-r pr-4 flex flex-col">
+                <div class="flex gap-1 mb-4 justify-around">
                     <button class="tab-btn p-2 rounded hover:bg-gray-200 bg-blue-100 text-blue-600" data-tab="product" title="Product">
                         <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M6 2l.2.6L4 6l3 1.5V22h10V7.5L20 6l-2.2-3.4.2-.6H6zm1 4h10l1.5 2H5.5l1.5-2zM7 10v10H5V10h2zm12 0v10h-2V10h2z"/></svg>
                     </button>
@@ -118,13 +118,13 @@
             </div>
             
             <!-- Center - Design Canvas -->
-            <div class="flex-1 flex flex-col min-w-0">
+            <div class="flex-1 flex flex-col min-w-0 items-center justify-center">
                 <h3 class="font-semibold mb-2">Design Area</h3>
-                <div id="design-canvas" class="flex-1 border-2 border-dashed border-gray-300 rounded-lg bg-gray-50 flex items-center justify-center overflow-hidden"></div>
+                <div id="design-canvas" style="width: 500px; height: 500px;" class="border-2 border-dashed border-gray-300 rounded-lg bg-gray-50 flex items-center justify-center overflow-hidden"></div>
             </div>
             
             <!-- Right Panel - Settings with Icons -->
-            <div style="width: 150px; flex-shrink: 0;" class="flex flex-col">
+            <div style="width: 300px; flex-shrink: 0;" class="flex flex-col">
                 <h3 class="font-semibold mb-2 text-sm">Settings</h3>
                 <div class="grid grid-cols-3 gap-2">
                     <button onclick="maximizeElement()" class="bg-gray-200 p-2 rounded hover:bg-gray-300" title="Maximize">
