@@ -53,6 +53,11 @@ function loadPrintAreas() {
         });
 }
 
+function addUploadedImage(dataUrl) {
+    var canvas = document.getElementById('design-canvas');
+    canvas.innerHTML = '<img src="' + dataUrl + '" class="w-full h-full object-contain" />';
+}
+
 function selectProductImage(imgUrl, areaData) {
     var canvas = document.getElementById('design-canvas');
     canvas.innerHTML = '<img src="' + imgUrl + '" class="w-full h-full object-contain" />';
