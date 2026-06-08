@@ -114,7 +114,7 @@
                         <option value="#00FF00">Green</option>
                     </select>
                     <input type="number" id="font-size" value="24" min="12" max="72" class="w-full border rounded p-2 mb-2" />
-                    <button onclick="addText()" class="w-full bg-blue-600 py-2 rounded hover:bg-blue-700 flex items-center justify-center">Add Text</button>
+                    <button onclick="addText()" class="secondary-button mx-auto">Add Text</button>
                 </div>
                 <div id="tab-layers" class="tab-content hidden flex-1 flex flex-col">
                     <h3 class="font-semibold mb-2 text-sm">Layers</h3>
