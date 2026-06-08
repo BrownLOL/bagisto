@@ -400,6 +400,14 @@ function setupElemEvents(wrapper, elemData) {
             elemData.h = Math.max(10, newH);
             wrapper.style.width = elemData.w + '%';
             wrapper.style.height = elemData.h + '%';
+            
+            // Scale font size for text elements
+            if (elemData.type === 'text' && elemData.styles && elemData.styles.fontSize) {
+                var scale = Math.min(elemData.w / 80, elemData.h / 80);
+                var newFontSize = Math.round(elemData.styles.fontSize * scale);
+                wrapper.style.fontSize = newFontSize + 'px';
+            }
+            
             updateControl(elemData);
         }
         
