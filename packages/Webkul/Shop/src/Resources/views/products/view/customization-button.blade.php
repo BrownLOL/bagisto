@@ -5,7 +5,7 @@
 <button
     type="button"
     onclick="event.preventDefault(); openCustomizationDialog();"
-    class="w-full px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors mt-4"
+    class="secondary-button w-full mt-4"
 >
     Customize Now
 </button>
