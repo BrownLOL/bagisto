@@ -79,8 +79,8 @@
         </div>
         
         <div class="flex gap-4 flex-1 min-h-0">
-            <!-- Left Panel - 3 Tabs -->
-            <div style="width: 200px; flex-shrink: 0;" class="border-r pr-4 flex flex-col">
+            <!-- Left Panel - 4 Tabs -->
+            <div style="width: 300px; flex-shrink: 0;" class="border-r pr-4 flex flex-col">
                 <div class="flex gap-1 mb-4 justify-between">
                     <button class="tab-btn flex-1 p-2 rounded hover:bg-gray-200 bg-blue-100 text-blue-600" data-tab="product" title="Product">
                         <svg class="w-5 h-5 mx-auto" fill="currentColor" viewBox="0 0 24 24"><path d="M6 2l.2.6L4 6l3 1.5V22h10V7.5L20 6l-2.2-3.4.2-.6H6zm1 4h10l1.5 2H5.5l1.5-2zM7 10v10H5V10h2zm12 0v10h-2V10h2z"/></svg>
@@ -97,12 +97,12 @@
                 </div>
                 
                 <div id="tab-product" class="tab-content flex-1 overflow-auto">
-                    <div id="product-images" class="flex flex-col gap-2 items-center"></div>
+                    <div id="product-images" class="grid grid-cols-2 gap-2"></div>
                 </div>
                 
                 <div id="tab-image" class="tab-content hidden flex-1">
                     <input type="file" id="image-upload" accept="image/*" class="w-full border rounded p-2 mb-2" />
-                    <div id="uploaded-images" class="flex flex-col gap-2 items-center overflow-auto flex-1"></div>
+                    <div id="uploaded-images" class="grid grid-cols-2 gap-2 overflow-auto flex-1"></div>
                 </div>
                 
                 <div id="tab-text" class="tab-content hidden flex-1 flex flex-col gap-3 p-2">
@@ -226,8 +226,8 @@
                     </div>
                 </div>
                 <h3 class="font-semibold mt-4 mb-2 text-sm">Preview</h3>
-                <div id="preview" class="flex-1 border rounded bg-gray-50 overflow-hidden">
-                    <div id="preview-canvas" class="w-full h-full flex items-center justify-center"></div>
+                <div id="preview" class="flex-1 border rounded bg-gray-50 overflow-hidden flex items-center justify-center">
+                    <div id="preview-canvas" style="width: 250px; height: 250px;"></div>
                 </div>
             </div>
         </div>

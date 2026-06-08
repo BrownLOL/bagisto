@@ -109,14 +109,13 @@ function initCanvasPan() {
 function updatePreview() {
     var previewCanvas = document.getElementById('preview-canvas');
     var inner = document.getElementById('design-canvas-inner');
-    var wrapper = document.getElementById('design-canvas-wrapper');
-    if (!previewCanvas || !inner || !wrapper) return;
+    if (!previewCanvas || !inner) return;
     
     previewCanvas.innerHTML = '';
     
-    // Clone the inner canvas content with fixed dimensions
+    // Clone the inner canvas content with fixed 250x250 dimensions
     var clone = inner.cloneNode(true);
-    clone.style.cssText = 'position: relative; width: ' + wrapper.offsetWidth + 'px; height: ' + wrapper.offsetHeight + 'px; flex-shrink: 0;';
+    clone.style.cssText = 'position: relative; width: 250px; height: 250px; flex-shrink: 0;';
     clone.querySelectorAll('.canvas-elem').forEach(function(elem) {
         elem.style.pointerEvents = 'none';
     });
@@ -137,7 +136,7 @@ function loadPrintAreas() {
                     var imgUrl = item.image_url || item.url || '';
                     var div = document.createElement('div');
                     div.className = 'cursor-pointer border-2 border-gray-300 rounded p-1 hover:border-blue-500';
-                    div.style.cssText = 'width: 120px; height: 120px;';
+                    div.style.cssText = 'width: 100%; aspect-ratio: 1; object-fit: contain;';
                     div.innerHTML = '<img src="' + imgUrl + '" class="w-full h-full object-contain" />';
                     div.onclick = function() { selectProductImage(imgUrl, item); };
                     productImagesDiv.appendChild(div);
@@ -588,7 +587,7 @@ document.addEventListener('change', function(e) {
                     var dataUrl = event.target.result;
                     var div = document.createElement('div');
                     div.className = 'cursor-pointer border-2 border-gray-300 rounded p-1 hover:border-blue-500';
-                    div.style.cssText = 'width: 120px; height: 120px;';
+                    div.style.cssText = 'width: 100%; aspect-ratio: 1; object-fit: contain;';
                     div.innerHTML = '<img src="' + dataUrl + '" class="w-full h-full object-contain" />';
                     div.onclick = function() { addUploadedImage(dataUrl); };
                     uploadedImagesDiv.appendChild(div);
