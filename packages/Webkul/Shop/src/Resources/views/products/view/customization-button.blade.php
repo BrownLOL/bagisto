@@ -68,11 +68,11 @@ function selectProductImage(imgUrl, areaData) {
 function switchTab(tab) {
     console.log('Switching to tab:', tab);
     document.querySelectorAll('.tab-btn').forEach(function(b) {
-        b.classList.remove('border-blue-500', 'text-blue-500');
-        b.classList.add('border-transparent', 'text-gray-500');
+        b.classList.remove('bg-blue-100', 'text-blue-600');
+        b.classList.add('text-gray-500');
     });
-    document.querySelector('.tab-btn[data-tab="' + tab + '"]').classList.add('border-blue-500', 'text-blue-500');
-    document.querySelector('.tab-btn[data-tab="' + tab + '"]').classList.remove('border-transparent', 'text-gray-500');
+    document.querySelector('.tab-btn[data-tab="' + tab + '"]').classList.add('bg-blue-100', 'text-blue-600');
+    document.querySelector('.tab-btn[data-tab="' + tab + '"]').classList.remove('text-gray-500');
     document.querySelectorAll('.tab-content').forEach(function(c) { c.classList.add('hidden'); });
     document.getElementById('tab-' + tab).classList.remove('hidden');
 }
