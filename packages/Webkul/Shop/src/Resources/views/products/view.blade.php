@@ -239,8 +239,7 @@
         <div class="flex justify-end gap-2 mt-4 pt-4 border-t">
             <button id="cancel-btn" onclick="closeDialog()" class="px-4 py-2 border rounded hover:bg-gray-100">Cancel</button>
             <button id="clear-design-btn" onclick="clearSavedDesign()" class="px-4 py-2 border border-orange-300 rounded hover:bg-orange-50 text-orange-600">Clear Design</button>
-            <button id="save-customization-btn" onclick="saveCustomization()" class="px-4 py-2 border border-blue-300 rounded hover:bg-blue-50 text-blue-600">Save</button>
-            <button id="add-to-cart-btn" onclick="addDesignToCart()" class="px-4 py-2 bg-blue-600 border rounded hover:bg-blue-700 text-white">Add to Cart</button>
+            <button id="save-customization-btn" onclick="saveCustomization()" class="px-4 py-2 bg-blue-600 border rounded hover:bg-blue-700 text-white">Save</button>
         </div>
     </div>
 </div>
