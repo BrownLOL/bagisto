@@ -36,6 +36,7 @@ function openCustomizationDialog() {
     initTextControls();
     resetZoom();
     initCanvasPan();
+    loadSavedCustomization();
 }
 
 function closeDialog() {
@@ -121,12 +122,47 @@ function saveCustomization() {
     .then(function(response) { return response.json(); })
     .then(function(data) {
         if (data.data) {
+            // Save to localStorage
+            localStorage.setItem('customization_' + window.customizationProductId, JSON.stringify(customizationData.customization));
             closeDialog();
         }
     })
     .catch(function(error) {
         console.error('Error:', error);
         alert('Failed to add to cart. Please try again.');
+    });
+}
+
+// Load saved customization from localStorage
+function loadSavedCustomization() {
+    var saved = localStorage.getItem('customization_' + window.customizationProductId);
+    if (!saved) return;
+    
+    var savedData = JSON.parse(saved);
+    if (!savedData.elements || !savedData.print_area) return;
+    
+    // Set area data
+    window.currentAreaData = savedData.print_area;
+    
+    // Restore print area selection
+    var imageId = savedData.print_area.image_id;
+    if (imageId) {
+        var imgDiv = document.querySelector('[data-image-id="' + imageId + '"]');
+        if (imgDiv) {
+            selectProductImage(imageId, imgDiv.querySelector('img').src);
+        }
+    }
+    
+    // Restore elements
+    savedData.elements.forEach(function(elem) {
+        if (elem.type === 'text') {
+            addTextToCanvas(elem.content, elem.styles.fontSize, elem.styles.color, elem.styles.fontFamily, {
+                x: elem.x, y: elem.y, w: elem.width, h: elem.height,
+                rotation: elem.rotation, scaleX: elem.scaleX, scaleY: elem.scaleY, styles: elem.styles
+            });
+        } else if (elem.type === 'image') {
+            addUploadedImage(elem.content, elem.x, elem.y, elem.width, elem.height, elem.rotation, elem.scaleX, elem.scaleY);
+        }
     });
 }
 
@@ -314,7 +350,15 @@ function selectProductImage(imgUrl, areaData) {
     updatePreview();
 }
 
-function addUploadedImage(dataUrl) {
+function addUploadedImage(dataUrl, x, y, w, h, rotation, scaleX, scaleY) {
+    x = x !== undefined ? x : 10;
+    y = y !== undefined ? y : 10;
+    w = w !== undefined ? w : 80;
+    h = h !== undefined ? h : 80;
+    rotation = rotation !== undefined ? rotation : 0;
+    scaleX = scaleX !== undefined ? scaleX : 1;
+    scaleY = scaleY !== undefined ? scaleY : 1;
+    
     var areaData = window.currentAreaData;
     var areaElemId = 'print-area-' + (areaData && (areaData.id || areaData.print_area_id) ? (areaData.id || areaData.print_area_id) : 'default');
     var printArea = document.getElementById(areaElemId);
@@ -322,7 +366,7 @@ function addUploadedImage(dataUrl) {
     
     var wrapper = document.createElement('div');
     wrapper.className = 'canvas-elem';
-    wrapper.style.cssText = 'position:absolute;left:10%;top:10%;width:80%;height:80%;cursor:move;transform-origin:center center;';
+    wrapper.style.cssText = 'position:absolute;left:' + x + '%;top:' + y + '%;width:' + w + '%;height:' + h + '%;cursor:move;transform-origin:center center;transform:rotate(' + rotation + 'deg) scaleX(' + scaleX + ') scaleY(' + scaleY + ');';
     
     var img = document.createElement('img');
     img.src = dataUrl;
@@ -333,7 +377,7 @@ function addUploadedImage(dataUrl) {
         dom: wrapper,
         type: 'image',
         content: dataUrl,
-        x: 10, y: 10, w: 80, h: 80, rotation: 0,
+        x: x, y: y, w: w, h: h, rotation: rotation, scaleX: scaleX, scaleY: scaleY,
         styles: {},
         id: Date.now()
     };
@@ -786,19 +830,37 @@ function addText() {
     textInput.value = '';
 }
 
-function addTextToCanvas(text, size, color, font) {
+function addTextToCanvas(text, size, color, font, opts) {
     var areaData = window.currentAreaData;
     var areaElemId = 'print-area-' + (areaData && (areaData.id || areaData.print_area_id) ? (areaData.id || areaData.print_area_id) : 'default');
     var printArea = document.getElementById(areaElemId);
     if (!printArea) return;
     
+    var savedX = opts ? opts.x : null;
+    var savedY = opts ? opts.y : null;
+    var savedW = opts ? opts.w : null;
+    var savedH = opts ? opts.h : null;
+    var savedRotation = opts ? opts.rotation : null;
+    var savedScaleX = opts ? opts.scaleX : null;
+    var savedScaleY = opts ? opts.scaleY : null;
+    var savedStyles = opts ? opts.styles : null;
+    
     var wrapper = document.createElement('div');
     wrapper.className = 'canvas-elem';
-    wrapper.style.cssText = 'position:absolute;left:10%;top:10%;width:80%;height:80%;cursor:move;transform-origin:center center;';
+    var left = savedX !== null ? savedX + '%' : '10%';
+    var top = savedY !== null ? savedY + '%' : '10%';
+    var width = savedW !== null ? savedW + '%' : '80%';
+    var height = savedH !== null ? savedH + '%' : '80%';
+    wrapper.style.cssText = 'position:absolute;left:' + left + ';top:' + top + ';width:' + width + ';height:' + height + ';cursor:move;transform-origin:center center;';
+    if (savedRotation !== null) {
+        var scaleXStr = savedScaleX !== null ? ' scaleX(' + savedScaleX + ')' : '';
+        var scaleYStr = savedScaleY !== null ? ' scaleY(' + savedScaleY + ')' : '';
+        wrapper.style.transform = 'rotate(' + savedRotation + 'deg)' + scaleXStr + scaleYStr;
+    }
     wrapper.textContent = text;
-    wrapper.style.fontSize = (size || 24) + 'px';
-    wrapper.style.color = color || '#000';
-    wrapper.style.fontFamily = font || 'Noto Sans TC, sans-serif';
+    wrapper.style.fontSize = (savedStyles && savedStyles.fontSize ? savedStyles.fontSize : (size || 24)) + 'px';
+    wrapper.style.color = (savedStyles && savedStyles.color ? savedStyles.color : (color || '#000'));
+    wrapper.style.fontFamily = (savedStyles && savedStyles.fontFamily ? savedStyles.fontFamily : (font || 'Noto Sans TC, sans-serif'));
     wrapper.style.display = 'flex';
     wrapper.style.alignItems = 'center';
     wrapper.style.justifyContent = 'center';
@@ -809,9 +871,15 @@ function addTextToCanvas(text, size, color, font) {
         dom: wrapper,
         type: 'text',
         content: text,
-        x: 10, y: 10, w: 80, h: 80, rotation: 0,
-        styles: { color: color || '#000', fontSize: size || 24, fontFamily: font || 'Noto Sans TC, sans-serif' },
-        id: Date.now()
+        x: savedX !== null ? savedX : 10, 
+        y: savedY !== null ? savedY : 10, 
+        w: savedW !== null ? savedW : 80, 
+        h: savedH !== null ? savedH : 80, 
+        rotation: savedRotation !== null ? savedRotation : 0,
+        scaleX: savedScaleX !== null ? savedScaleX : 1,
+        scaleY: savedScaleY !== null ? savedScaleY : 1,
+        styles: savedStyles || { color: color || '#000', fontSize: size || 24, fontFamily: font || 'Noto Sans TC, sans-serif' },
+        id: savedStyles && savedStyles.id ? savedStyles.id : Date.now()
     };
     
     setupElemEvents(wrapper, elemData);
