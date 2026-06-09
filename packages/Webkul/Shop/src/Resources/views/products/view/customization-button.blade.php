@@ -136,32 +136,59 @@ function saveCustomization() {
 
 // Load saved customization from localStorage
 function loadSavedCustomization() {
-    var saved = localStorage.getItem('customization_' + window.customizationProductId);
-    if (!saved) return;
+    var key = 'customization_' + window.customizationProductId;
+    console.log('[DEBUG] loadSavedCustomization called, key:', key);
     
-    var savedData = JSON.parse(saved);
-    if (!savedData.elements) return;
+    var saved = localStorage.getItem(key);
+    console.log('[DEBUG] localStorage.getItem result:', saved ? 'found' : 'not found');
+    
+    if (!saved) {
+        console.log('[DEBUG] No saved data found');
+        return;
+    }
+    
+    var savedData;
+    try {
+        savedData = JSON.parse(saved);
+        console.log('[DEBUG] Parsed savedData:', savedData);
+    } catch(e) {
+        console.error('[DEBUG] JSON parse error:', e);
+        return;
+    }
+    
+    if (!savedData.elements) {
+        console.log('[DEBUG] No elements in savedData');
+        return;
+    }
     
     // Find the print area by id
     var printAreaId = savedData.print_area_id;
-    if (!printAreaId) return;
+    console.log('[DEBUG] printAreaId:', printAreaId);
     
     // Get area data from window
     var areaData = null;
     if (window.printAreas) {
+        console.log('[DEBUG] window.printAreas found:', window.printAreas.length);
         for (var i = 0; i < window.printAreas.length; i++) {
+            console.log('[DEBUG] checking printAreas[' + i + ']:', window.printAreas[i]);
             if (window.printAreas[i].id == printAreaId || window.printAreas[i].print_area_id == printAreaId) {
                 areaData = window.printAreas[i];
+                console.log('[DEBUG] Matched areaData:', areaData);
                 break;
             }
         }
+    } else {
+        console.log('[DEBUG] window.printAreas NOT found');
     }
     
     if (!areaData) {
+        console.log('[DEBUG] areaData not found in window.printAreas');
         // Try to find by image id in saved data
         var imageId = savedData.image_id;
+        console.log('[DEBUG] Trying imageId:', imageId);
         if (imageId && window.productImages) {
             var img = window.productImages[imageId];
+            console.log('[DEBUG] Found image:', img);
             if (img) {
                 areaData = {
                     id: printAreaId,
@@ -176,7 +203,12 @@ function loadSavedCustomization() {
         }
     }
     
-    if (!areaData) return;
+    if (!areaData) {
+        console.log('[DEBUG] areaData still null, cannot restore');
+        return;
+    }
+    
+    console.log('[DEBUG] Restoring with areaData:', areaData);
     
     // Set area data
     window.currentAreaData = areaData;
@@ -184,13 +216,16 @@ function loadSavedCustomization() {
     // Restore print area selection
     if (areaData.image_id) {
         var imgDiv = document.querySelector('[data-image-id="' + areaData.image_id + '"]');
+        console.log('[DEBUG] Looking for imgDiv with data-image-id:', areaData.image_id, 'found:', !!imgDiv);
         if (imgDiv) {
             selectProductImage(areaData.image_id, areaData.image_url);
         }
     }
     
+    console.log('[DEBUG] Restoring', savedData.elements.length, 'elements');
     // Restore elements
-    savedData.elements.forEach(function(elem) {
+    savedData.elements.forEach(function(elem, idx) {
+        console.log('[DEBUG] Restoring element', idx, ':', elem);
         if (elem.type === 'text') {
             addTextToCanvas(elem.content, elem.styles.fontSize, elem.styles.color, elem.styles.fontFamily, {
                 x: elem.x, y: elem.y, w: elem.width, h: elem.height,
@@ -200,6 +235,8 @@ function loadSavedCustomization() {
             addUploadedImage(elem.content, elem.x, elem.y, elem.width, elem.height, elem.rotation, elem.scaleX, elem.scaleY);
         }
     });
+    
+    console.log('[DEBUG] loadSavedCustomization done');
 }
 
 // Add event listener for save button
