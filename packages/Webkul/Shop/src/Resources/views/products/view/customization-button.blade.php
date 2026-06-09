@@ -35,10 +35,28 @@ function generateDesignUUID() {
     });
 }
 
+// Get or create design UUID for this product (persists during session, resets on page refresh)
+function getDesignUUID() {
+    if (!window.customizationProductId) return null;
+    
+    var sessionKey = 'design_session_' + window.customizationProductId;
+    var uuid = sessionStorage.getItem(sessionKey);
+    
+    if (!uuid) {
+        uuid = generateDesignUUID();
+        sessionStorage.setItem(sessionKey, uuid);
+        console.log('[DEBUG getDesignUUID] Generated new UUID:', uuid);
+    } else {
+        console.log('[DEBUG getDesignUUID] Using existing UUID:', uuid);
+    }
+    
+    return uuid;
+}
+
 function openCustomizationDialog() {
-    // Generate new UUID for this design session
-    window.designUUID = generateDesignUUID();
-    console.log('[DEBUG openCustomizationDialog] New design UUID:', window.designUUID);
+    // Get or create UUID (persists during session via sessionStorage)
+    window.designUUID = getDesignUUID();
+    console.log('[DEBUG openCustomizationDialog] Design UUID:', window.designUUID);
     
     document.getElementById('customization-dialog').classList.remove('hidden');
     document.body.style.overflow = 'hidden';
@@ -49,7 +67,7 @@ function openCustomizationDialog() {
     initTextControls();
     resetZoom();
     initCanvasPan();
-    console.log('Opening dialog, productId:', window.customizationProductId, 'designUUID:', window.designUUID);
+    console.log('Opening dialog, productId:', window.customizationProductId);
     // loadSavedCustomization is called by loadPrintAreas on success
 }
 
