@@ -31,16 +31,20 @@ function checkDesignStatus() {
     var statusIcon = document.getElementById('design-status-icon');
     if (!statusIcon || !window.customizationProductId) return;
     
-    // Check if there's a saved design for the current memory UUID
-    if (window.designUUID) {
-        var designKey = 'design_' + window.designUUID;
+    var productId = window.customizationProductId;
+    var currentKey = 'current_design_' + productId;
+    
+    // Check if there's a saved design for the current UUID
+    var uuid = localStorage.getItem(currentKey);
+    if (uuid) {
+        var designKey = 'design_' + uuid;
         var saved = localStorage.getItem(designKey);
         if (saved) {
             try {
                 var data = JSON.parse(saved);
                 if (data.customization && data.customization.elements && data.customization.elements.length > 0) {
                     statusIcon.classList.remove('hidden');
-                    console.log('[DEBUG checkDesignStatus] Design exists, showing icon');
+                    console.log('[DEBUG checkDesignStatus] Design exists for UUID:', uuid, 'showing icon');
                     return;
                 }
             } catch (e) {}
@@ -67,19 +71,33 @@ function generateDesignUUID() {
     });
 }
 
-// Get or create design UUID for this product (resets on page refresh)
+// Get or create design UUID for this product
 function getDesignUUID() {
     if (!window.customizationProductId) return null;
     
-    // Only store in memory (window), so it resets on page refresh
-    if (!window.designUUID) {
-        window.designUUID = generateDesignUUID();
-        console.log('[DEBUG getDesignUUID] Generated new UUID:', window.designUUID);
+    var productId = window.customizationProductId;
+    var currentKey = 'current_design_' + productId;
+    
+    // Check if there's a current design UUID
+    var uuid = localStorage.getItem(currentKey);
+    
+    if (!uuid) {
+        // Generate new UUID and set as current
+        uuid = generateDesignUUID();
+        localStorage.setItem(currentKey, uuid);
+        
+        // Add to the list of design UUIDs for this product
+        var uuidsKey = 'design_uuids_' + productId;
+        var uuids = JSON.parse(localStorage.getItem(uuidsKey) || '[]');
+        uuids.push(uuid);
+        localStorage.setItem(uuidsKey, JSON.stringify(uuids));
+        
+        console.log('[DEBUG getDesignUUID] Generated new UUID:', uuid);
     } else {
-        console.log('[DEBUG getDesignUUID] Using existing UUID:', window.designUUID);
+        console.log('[DEBUG getDesignUUID] Using existing UUID:', uuid);
     }
     
-    return window.designUUID;
+    return uuid;
 }
 
 function openCustomizationDialog() {
@@ -174,10 +192,11 @@ function saveCustomization() {
     }
     
     // Prepare customization data
+    var uuid = getDesignUUID(); // Ensure we have a UUID
     var customizationData = {
         product_id: window.customizationProductId,
         quantity: 1,
-        design_uuid: window.designUUID || null,
+        design_uuid: uuid,
         customization: {
             print_area_id: parseInt(printAreaId),
             preview_image: previewImage,
@@ -199,15 +218,26 @@ function saveCustomization() {
     .then(function(data) {
         if (data.data) {
             // Save to localStorage with design_uuid key
-            if (window.designUUID) {
-                var designKey = 'design_' + window.designUUID;
+            if (uuid) {
+                var designKey = 'design_' + uuid;
+                var productId = window.customizationProductId;
+                
                 if (elements.length > 0) {
                     // Store full design data keyed by design_uuid
                     localStorage.setItem(designKey, JSON.stringify({
-                        product_id: window.customizationProductId,
+                        product_id: productId,
                         customization: customizationData.customization,
                         updated_at: new Date().toISOString()
                     }));
+                    
+                    // Ensure UUID is in the list
+                    var uuidsKey = 'design_uuids_' + productId;
+                    var uuids = JSON.parse(localStorage.getItem(uuidsKey) || '[]');
+                    if (!uuids.includes(uuid)) {
+                        uuids.push(uuid);
+                        localStorage.setItem(uuidsKey, JSON.stringify(uuids));
+                    }
+                    
                     console.log('[DEBUG saveCustomization] Design saved to localStorage:', designKey);
                 } else {
                     // No elements, remove the design
@@ -227,12 +257,13 @@ function saveCustomization() {
 
 // Load saved customization from localStorage by design_uuid
 function loadSavedCustomization() {
-    if (!window.designUUID) {
+    var uuid = getDesignUUID(); // Get current UUID (creates one if not exists)
+    if (!uuid) {
         console.log('[DEBUG loadSavedCustomization] No design UUID, skipping load');
         return;
     }
     
-    var key = 'design_' + window.designUUID;
+    var key = 'design_' + uuid;
     console.log('[DEBUG loadSavedCustomization] Start, key:', key);
     
     var saved = localStorage.getItem(key);
