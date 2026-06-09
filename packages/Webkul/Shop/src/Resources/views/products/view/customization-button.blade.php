@@ -26,7 +26,20 @@ var currentCanvas = {
     layerStore: {}
 };
 
+// Generate UUID for this design session
+function generateDesignUUID() {
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+        var r = Math.random() * 16 | 0;
+        var v = c === 'x' ? r : (r & 0x3 | 0x8);
+        return v.toString(16);
+    });
+}
+
 function openCustomizationDialog() {
+    // Generate new UUID for this design session
+    window.designUUID = generateDesignUUID();
+    console.log('[DEBUG openCustomizationDialog] New design UUID:', window.designUUID);
+    
     document.getElementById('customization-dialog').classList.remove('hidden');
     document.body.style.overflow = 'hidden';
     currentCanvas.elements = [];
@@ -36,7 +49,7 @@ function openCustomizationDialog() {
     initTextControls();
     resetZoom();
     initCanvasPan();
-    console.log('Opening dialog, productId:', window.customizationProductId);
+    console.log('Opening dialog, productId:', window.customizationProductId, 'designUUID:', window.designUUID);
     // loadSavedCustomization is called by loadPrintAreas on success
 }
 
@@ -117,6 +130,7 @@ function saveCustomization() {
     var customizationData = {
         product_id: window.customizationProductId,
         quantity: 1,
+        design_uuid: window.designUUID || null,
         customization: {
             print_area_id: parseInt(printAreaId),
             preview_image: previewImage,
@@ -137,13 +151,22 @@ function saveCustomization() {
     .then(function(response) { return response.json(); })
     .then(function(data) {
         if (data.data) {
-            // Save to localStorage, if no elements then delete cache
-            var cacheKey = 'customization_' + window.customizationProductId;
-            if (elements.length === 0) {
-                localStorage.removeItem(cacheKey);
-                console.log('[DEBUG saveCustomization] No elements, cache cleared');
-            } else {
-                localStorage.setItem(cacheKey, JSON.stringify(customizationData.customization));
+            // Save to localStorage with design_uuid key
+            if (window.designUUID) {
+                var designKey = 'design_' + window.designUUID;
+                if (elements.length > 0) {
+                    // Store full design data keyed by design_uuid
+                    localStorage.setItem(designKey, JSON.stringify({
+                        product_id: window.customizationProductId,
+                        customization: customizationData.customization,
+                        updated_at: new Date().toISOString()
+                    }));
+                    console.log('[DEBUG saveCustomization] Design saved to localStorage:', designKey);
+                } else {
+                    // No elements, remove the design
+                    localStorage.removeItem(designKey);
+                    console.log('[DEBUG saveCustomization] No elements, design removed from localStorage');
+                }
             }
             closeDialog();
         }
@@ -154,10 +177,14 @@ function saveCustomization() {
     });
 }
 
-// Load saved customization from localStorage
-// Simplified loadSavedCustomization - no dependency on window.printAreas
+// Load saved customization from localStorage by design_uuid
 function loadSavedCustomization() {
-    var key = 'customization_' + window.customizationProductId;
+    if (!window.designUUID) {
+        console.log('[DEBUG loadSavedCustomization] No design UUID, skipping load');
+        return;
+    }
+    
+    var key = 'design_' + window.designUUID;
     console.log('[DEBUG loadSavedCustomization] Start, key:', key);
     
     var saved = localStorage.getItem(key);
@@ -175,7 +202,10 @@ function loadSavedCustomization() {
         return;
     }
     
-    if (!savedData.elements || savedData.elements.length === 0) {
+    // Get the customization data (may be nested under 'customization' key)
+    var customization = savedData.customization || savedData;
+    
+    if (!customization.elements || customization.elements.length === 0) {
         console.log('[DEBUG loadSavedCustomization] No elements to restore');
         return;
     }
@@ -191,24 +221,24 @@ function loadSavedCustomization() {
     // Wait for tab switch then restore
     setTimeout(function() {
         // Set preview image as background
-        if (savedData.preview_image) {
+        if (customization.preview_image) {
             var productBg = document.querySelector('.product-bg');
             if (productBg) {
                 // Clear existing elements first to avoid accumulation
                 productBg.innerHTML = '';
                 
-                productBg.style.backgroundImage = 'url(' + savedData.preview_image + ')';
+                productBg.style.backgroundImage = 'url(' + customization.preview_image + ')';
                 productBg.style.backgroundSize = 'contain';
                 productBg.style.backgroundRepeat = 'no-repeat';
                 productBg.style.backgroundPosition = 'center';
-                console.log('[DEBUG loadSavedCustomization] Set background:', savedData.preview_image);
+                console.log('[DEBUG loadSavedCustomization] Set background:', customization.preview_image);
             }
         }
         
         // Restore each element
-        console.log('[DEBUG loadSavedCustomization] Restoring', savedData.elements.length, 'elements');
+        console.log('[DEBUG loadSavedCustomization] Restoring', customization.elements.length, 'elements');
         
-        savedData.elements.forEach(function(elem, idx) {
+        customization.elements.forEach(function(elem, idx) {
             console.log('[DEBUG loadSavedCustomization] Element', idx, ':', elem.type);
             
             if (elem.type === 'text') {

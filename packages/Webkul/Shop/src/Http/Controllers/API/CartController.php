@@ -103,6 +103,7 @@ class CartController extends APIController
         $this->validate(request(), [
             'product_id'    => 'required|integer|exists:products,id',
             'quantity'      => 'integer|min:1',
+            'design_uuid'   => 'sometimes|string|uuid',
             'customization' => 'required|array',
             'customization.print_area_id' => 'required|integer|exists:product_image_print_areas,id',
             'customization.preview_image' => 'sometimes|string',
@@ -118,7 +119,8 @@ class CartController extends APIController
             // Move customization to additional for Cart::addProduct
             $data = request()->all();
             $data['additional'] = [
-                'customization' => $data['customization'],
+                'customization'  => $data['customization'],
+                'design_uuid'    => $data['design_uuid'] ?? null,
             ];
 
             $cart = Cart::addProduct($product, $data);
