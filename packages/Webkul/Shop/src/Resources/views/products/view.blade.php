@@ -2,15 +2,7 @@
 @inject ('productViewHelper', 'Webkul\Product\Helpers\View')
 
 @php
-    $avgRatings = $reviewHelper->getAverageRating($product);
-
-    $percentageRatings = $reviewHelper->getPercentageRating($product);
-
-    $customAttributeValues = $productViewHelper->getAdditionalData($product);
-
-    $attributeData = collect($customAttributeValues)->filter(fn ($item) => ! empty($item['value']));
-
-    // Dialog HTML for layout
+    // Share dialog HTML with layout (makes it available to all blade files)
     $pageDialogs = '
 <!-- Customization Overlay -->
 <div
@@ -138,6 +130,9 @@
     </div>
 </div>
 ';
+
+    // Share with layout so it can be rendered outside #app container
+    view()->share('pageDialogs', $pageDialogs);
 @endphp
 
 <!-- Product ID for customization -->
