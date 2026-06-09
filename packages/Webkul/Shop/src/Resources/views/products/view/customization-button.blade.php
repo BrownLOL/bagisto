@@ -17,11 +17,14 @@
 <script>
 (function() {
     var el = document.getElementById('customization-product-id');
+    console.log('[DEBUG init] el:', el);
     if (el) {
+        console.log('[DEBUG init] el.dataset.id:', el.dataset.id);
         window.customizationProductId = parseInt(el.dataset.id) || 0;
     } else {
         window.customizationProductId = 0;
     }
+    console.log('[DEBUG init] window.customizationProductId:', window.customizationProductId);
     
     // Check if there's a saved design and show/hide status icon
     checkDesignStatus();
