@@ -919,15 +919,49 @@ document.addEventListener('change', function(e) {
         for (var i = 0; i < files.length; i++) {
             var file = files[i];
             if (file.type.startsWith('image/')) {
+                // Read file as base64
                 var reader = new FileReader();
                 reader.onload = function(event) {
                     var dataUrl = event.target.result;
-                    var div = document.createElement('div');
-                    div.className = 'cursor-pointer border-2 border-gray-300 rounded p-1 hover:border-blue-500';
-                    div.style.cssText = 'width: 100%; aspect-ratio: 1; object-fit: contain;';
-                    div.innerHTML = '<img src="' + dataUrl + '" class="w-full h-full object-contain" />';
-                    div.onclick = function() { addUploadedImage(dataUrl); };
-                    uploadedImagesDiv.appendChild(div);
+                    
+                    // Show loading state
+                    var loadingDiv = document.createElement('div');
+                    loadingDiv.className = 'cursor-pointer border-2 border-gray-300 rounded p-1 bg-gray-100';
+                    loadingDiv.style.cssText = 'width: 100%; aspect-ratio: 1; object-fit: contain; display: flex; align-items: center; justify-content: center;';
+                    loadingDiv.innerHTML = '<span class="text-gray-500">Uploading...</span>';
+                    uploadedImagesDiv.appendChild(loadingDiv);
+                    
+                    // Upload to server
+                    fetch('/customization/save-base64-image', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || ''
+                        },
+                        body: JSON.stringify({ image: dataUrl })
+                    })
+                    .then(function(response) { return response.json(); })
+                    .then(function(result) {
+                        loadingDiv.remove();
+                        if (result.success && result.url) {
+                            var imgUrl = result.url;
+                            var div = document.createElement('div');
+                            div.className = 'cursor-pointer border-2 border-gray-300 rounded p-1 hover:border-blue-500';
+                            div.style.cssText = 'width: 100%; aspect-ratio: 1; object-fit: contain;';
+                            div.innerHTML = '<img src="' + imgUrl + '" class="w-full h-full object-contain" />';
+                            div.onclick = function() { addUploadedImage(imgUrl); };
+                            uploadedImagesDiv.appendChild(div);
+                            console.log('[DEBUG image upload] Success:', imgUrl);
+                        } else {
+                            console.error('[DEBUG image upload] Failed:', result);
+                            alert('Image upload failed. Please try again.');
+                        }
+                    })
+                    .catch(function(err) {
+                        loadingDiv.remove();
+                        console.error('[DEBUG image upload] Error:', err);
+                        alert('Image upload failed. Please try again.');
+                    });
                 };
                 reader.readAsDataURL(file);
             }
