@@ -29,26 +29,43 @@
 
 function checkDesignStatus() {
     var statusIcon = document.getElementById('design-status-icon');
-    if (!statusIcon || !window.customizationProductId) return;
+    if (!statusIcon || !window.customizationProductId) {
+        console.log('[DEBUG checkDesignStatus] Early return: no statusIcon or productId');
+        return;
+    }
     
     var productId = window.customizationProductId;
     var currentKey = 'current_design_' + productId;
-    
-    // First check current_design_{productId} - this is what getDesignUUID uses
     var currentUuid = localStorage.getItem(currentKey);
+    var uuidsKey = 'design_uuids_' + productId;
+    var uuids = JSON.parse(localStorage.getItem(uuidsKey) || '[]');
+    
+    console.log('[DEBUG checkDesignStatus] productId:', productId);
+    console.log('[DEBUG checkDesignStatus] currentKey:', currentKey, 'currentUuid:', currentUuid);
+    console.log('[DEBUG checkDesignStatus] uuidsKey:', uuidsKey, 'uuids:', uuids);
+    
+    // First check current_design_{productId}
     if (currentUuid) {
         var designKey = 'design_' + currentUuid;
         var saved = localStorage.getItem(designKey);
+        console.log('[DEBUG checkDesignStatus] designKey:', designKey, 'saved:', saved ? 'exists' : 'null');
         if (saved) {
             try {
                 var data = JSON.parse(saved);
+                console.log('[DEBUG checkDesignStatus] parsed data:', data);
                 if (data.customization && data.customization.elements && data.customization.elements.length > 0) {
                     statusIcon.classList.remove('hidden');
-                    console.log('[DEBUG checkDesignStatus] Current design exists, UUID:', currentUuid);
+                    console.log('[DEBUG checkDesignStatus] ✓ Current design exists, showing icon');
                     return;
+                } else {
+                    console.log('[DEBUG checkDesignStatus] No elements in current design');
                 }
-            } catch (e) {}
+            } catch (e) {
+                console.log('[DEBUG checkDesignStatus] JSON parse error:', e);
+            }
         }
+    } else {
+        console.log('[DEBUG checkDesignStatus] No currentUuid found');
     }
     
     // Fallback: check design_uuids_{productId} list
