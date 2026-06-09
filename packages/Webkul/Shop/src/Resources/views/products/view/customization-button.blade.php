@@ -935,6 +935,7 @@ function addTextToCanvas(text, size, color, font, opts) {
         id: savedStyles && savedStyles.id ? savedStyles.id : Date.now()
     };
     
+    wrapper._elemData = elemData;
     setupElemEvents(wrapper, elemData);
     printArea.appendChild(wrapper);
     currentCanvas.elements.push(elemData);
