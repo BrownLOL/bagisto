@@ -387,6 +387,7 @@ function loadPrintAreas() {
                 });
                 
                 selectProductImage(data.data[0].image_url || data.data[0].url, data.data[0]);
+                loadSavedCustomization(); // 恢复保存的设计
             }
         });
 }
