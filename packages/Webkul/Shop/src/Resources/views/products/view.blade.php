@@ -9,6 +9,135 @@
     $customAttributeValues = $productViewHelper->getAdditionalData($product);
 
     $attributeData = collect($customAttributeValues)->filter(fn ($item) => ! empty($item['value']));
+
+    // Dialog HTML for layout
+    $pageDialogs = '
+<!-- Customization Overlay -->
+<div
+    id="customization-overlay"
+    class="fixed inset-0 bg-black bg-opacity-50 z-[99999] hidden"
+    onclick="closeDialog()"
+></div>
+
+<!-- Customization Dialog -->
+<div
+    id="customization-dialog"
+    class="fixed left-1/2 -translate-x-1/2 bg-white rounded-lg shadow-2xl z-[100000] hidden"
+    style="width: 1200px; margin-top: 200px; max-height: calc(100vh - 250px); overflow: hidden;"
+>
+    <div class="p-6 h-full flex flex-col">
+        <div class="flex justify-between items-center mb-4 pb-4 border-b">
+            <h2 class="text-xl font-bold">Custom Design</h2>
+            <button id="close-dialog" onclick="closeDialog()" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
+        </div>
+        
+        <div class="flex gap-4 flex-1 min-h-0">
+            <!-- Left Panel - 4 Tabs -->
+            <div style="width: 300px; flex-shrink: 0;" class="border-r pr-4 flex flex-col">
+                <div class="flex gap-1 mb-4 justify-between">
+                    <button class="tab-btn flex-1 p-2 rounded hover:bg-gray-200 bg-blue-100 text-blue-600" data-tab="product" title="Product">
+                        <svg class="w-5 h-5 mx-auto" fill="currentColor" viewBox="0 0 24 24"><path d="M6 2l.2.6L4 6l3 1.5V22h10V7.5L20 6l-2.2-3.4.2-.6H6zm1 4h10l1.5 2H5.5l1.5-2zM7 10v10H5V10h2zm12 0v10h-2V10h2z"/></svg>
+                    </button>
+                    <button class="tab-btn flex-1 p-2 rounded hover:bg-gray-200 text-gray-500" data-tab="image" title="Image">
+                        <svg class="w-5 h-5 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                    </button>
+                    <button class="tab-btn flex-1 p-2 rounded hover:bg-gray-200 text-gray-500" data-tab="text" title="Text">
+                        <span class="text-lg font-bold">T</span>
+                    </button>
+                    <button class="tab-btn flex-1 p-2 rounded hover:bg-gray-200 text-gray-500" data-tab="layers" title="Layers">
+                        <svg class="w-5 h-5 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+                    </button>
+                </div>
+                
+                <!-- Tab Content -->
+                <div class="flex-1 min-h-0 overflow-y-auto">
+                    <div id="tab-product" class="tab-content"></div>
+                    <div id="tab-image" class="tab-content hidden">
+                        <input type="file" id="custom-image-input" accept="image/*" class="hidden" onchange="handleImageUpload(event)">
+                        <button onclick="document.getElementById(\'custom-image-input\').click()" class="w-full p-3 border-2 border-dashed rounded-lg hover:bg-gray-50 text-center">
+                            <svg class="w-8 h-8 mx-auto mb-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                            <span class="text-sm text-gray-500">Click to upload image</span>
+                        </button>
+                    </div>
+                    <div id="tab-text" class="tab-content hidden">
+                        <input type="text" id="custom-text-input" placeholder="Enter text..." class="w-full p-2 border rounded mb-2">
+                        <div class="grid grid-cols-2 gap-2 mb-2">
+                            <div>
+                                <label class="text-xs text-gray-500">Size</label>
+                                <input type="number" id="custom-text-size" value="24" min="8" max="72" class="w-full p-2 border rounded">
+                            </div>
+                            <div>
+                                <label class="text-xs text-gray-500">Color</label>
+                                <input type="color" id="custom-text-color" value="#000000" class="w-full h-9 border rounded">
+                            </div>
+                        </div>
+                        <div class="mb-2">
+                            <label class="text-xs text-gray-500">Font</label>
+                            <select id="custom-text-font" class="w-full p-2 border rounded">
+                                <option value="Arial">Arial</option>
+                                <option value="Verdana">Verdana</option>
+                                <option value="Times New Roman">Times New Roman</option>
+                                <option value="Courier New">Courier New</option>
+                                <option value="Georgia">Georgia</option>
+                                <option value="Comic Sans MS">Comic Sans MS</option>
+                                <option value="Impact">Impact</option>
+                            </select>
+                        </div>
+                        <button onclick="addTextToCanvas()" class="w-full p-2 bg-blue-500 text-white rounded hover:bg-blue-600">Add Text</button>
+                    </div>
+                    <div id="tab-layers" class="tab-content hidden">
+                        <div id="layers-list" class="space-y-2"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Middle - Design Area -->
+            <div class="flex-1 flex flex-col min-w-0">
+                <!-- Print Area Selector -->
+                <div id="print-area-selector" class="mb-4 flex gap-2 flex-wrap"></div>
+                
+                <!-- Canvas Container -->
+                <div class="flex-1 bg-gray-100 rounded-lg p-4 relative overflow-hidden">
+                    <div id="product-bg" class="absolute inset-0 bg-contain bg-center bg-no-repeat"></div>
+                    <div id="design-area" class="absolute" style="display: none;"></div>
+                </div>
+                
+                <!-- Zoom Controls -->
+                <div class="mt-2 flex items-center justify-center gap-4">
+                    <button onclick="zoomOut()" class="p-2 hover:bg-gray-200 rounded" title="Zoom Out">−</button>
+                    <span id="zoom-level" class="text-sm">100%</span>
+                    <button onclick="zoomIn()" class="p-2 hover:bg-gray-200 rounded" title="Zoom In">+</button>
+                </div>
+            </div>
+            
+            <!-- Right Panel - Settings & Preview -->
+            <div style="width: 250px; flex-shrink: 0;" class="flex flex-col gap-4">
+                <div class="border rounded-lg p-4">
+                    <h3 class="font-bold mb-3">Settings</h3>
+                    <div id="settings-panel" class="text-sm text-gray-500">
+                        Select an element to edit
+                    </div>
+                </div>
+                
+                <div class="border rounded-lg p-4">
+                    <h3 class="font-bold mb-3">Preview</h3>
+                    <div id="preview-container" class="bg-gray-200 rounded relative overflow-hidden" style="aspect-ratio: 1;">
+                        <div id="preview-bg" class="absolute inset-0 bg-contain bg-center bg-no-repeat"></div>
+                        <div id="preview-design" class="absolute inset-0"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Action Buttons -->
+        <div class="flex justify-end gap-2 mt-4 pt-4 border-t">
+            <button id="cancel-btn" onclick="closeDialog()" class="px-4 py-2 border rounded hover:bg-gray-100">Cancel</button>
+            <button id="clear-design-btn" onclick="clearSavedDesign()" class="px-4 py-2 border border-orange-300 rounded hover:bg-orange-50 text-orange-600">Clear Design</button>
+            <button id="save-customization-btn" onclick="saveCustomization()" class="px-4 py-2 bg-blue-600 border rounded hover:bg-blue-700">Save</button>
+        </div>
+    </div>
+</div>
+';
 @endphp
 
 <!-- Product ID for customization -->
@@ -59,22 +188,6 @@
 
     {!! view_render_event('bagisto.shop.products.view.before', ['product' => $product]) !!}
 
-@push('dialogs')
-<!-- Customization Overlay -->
-<div
-    id="customization-overlay"
-    class="fixed inset-0 bg-black bg-opacity-50 z-[99999] hidden"
-    onclick="closeDialog()"
-></div>
-
-<!-- Customization Dialog -->
-<div
-    id="customization-dialog"
-    class="fixed left-1/2 -translate-x-1/2 bg-white rounded-lg shadow-2xl z-[100000] hidden"
-    style="width: 1200px; margin-top: 200px; max-height: calc(100vh - 250px); overflow: hidden;"
-></div>
-@endpush
-
     <!-- Breadcrumbs -->
     @if ((core()->getConfigData('general.general.breadcrumbs.shop')))
         <div class="flex justify-center px-7 max-lg:hidden">
@@ -90,175 +203,6 @@
         <x-shop::shimmer.products.view />
     </v-product>
 
-@endpush
-
-    <!-- Information Section -->
-        <div class="flex justify-between items-center mb-4">
-            <h2 class="text-xl font-bold">Custom Design</h2>
-            <button id="close-dialog" onclick="closeDialog()" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
-        </div>
-        
-        <div class="flex gap-4 flex-1 min-h-0">
-            <!-- Left Panel - 4 Tabs -->
-            <div style="width: 300px; flex-shrink: 0;" class="border-r pr-4 flex flex-col">
-                <div class="flex gap-1 mb-4 justify-between">
-                    <button class="tab-btn flex-1 p-2 rounded hover:bg-gray-200 bg-blue-100 text-blue-600" data-tab="product" title="Product">
-                        <svg class="w-5 h-5 mx-auto" fill="currentColor" viewBox="0 0 24 24"><path d="M6 2l.2.6L4 6l3 1.5V22h10V7.5L20 6l-2.2-3.4.2-.6H6zm1 4h10l1.5 2H5.5l1.5-2zM7 10v10H5V10h2zm12 0v10h-2V10h2z"/></svg>
-                    </button>
-                    <button class="tab-btn flex-1 p-2 rounded hover:bg-gray-200 text-gray-500" data-tab="image" title="Image">
-                        <svg class="w-5 h-5 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                    </button>
-                    <button class="tab-btn flex-1 p-2 rounded hover:bg-gray-200 text-gray-500" data-tab="text" title="Text">
-                        <span class="text-lg font-bold">T</span>
-                    </button>
-                    <button class="tab-btn flex-1 p-2 rounded hover:bg-gray-200 text-gray-500" data-tab="layers" title="Layers">
-                        <svg class="w-5 h-5 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
-                    </button>
-                </div>
-                
-                <div id="tab-product" class="tab-content flex-1 overflow-auto">
-                    <div id="product-images" class="grid grid-cols-2 gap-2"></div>
-                </div>
-                
-                <div id="tab-image" class="tab-content hidden flex-1">
-                    <input type="file" id="image-upload" accept="image/*" class="w-full border rounded p-2 mb-2" />
-                    <div id="uploaded-images" class="grid grid-cols-2 gap-2 overflow-auto flex-1"></div>
-                </div>
-                
-                <div id="tab-text" class="tab-content hidden flex-1 flex flex-col gap-3 p-2">
-                    <!-- Text Input -->
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Input Text</label>
-                        <textarea id="text-input" placeholder="Enter text here..." class="w-full border border-gray-300 rounded-lg p-2 h-20 resize-none"></textarea>
-                    </div>
-                    
-                    <!-- Font Size -->
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Font Size: <span id="font-size-label">24px</span></label>
-                        <input type="range" id="font-size" value="24" min="12" max="72" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer" />
-                    </div>
-                    
-                    <!-- Color -->
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Text Color</label>
-                        <div class="flex items-center gap-2 flex-wrap">
-                            <button type="button" onclick="setTextColor('#000000')" class="color-swatch w-8 h-8 rounded border-2 border-gray-300 !bg-black" data-color="#000000" style="background-color: #000000;"></button>
-                            <button type="button" onclick="setTextColor('#FFFFFF')" class="color-swatch w-8 h-8 rounded border-2 border-gray-300 !bg-white" data-color="#FFFFFF" style="background-color: #FFFFFF;"></button>
-                            <button type="button" onclick="setTextColor('#FF0000')" class="color-swatch w-8 h-8 rounded border-2 border-gray-300 !bg-red-500" data-color="#FF0000" style="background-color: #FF0000;"></button>
-                            <button type="button" onclick="setTextColor('#00FF00')" class="color-swatch w-8 h-8 rounded border-2 border-gray-300 !bg-green-500" data-color="#00FF00" style="background-color: #00FF00;"></button>
-                            <button type="button" onclick="setTextColor('#0000FF')" class="color-swatch w-8 h-8 rounded border-2 border-gray-300 !bg-blue-500" data-color="#0000FF" style="background-color: #0000FF;"></button>
-                            <button type="button" onclick="setTextColor('#FFFF00')" class="color-swatch w-8 h-8 rounded border-2 border-gray-300 !bg-yellow-500" data-color="#FFFF00" style="background-color: #FFFF00;"></button>
-                            <button type="button" onclick="setTextColor('#FF00FF')" class="color-swatch w-8 h-8 rounded border-2 border-gray-300 !bg-pink-500" data-color="#FF00FF" style="background-color: #FF00FF;"></button>
-                            <button type="button" onclick="setTextColor('#00FFFF')" class="color-swatch w-8 h-8 rounded border-2 border-gray-300 !bg-cyan-500" data-color="#00FFFF" style="background-color: #00FFFF;"></button>
-                            <input type="color" id="text-color-custom" value="#000000" class="w-8 h-8 rounded cursor-pointer border-2 border-gray-300" onchange="setTextColor(this.value)" style="padding: 0; background: linear-gradient(135deg, #ff0000, #ff8800, #ffff00, #00ff00, #00ffff, #0000ff, #8800ff, #ff00ff);" />
-                        </div>
-                    </div>
-                    
-                    <!-- Font -->
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Font</label>
-                        <select id="text-font" class="w-full border border-gray-300 rounded-lg p-2">
-                            <option value="Noto Sans TC, sans-serif">Noto Sans TC (系統預設)</option>
-                            <option value="Microsoft JhengHei, sans-serif">微軟正黑體</option>
-                            <option value="PingFang TC, sans-serif">蘋果麗黑體</option>
-                            <option value="Heiti TC, sans-serif">黑體-繁</option>
-                            <option value="Arial, sans-serif">Arial</option>
-                            <option value="Times New Roman, serif">Times New Roman</option>
-                            <option value="Georgia, serif">Georgia</option>
-                        </select>
-                    </div>
-                    
-                    <button onclick="addText()" class="secondary-button mx-auto">Add Text</button>
-                </div>
-
-                <div id="tab-layers" class="tab-content hidden flex-1 flex flex-col">
-                    <div id="layers-list" class="flex-1 overflow-auto"></div>
-                </div>
-            </div>
-            
-            <!-- Center - Design Canvas -->
-            <div class="flex flex-col gap-2">
-                <div id="design-canvas-wrapper" style="width: 500px; height: 500px;" class="border-2 border-dashed border-gray-300 rounded-lg bg-gray-50 overflow-hidden relative">
-                    <div id="design-canvas-inner" class="w-full h-full absolute" style="transform-origin: center center;"></div>
-                </div>
-                <!-- Zoom controls -->
-                <div class="flex justify-center gap-2">
-                    <button onclick="zoomOut()" class="px-3 py-1 bg-white border border-gray-300 rounded hover:bg-gray-100 text-sm">-</button>
-                    <span id="zoom-level" class="px-3 py-1 bg-gray-100 border border-gray-300 rounded text-sm">100%</span>
-                    <button onclick="zoomIn()" class="px-3 py-1 bg-white border border-gray-300 rounded hover:bg-gray-100 text-sm">+</button>
-                    <button onclick="resetZoom()" class="px-3 py-1 bg-white border border-gray-300 rounded hover:bg-gray-100 text-sm" title="Reset">⟲</button>
-                </div>
-            </div>
-            
-            <!-- Right Panel - Settings with Icons -->
-            <div style="width: 300px; flex-shrink: 0;" class="flex flex-col">
-                <h3 class="font-semibold mb-2 text-sm">Settings</h3>
-                <div class="flex flex-col gap-2">
-                    <!-- Maximize - full width -->
-                    <div class="col-span-2">
-                        <button id="btn-maximize" onclick="maximizeElement()" disabled class="w-full bg-white border border-gray-300 p-2 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:border-gray-400 flex items-center justify-center">
-                            <svg class="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/></svg>
-                            
-                        </button>
-                    </div>
-                    
-                    <!-- Flip Horizontal & Flip Vertical -->
-                    <div class="flex gap-2">
-                        <button id="btn-flip-h" onclick="flipHorizontal()" disabled class="flex-1 bg-white border border-gray-300 p-2 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:border-gray-400 flex items-center justify-center">
-                            <svg class="w-4 h-4 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
-                            
-                        </button>
-                        <button id="btn-flip-v" onclick="flipVertical()" disabled class="flex-1 bg-white border border-gray-300 p-2 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:border-gray-400 flex items-center justify-center">
-                            <svg class="w-4 h-4 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16h12M7 16l4-4m-4-4l4 4m-8-8l-4 4m4-4l-4-4m0 12h12"/></svg>
-                            
-                        </button>
-                    </div>
-                    
-                    <!-- Rotate Left & Rotate Right -->
-                    <div class="flex gap-2">
-                        <button id="btn-rotate-l" onclick="rotateLeft()" disabled class="flex-1 bg-white border border-gray-300 p-2 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:border-gray-400 flex items-center justify-center">
-                            <svg class="w-4 h-4 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
-                            
-                        </button>
-                        <button id="btn-rotate-r" onclick="rotateRight()" disabled class="flex-1 bg-white border border-gray-300 p-2 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:border-gray-400 flex items-center justify-center">
-                            <svg class="w-4 h-4 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m0 0a8.001 8.001 0 0115.356 2M4.582 9H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
-                            
-                        </button>
-                    </div>
-                    
-                    <!-- Move Up & Move Down -->
-                    <div class="flex gap-2">
-                        <button id="btn-forward" onclick="bringForward()" disabled class="flex-1 bg-white border border-gray-300 p-2 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:border-gray-400 flex items-center justify-center">
-                            <svg class="w-4 h-4 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"/></svg>
-                            
-                        </button>
-                        <button id="btn-backward" onclick="sendBackward()" disabled class="flex-1 bg-white border border-gray-300 p-2 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:border-gray-400 flex items-center justify-center">
-                            <svg class="w-4 h-4 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
-                            
-                        </button>
-                    </div>
-                    
-                    <!-- Delete - full width red -->
-                    <div class="col-span-2">
-                        <button id="btn-delete" onclick="deleteElement()" disabled class="w-full bg-red-50 border border-red-300 p-2 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-red-100 hover:border-red-400 flex items-center justify-center">
-                            <svg class="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-                        </button>
-                    </div>
-                </div>
-                <h3 class="font-semibold mt-4 mb-2 text-sm">Preview</h3>
-                <div id="preview" class="flex-1 border rounded bg-gray-50 overflow-hidden flex items-center justify-center">
-                    <div id="preview-canvas" style="width: 250px; height: 250px;"></div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="flex justify-end gap-2 mt-4 pt-4 border-t">
-            <button id="cancel-btn" onclick="closeDialog()" class="px-4 py-2 border rounded hover:bg-gray-100">Cancel</button>
-            <button id="clear-design-btn" onclick="clearSavedDesign()" class="px-4 py-2 border border-orange-300 rounded hover:bg-orange-50 text-orange-600">Clear Design</button>
-            <button id="save-customization-btn" onclick="saveCustomization()" class="px-4 py-2 bg-blue-600 border rounded hover:bg-blue-700">Save</button>
-        </div>
-    </div>
-</div>
 
     <!-- Information Section -->
     <div class="1180:mt-20">
