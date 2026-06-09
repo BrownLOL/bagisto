@@ -92,6 +92,8 @@ function openCustomizationDialog() {
     window.designUUID = getDesignUUID();
     console.log('[DEBUG openCustomizationDialog] Design UUID:', window.designUUID);
     
+    // Show both overlay and dialog
+    document.getElementById('customization-overlay').classList.remove('hidden');
     document.getElementById('customization-dialog').classList.remove('hidden');
     document.body.style.overflow = 'hidden';
     currentCanvas.elements = [];
@@ -106,6 +108,8 @@ function openCustomizationDialog() {
 }
 
 function closeDialog() {
+    // Hide both overlay and dialog
+    document.getElementById('customization-overlay').classList.add('hidden');
     document.getElementById('customization-dialog').classList.add('hidden');
     document.body.style.overflow = '';
     currentCanvas.selectedElement = null;

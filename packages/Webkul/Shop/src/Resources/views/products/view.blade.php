@@ -75,8 +75,8 @@
     </v-product>
 
 <!-- Customization Dialog - Outside Vue component for proper z-index -->
-<div id="customization-dialog" class="fixed inset-0 bg-black bg-opacity-50 z-[99999] hidden overflow-y-auto">
-    <div class="relative z-10 bg-white rounded-lg shadow-xl mx-auto p-4 flex flex-col" style="width: 1200px; height: 700px; margin-top: 200px;">
+<div id="customization-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-[99999] hidden"></div>
+<div id="customization-dialog" class="fixed left-1/2 -translate-x-1/2 z-[100000] bg-white rounded-lg shadow-xl p-4 flex flex-col hidden" style="width: 1200px; height: 700px; top: 200px;">
         <div class="flex justify-between items-center mb-4">
             <h2 class="text-xl font-bold">Custom Design</h2>
             <button id="close-dialog" onclick="closeDialog()" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
