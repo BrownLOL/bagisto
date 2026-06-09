@@ -31,11 +31,9 @@ function checkDesignStatus() {
     var statusIcon = document.getElementById('design-status-icon');
     if (!statusIcon || !window.customizationProductId) return;
     
-    var sessionKey = 'design_session_' + window.customizationProductId;
-    var uuid = sessionStorage.getItem(sessionKey);
-    
-    if (uuid) {
-        var designKey = 'design_' + uuid;
+    // Check if there's a saved design for the current memory UUID
+    if (window.designUUID) {
+        var designKey = 'design_' + window.designUUID;
         var saved = localStorage.getItem(designKey);
         if (saved) {
             try {
@@ -69,22 +67,19 @@ function generateDesignUUID() {
     });
 }
 
-// Get or create design UUID for this product (persists during session, resets on page refresh)
+// Get or create design UUID for this product (resets on page refresh)
 function getDesignUUID() {
     if (!window.customizationProductId) return null;
     
-    var sessionKey = 'design_session_' + window.customizationProductId;
-    var uuid = sessionStorage.getItem(sessionKey);
-    
-    if (!uuid) {
-        uuid = generateDesignUUID();
-        sessionStorage.setItem(sessionKey, uuid);
-        console.log('[DEBUG getDesignUUID] Generated new UUID:', uuid);
+    // Only store in memory (window), so it resets on page refresh
+    if (!window.designUUID) {
+        window.designUUID = generateDesignUUID();
+        console.log('[DEBUG getDesignUUID] Generated new UUID:', window.designUUID);
     } else {
-        console.log('[DEBUG getDesignUUID] Using existing UUID:', uuid);
+        console.log('[DEBUG getDesignUUID] Using existing UUID:', window.designUUID);
     }
     
-    return uuid;
+    return window.designUUID;
 }
 
 function openCustomizationDialog() {
