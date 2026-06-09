@@ -145,6 +145,9 @@
             @endif
         </div>
 
+        <!-- Page Dialogs -->
+        @stack('dialogs')
+
         {!! view_render_event('bagisto.shop.layout.body.after') !!}
 
         @stack('scripts')

@@ -59,6 +59,22 @@
 
     {!! view_render_event('bagisto.shop.products.view.before', ['product' => $product]) !!}
 
+@push('dialogs')
+<!-- Customization Overlay -->
+<div
+    id="customization-overlay"
+    class="fixed inset-0 bg-black bg-opacity-50 z-[99999] hidden"
+    onclick="closeDialog()"
+></div>
+
+<!-- Customization Dialog -->
+<div
+    id="customization-dialog"
+    class="fixed left-1/2 -translate-x-1/2 bg-white rounded-lg shadow-2xl z-[100000] hidden"
+    style="width: 1200px; margin-top: 200px; max-height: calc(100vh - 250px); overflow: hidden;"
+></div>
+@endpush
+
     <!-- Breadcrumbs -->
     @if ((core()->getConfigData('general.general.breadcrumbs.shop')))
         <div class="flex justify-center px-7 max-lg:hidden">
@@ -74,9 +90,9 @@
         <x-shop::shimmer.products.view />
     </v-product>
 
-<!-- Customization Dialog - Outside Vue component for proper z-index -->
-<div id="customization-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-[99999] hidden"></div>
-<div id="customization-dialog" class="fixed left-1/2 -translate-x-1/2 z-[100000] bg-white rounded-lg shadow-xl p-4 flex flex-col hidden" style="width: 1200px; height: 700px; top: 200px;">
+@endpush
+
+    <!-- Information Section -->
         <div class="flex justify-between items-center mb-4">
             <h2 class="text-xl font-bold">Custom Design</h2>
             <button id="close-dialog" onclick="closeDialog()" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
@@ -1023,5 +1039,6 @@
         @if (core()->getConfigData('customer.captcha.credentials.status'))
             {!! \Webkul\Customer\Facades\Captcha::renderJS() !!}
         @endif
+    @endpush
     @endpushOnce
 </x-shop::layouts>
