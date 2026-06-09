@@ -454,7 +454,7 @@ function addUploadedImage(dataUrl, x, y, w, h, rotation, scaleX, scaleY) {
         styles: {},
         id: Date.now()
     };
-    
+    wrapper._elemData = elemData;
     setupElemEvents(wrapper, elemData);
     printArea.appendChild(wrapper);
     currentCanvas.elements.push(elemData);
