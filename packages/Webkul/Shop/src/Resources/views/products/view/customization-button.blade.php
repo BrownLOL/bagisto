@@ -1,6 +1,4 @@
-<script>
-window.customizationProductId = {{ $product->id ?? 0 }};
-</script>
+<div id="customization-product-id" data-id="{{ $product->id ?? 0 }}" class="hidden"></div>
 
 <button
     type="button"
@@ -12,6 +10,9 @@ window.customizationProductId = {{ $product->id ?? 0 }};
 
 @pushOnce('scripts')
 <script>
+// Initialize product ID from hidden div
+window.customizationProductId = parseInt(document.getElementById('customization-product-id').dataset.id) || 0;
+
 var currentCanvas = {
     elements: [],
     selectedElement: null,
