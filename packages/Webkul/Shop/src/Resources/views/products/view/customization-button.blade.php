@@ -192,25 +192,18 @@ function loadSavedCustomization() {
             console.log('[DEBUG loadSavedCustomization] Element', idx, ':', elem.type);
             
             if (elem.type === 'text') {
-                addTextToCanvas(elem.content, elem.styles.fontSize, elem.styles.color, elem.styles.fontFamily, {
+                addTextToCanvas(elem.content, elem.styles && elem.styles.fontSize, elem.styles && elem.styles.color, elem.styles && elem.styles.fontFamily, {
                     x: elem.x,
                     y: elem.y,
-                    width: elem.w,
-                    height: elem.h,
+                    width: elem.width,
+                    height: elem.height,
                     rotation: elem.rotation || 0,
                     scaleX: elem.scaleX || 1,
-                    scaleY: elem.scaleY || 1
+                    scaleY: elem.scaleY || 1,
+                    styles: elem.styles || {}
                 });
             } else if (elem.type === 'image') {
-                addUploadedImage(elem.content, {
-                    x: elem.x,
-                    y: elem.y,
-                    width: elem.w,
-                    height: elem.h,
-                    rotation: elem.rotation || 0,
-                    scaleX: elem.scaleX || 1,
-                    scaleY: elem.scaleY || 1
-                });
+                addUploadedImage(elem.content, elem.x, elem.y, elem.width, elem.height, elem.rotation || 0, elem.scaleX || 1, elem.scaleY || 1);
             }
         });
         
@@ -889,10 +882,10 @@ function addTextToCanvas(text, size, color, font, opts) {
     var printArea = document.getElementById(areaElemId);
     if (!printArea) return;
     
-    var savedX = opts ? opts.x : null;
-    var savedY = opts ? opts.y : null;
-    var savedW = opts ? opts.w : null;
-    var savedH = opts ? opts.h : null;
+    var savedX = opts ? (opts.x !== undefined ? opts.x : null) : null;
+    var savedY = opts ? (opts.y !== undefined ? opts.y : null) : null;
+    var savedW = opts ? (opts.w !== undefined ? opts.w : (opts.width !== undefined ? opts.width : null)) : null;
+    var savedH = opts ? (opts.h !== undefined ? opts.h : (opts.height !== undefined ? opts.height : null)) : null;
     var savedRotation = opts ? opts.rotation : null;
     var savedScaleX = opts ? opts.scaleX : null;
     var savedScaleY = opts ? opts.scaleY : null;
