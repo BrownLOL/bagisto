@@ -13,7 +13,6 @@
     </span>
 </button>
 
-@pushOnce('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     var el = document.getElementById('customization-product-id');
@@ -1124,4 +1123,3 @@ function addTextToCanvas(text, size, color, font, opts) {
     updatePreview();
 }
 </script>
-@endpushOnce
