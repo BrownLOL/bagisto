@@ -11,12 +11,8 @@
     $attributeData = collect($customAttributeValues)->filter(fn ($item) => ! empty($item['value']));
 @endphp
 
-<!-- Product ID for customization -->
-<div id="customization-product-id" data-id="{{ $product->id ?? 0 }}" class="hidden"></div>
-
 <!-- SEO Meta Content -->
 @push('meta')
-    <meta name="csrf-token" content="{{ csrf_token() }}"/>
     <meta name="description" content="{{ trim($product->meta_description) != "" ? $product->meta_description : \Illuminate\Support\Str::limit(strip_tags($product->description), 120, '') }}"/>
 
     <meta name="keywords" content="{{ $product->meta_keywords }}"/>
@@ -48,7 +44,9 @@
     <meta property="og:description" content="{!! htmlspecialchars(trim(strip_tags($product->description))) !!}" />
 
     <meta property="og:url" content="{{ route('shop.product_or_category.index', $product->url_key) }}" />
-@endpush
+
+    <meta name="csrf-token" content="{{ csrf_token() }}" />
+@endPush
 
 <!-- Page Layout -->
 <x-shop::layouts>
@@ -58,20 +56,6 @@
     </x-slot>
 
     {!! view_render_event('bagisto.shop.products.view.before', ['product' => $product]) !!}
-
-<!-- Customization Overlay -->
-<div
-    id="customization-overlay"
-    class="fixed inset-0 bg-black bg-opacity-50 z-[99999] hidden"
-    onclick="closeDialog()"
-></div>
-
-<!-- Customization Dialog -->
-<div
-    id="customization-dialog"
-    class="fixed left-1/2 -translate-x-1/2 bg-white rounded-lg shadow-2xl z-[100000] hidden"
-    style="width: 1200px; margin-top: 200px; max-height: calc(100vh - 250px); overflow: hidden;"
-></div>
 
     <!-- Breadcrumbs -->
     @if ((core()->getConfigData('general.general.breadcrumbs.shop')))
@@ -87,176 +71,6 @@
     <v-product>
         <x-shop::shimmer.products.view />
     </v-product>
-
-@endpush
-
-    <!-- Information Section -->
-        <div class="flex justify-between items-center mb-4">
-            <h2 class="text-xl font-bold">Custom Design</h2>
-            <button id="close-dialog" onclick="closeDialog()" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
-        </div>
-        
-        <div class="flex gap-4 flex-1 min-h-0">
-            <!-- Left Panel - 4 Tabs -->
-            <div style="width: 300px; flex-shrink: 0;" class="border-r pr-4 flex flex-col">
-                <div class="flex gap-1 mb-4 justify-between">
-                    <button class="tab-btn flex-1 p-2 rounded hover:bg-gray-200 bg-blue-100 text-blue-600" data-tab="product" title="Product">
-                        <svg class="w-5 h-5 mx-auto" fill="currentColor" viewBox="0 0 24 24"><path d="M6 2l.2.6L4 6l3 1.5V22h10V7.5L20 6l-2.2-3.4.2-.6H6zm1 4h10l1.5 2H5.5l1.5-2zM7 10v10H5V10h2zm12 0v10h-2V10h2z"/></svg>
-                    </button>
-                    <button class="tab-btn flex-1 p-2 rounded hover:bg-gray-200 text-gray-500" data-tab="image" title="Image">
-                        <svg class="w-5 h-5 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                    </button>
-                    <button class="tab-btn flex-1 p-2 rounded hover:bg-gray-200 text-gray-500" data-tab="text" title="Text">
-                        <span class="text-lg font-bold">T</span>
-                    </button>
-                    <button class="tab-btn flex-1 p-2 rounded hover:bg-gray-200 text-gray-500" data-tab="layers" title="Layers">
-                        <svg class="w-5 h-5 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
-                    </button>
-                </div>
-                
-                <div id="tab-product" class="tab-content flex-1 overflow-auto">
-                    <div id="product-images" class="grid grid-cols-2 gap-2"></div>
-                </div>
-                
-                <div id="tab-image" class="tab-content hidden flex-1">
-                    <input type="file" id="image-upload" accept="image/*" class="w-full border rounded p-2 mb-2" />
-                    <div id="uploaded-images" class="grid grid-cols-2 gap-2 overflow-auto flex-1"></div>
-                </div>
-                
-                <div id="tab-text" class="tab-content hidden flex-1 flex flex-col gap-3 p-2">
-                    <!-- Text Input -->
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Input Text</label>
-                        <textarea id="text-input" placeholder="Enter text here..." class="w-full border border-gray-300 rounded-lg p-2 h-20 resize-none"></textarea>
-                    </div>
-                    
-                    <!-- Font Size -->
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Font Size: <span id="font-size-label">24px</span></label>
-                        <input type="range" id="font-size" value="24" min="12" max="72" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer" />
-                    </div>
-                    
-                    <!-- Color -->
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Text Color</label>
-                        <div class="flex items-center gap-2 flex-wrap">
-                            <button type="button" onclick="setTextColor('#000000')" class="color-swatch w-8 h-8 rounded border-2 border-gray-300 !bg-black" data-color="#000000" style="background-color: #000000;"></button>
-                            <button type="button" onclick="setTextColor('#FFFFFF')" class="color-swatch w-8 h-8 rounded border-2 border-gray-300 !bg-white" data-color="#FFFFFF" style="background-color: #FFFFFF;"></button>
-                            <button type="button" onclick="setTextColor('#FF0000')" class="color-swatch w-8 h-8 rounded border-2 border-gray-300 !bg-red-500" data-color="#FF0000" style="background-color: #FF0000;"></button>
-                            <button type="button" onclick="setTextColor('#00FF00')" class="color-swatch w-8 h-8 rounded border-2 border-gray-300 !bg-green-500" data-color="#00FF00" style="background-color: #00FF00;"></button>
-                            <button type="button" onclick="setTextColor('#0000FF')" class="color-swatch w-8 h-8 rounded border-2 border-gray-300 !bg-blue-500" data-color="#0000FF" style="background-color: #0000FF;"></button>
-                            <button type="button" onclick="setTextColor('#FFFF00')" class="color-swatch w-8 h-8 rounded border-2 border-gray-300 !bg-yellow-500" data-color="#FFFF00" style="background-color: #FFFF00;"></button>
-                            <button type="button" onclick="setTextColor('#FF00FF')" class="color-swatch w-8 h-8 rounded border-2 border-gray-300 !bg-pink-500" data-color="#FF00FF" style="background-color: #FF00FF;"></button>
-                            <button type="button" onclick="setTextColor('#00FFFF')" class="color-swatch w-8 h-8 rounded border-2 border-gray-300 !bg-cyan-500" data-color="#00FFFF" style="background-color: #00FFFF;"></button>
-                            <input type="color" id="text-color-custom" value="#000000" class="w-8 h-8 rounded cursor-pointer border-2 border-gray-300" onchange="setTextColor(this.value)" style="padding: 0; background: linear-gradient(135deg, #ff0000, #ff8800, #ffff00, #00ff00, #00ffff, #0000ff, #8800ff, #ff00ff);" />
-                        </div>
-                    </div>
-                    
-                    <!-- Font -->
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Font</label>
-                        <select id="text-font" class="w-full border border-gray-300 rounded-lg p-2">
-                            <option value="Noto Sans TC, sans-serif">Noto Sans TC (系統預設)</option>
-                            <option value="Microsoft JhengHei, sans-serif">微軟正黑體</option>
-                            <option value="PingFang TC, sans-serif">蘋果麗黑體</option>
-                            <option value="Heiti TC, sans-serif">黑體-繁</option>
-                            <option value="Arial, sans-serif">Arial</option>
-                            <option value="Times New Roman, serif">Times New Roman</option>
-                            <option value="Georgia, serif">Georgia</option>
-                        </select>
-                    </div>
-                    
-                    <button onclick="addText()" class="secondary-button mx-auto">Add Text</button>
-                </div>
-
-                <div id="tab-layers" class="tab-content hidden flex-1 flex flex-col">
-                    <div id="layers-list" class="flex-1 overflow-auto"></div>
-                </div>
-            </div>
-            
-            <!-- Center - Design Canvas -->
-            <div class="flex flex-col gap-2">
-                <div id="design-canvas-wrapper" style="width: 500px; height: 500px;" class="border-2 border-dashed border-gray-300 rounded-lg bg-gray-50 overflow-hidden relative">
-                    <div id="design-canvas-inner" class="w-full h-full absolute" style="transform-origin: center center;"></div>
-                </div>
-                <!-- Zoom controls -->
-                <div class="flex justify-center gap-2">
-                    <button onclick="zoomOut()" class="px-3 py-1 bg-white border border-gray-300 rounded hover:bg-gray-100 text-sm">-</button>
-                    <span id="zoom-level" class="px-3 py-1 bg-gray-100 border border-gray-300 rounded text-sm">100%</span>
-                    <button onclick="zoomIn()" class="px-3 py-1 bg-white border border-gray-300 rounded hover:bg-gray-100 text-sm">+</button>
-                    <button onclick="resetZoom()" class="px-3 py-1 bg-white border border-gray-300 rounded hover:bg-gray-100 text-sm" title="Reset">⟲</button>
-                </div>
-            </div>
-            
-            <!-- Right Panel - Settings with Icons -->
-            <div style="width: 300px; flex-shrink: 0;" class="flex flex-col">
-                <h3 class="font-semibold mb-2 text-sm">Settings</h3>
-                <div class="flex flex-col gap-2">
-                    <!-- Maximize - full width -->
-                    <div class="col-span-2">
-                        <button id="btn-maximize" onclick="maximizeElement()" disabled class="w-full bg-white border border-gray-300 p-2 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:border-gray-400 flex items-center justify-center">
-                            <svg class="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/></svg>
-                            
-                        </button>
-                    </div>
-                    
-                    <!-- Flip Horizontal & Flip Vertical -->
-                    <div class="flex gap-2">
-                        <button id="btn-flip-h" onclick="flipHorizontal()" disabled class="flex-1 bg-white border border-gray-300 p-2 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:border-gray-400 flex items-center justify-center">
-                            <svg class="w-4 h-4 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
-                            
-                        </button>
-                        <button id="btn-flip-v" onclick="flipVertical()" disabled class="flex-1 bg-white border border-gray-300 p-2 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:border-gray-400 flex items-center justify-center">
-                            <svg class="w-4 h-4 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16h12M7 16l4-4m-4-4l4 4m-8-8l-4 4m4-4l-4-4m0 12h12"/></svg>
-                            
-                        </button>
-                    </div>
-                    
-                    <!-- Rotate Left & Rotate Right -->
-                    <div class="flex gap-2">
-                        <button id="btn-rotate-l" onclick="rotateLeft()" disabled class="flex-1 bg-white border border-gray-300 p-2 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:border-gray-400 flex items-center justify-center">
-                            <svg class="w-4 h-4 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
-                            
-                        </button>
-                        <button id="btn-rotate-r" onclick="rotateRight()" disabled class="flex-1 bg-white border border-gray-300 p-2 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:border-gray-400 flex items-center justify-center">
-                            <svg class="w-4 h-4 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m0 0a8.001 8.001 0 0115.356 2M4.582 9H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
-                            
-                        </button>
-                    </div>
-                    
-                    <!-- Move Up & Move Down -->
-                    <div class="flex gap-2">
-                        <button id="btn-forward" onclick="bringForward()" disabled class="flex-1 bg-white border border-gray-300 p-2 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:border-gray-400 flex items-center justify-center">
-                            <svg class="w-4 h-4 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"/></svg>
-                            
-                        </button>
-                        <button id="btn-backward" onclick="sendBackward()" disabled class="flex-1 bg-white border border-gray-300 p-2 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:border-gray-400 flex items-center justify-center">
-                            <svg class="w-4 h-4 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
-                            
-                        </button>
-                    </div>
-                    
-                    <!-- Delete - full width red -->
-                    <div class="col-span-2">
-                        <button id="btn-delete" onclick="deleteElement()" disabled class="w-full bg-red-50 border border-red-300 p-2 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-red-100 hover:border-red-400 flex items-center justify-center">
-                            <svg class="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-                        </button>
-                    </div>
-                </div>
-                <h3 class="font-semibold mt-4 mb-2 text-sm">Preview</h3>
-                <div id="preview" class="flex-1 border rounded bg-gray-50 overflow-hidden flex items-center justify-center">
-                    <div id="preview-canvas" style="width: 250px; height: 250px;"></div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="flex justify-end gap-2 mt-4 pt-4 border-t">
-            <button id="cancel-btn" onclick="closeDialog()" class="px-4 py-2 border rounded hover:bg-gray-100">Cancel</button>
-            <button id="clear-design-btn" onclick="clearSavedDesign()" class="px-4 py-2 border border-orange-300 rounded hover:bg-orange-50 text-orange-600">Clear Design</button>
-            <button id="save-customization-btn" onclick="saveCustomization()" class="px-4 py-2 bg-blue-600 border rounded hover:bg-blue-700">Save</button>
-        </div>
-    </div>
-</div>
 
     <!-- Information Section -->
     <div class="1180:mt-20">
@@ -614,6 +428,21 @@
                                         </button>
                                     @endif
                                 </div>
+
+                                <!-- Customize Now Button -->
+                                <button
+                                    id="customize-btn"
+                                    type="button"
+                                    onclick="openCustomizationDialog()"
+                                    class="secondary-button w-full mt-4 flex items-center justify-center gap-2"
+                                >
+                                    Customize Now
+                                    <span id="design-status-icon" class="hidden">
+                                        <svg class="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                                        </svg>
+                                    </span>
+                                </button>
 
                                 <!-- Buy Now Button -->
                                 @if (core()->getConfigData('sales.checkout.shopping_cart.cart_page'))
@@ -1037,6 +866,394 @@
         @if (core()->getConfigData('customer.captcha.credentials.status'))
             {!! \Webkul\Customer\Facades\Captcha::renderJS() !!}
         @endif
-    @endpush
-    @endpushOnce
+
+        <!-- Customization Dialog Overlay & Content -->
+        <style>
+            #customization-overlay {
+                position: fixed;
+                inset: 0;
+                background: rgba(0,0,0,0.5);
+                z-index: 99999;
+            }
+            #customization-dialog {
+                position: fixed;
+                top: 100px;
+                left: 50%;
+                transform: translateX(-50%);
+                width: 90%;
+                max-width: 1200px;
+                max-height: 90vh;
+                background: white;
+                border-radius: 8px;
+                z-index: 100000;
+                overflow: hidden;
+            }
+        </style>
+        <div id="customization-overlay" class="hidden" onclick="closeDialog()"></div>
+        <div id="customization-dialog" class="hidden"></div>
+
+        <script>
+            // Global state
+            window.customizationProductId = {{ $product->id }};
+            window.designUUID = null;
+            var currentCanvas = { elements: [], selectedElement: null };
+            var currentAreaId = null;
+
+            // Generate UUID
+            function generateDesignUUID() {
+                return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+                    var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+                    return v.toString(16);
+                });
+            }
+
+            // Get or create design UUID
+            function getDesignUUID() {
+                var sessionKey = 'design_session_' + window.customizationProductId;
+                var existing = sessionStorage.getItem(sessionKey);
+                if (existing) {
+                    console.log('[DEBUG getDesignUUID] Using existing UUID:', existing);
+                    return existing;
+                }
+                var newUUID = generateDesignUUID();
+                sessionStorage.setItem(sessionKey, newUUID);
+                console.log('[DEBUG getDesignUUID] Created new UUID:', newUUID);
+                return newUUID;
+            }
+
+            // Open customization dialog
+            function openCustomizationDialog() {
+                console.log('[DEBUG openCustomizationDialog] Opening dialog');
+                window.designUUID = getDesignUUID();
+                console.log('[DEBUG openCustomizationDialog] Design UUID:', window.designUUID);
+                
+                var overlay = document.getElementById('customization-overlay');
+                var dialog = document.getElementById('customization-dialog');
+                if (!overlay || !dialog) { console.error('[DEBUG] Dialog elements not found'); return; }
+                
+                overlay.classList.remove('hidden');
+                dialog.classList.remove('hidden');
+                document.body.style.overflow = 'hidden';
+                
+                // Load print areas and then saved design
+                loadPrintAreas();
+            }
+
+            // Close dialog
+            function closeDialog() {
+                var overlay = document.getElementById('customization-overlay');
+                var dialog = document.getElementById('customization-dialog');
+                if (overlay) overlay.classList.add('hidden');
+                if (dialog) dialog.classList.add('hidden');
+                document.body.style.overflow = '';
+            }
+
+            // Load print areas
+            function loadPrintAreas() {
+                fetch('/api/product/' + window.customizationProductId + '/print-areas')
+                    .then(r => r.json())
+                    .then(data => {
+                        if (data.data && data.data.length > 0) {
+                            currentAreaId = data.data[0].id;
+                            renderDesignUI(data.data[0]);
+                            setTimeout(function() { loadSavedCustomization(); }, 100);
+                        } else {
+                            console.log('[DEBUG loadPrintAreas] No print areas');
+                            renderDesignUI({ id: 1, name: 'Default Area', width: 300, height: 400 });
+                            setTimeout(function() { loadSavedCustomization(); }, 100);
+                        }
+                    })
+                    .catch(err => {
+                        console.error('[DEBUG loadPrintAreas] Error:', err);
+                        renderDesignUI({ id: 1, name: 'Default Area', width: 300, height: 400 });
+                        setTimeout(function() { loadSavedCustomization(); }, 100);
+                    });
+            }
+
+            // Render design UI
+            function renderDesignUI(area) {
+                var dialog = document.getElementById('customization-dialog');
+                dialog.innerHTML = `
+                    <div style="padding:20px; max-height:85vh; overflow-y:auto;">
+                        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;">
+                            <h2 style="font-size:20px;font-weight:bold;">Custom Design - ${area.name}</h2>
+                            <button onclick="closeDialog()" style="font-size:24px;background:none;border:none;cursor:pointer;">&times;</button>
+                        </div>
+                        <div style="display:flex;gap:20px;flex-wrap:wrap;">
+                            <div style="flex:1;min-width:200px;">
+                                <h3 style="font-weight:bold;margin-bottom:10px;">Elements</h3>
+                                <div style="display:flex;gap:10px;margin-bottom:15px;flex-wrap:wrap;">
+                                    <button onclick="triggerImageUpload()" style="padding:8px 16px;background:#e5e7eb;border-radius:4px;cursor:pointer;">Upload Image</button>
+                                    <button onclick="addTextToCanvas()" style="padding:8px 16px;background:#e5e7eb;border-radius:4px;cursor:pointer;">Add Text</button>
+                                </div>
+                                <div style="border:1px solid #ddd;padding:10px;min-height:200px;max-height:400px;overflow-y:auto;" id="layers-list">
+                                    <p style="color:#999;text-align:center;">No elements</p>
+                                </div>
+                            </div>
+                            <div style="flex:2;min-width:300px;">
+                                <h3 style="font-weight:bold;margin-bottom:10px;">Design Area (${area.width}x${area.height})</h3>
+                                <div id="product-bg" style="position:relative;width:${area.width}px;height:${area.height}px;background:#f3f4f6;border:2px dashed #ccc;margin:0 auto;overflow:hidden;background-image:url('data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22400%22 height=%22400%22><text y=%2230%22 font-size=%2230%22 fill=%22%23ccc%22>No Image</text></svg>');background-repeat:no-repeat;background-size:contain;background-position:center;">
+                                </div>
+                            </div>
+                        </div>
+                        <div style="margin-top:20px;padding-top:15px;border-top:1px solid #ddd;display:flex;justify-content:flex-end;gap:10px;">
+                            <button onclick="clearSavedDesign()" style="padding:8px 20px;border:1px solid #f97316;color:#f97316;background:white;border-radius:4px;cursor:pointer;">Clear Design</button>
+                            <button onclick="saveCustomization()" style="padding:8px 20px;background:#2563eb;color:white;border:none;border-radius:4px;cursor:pointer;">Save</button>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // Trigger image upload
+            function triggerImageUpload() {
+                var input = document.createElement('input');
+                input.type = 'file';
+                input.accept = 'image/*';
+                input.onchange = function(e) {
+                    var file = e.target.files[0];
+                    if (!file) return;
+                    var reader = new FileReader();
+                    reader.onload = function(ev) {
+                        addUploadedImage(ev.target.result, file.name);
+                    };
+                    reader.readAsDataURL(file);
+                };
+                input.click();
+            }
+
+            // Add uploaded image to canvas
+            function addUploadedImage(src, name) {
+                var productBg = document.getElementById('product-bg');
+                if (!productBg) return;
+                var wrapper = document.createElement('div');
+                wrapper.className = 'canvas-elem';
+                wrapper.style.cssText = 'position:absolute;cursor:move;border:2px solid #3b82f6;box-sizing:border-box;';
+                var img = document.createElement('img');
+                img.src = src;
+                img.style.cssText = 'width:100%;height:100%;pointer-events:none;display:block;';
+                wrapper.appendChild(img);
+                var elemData = { type: 'image', content: src, x: 10, y: 10, width: 30, height: 30, rotation: 0, scaleX: 1, scaleY: 1, styles: {}, name: name || 'Image' };
+                wrapper._elemData = elemData;
+                currentCanvas.elements.push(elemData);
+                setupElemEvents(wrapper);
+                productBg.appendChild(wrapper);
+                updateElemPosition(wrapper, elemData);
+                updateLayersList();
+            }
+
+            // Add text to canvas
+            function addTextToCanvas() {
+                var content = prompt('Enter text:', 'Sample Text');
+                if (!content) return;
+                var productBg = document.getElementById('product-bg');
+                if (!productBg) return;
+                var wrapper = document.createElement('div');
+                wrapper.className = 'canvas-elem';
+                wrapper.style.cssText = 'position:absolute;cursor:move;border:2px solid #3b82f6;box-sizing:border-box;padding:5px;color:#000;';
+                wrapper.textContent = content;
+                var elemData = { type: 'text', content: content, x: 20, y: 20, width: 20, height: 10, rotation: 0, scaleX: 1, scaleY: 1, styles: { color: '#000', fontSize: '16px', fontFamily: 'Arial' }, name: content };
+                wrapper._elemData = elemData;
+                currentCanvas.elements.push(elemData);
+                setupElemEvents(wrapper);
+                productBg.appendChild(wrapper);
+                updateElemPosition(wrapper, elemData);
+                updateLayersList();
+            }
+
+            // Update element position
+            function updateElemPosition(wrapper, data) {
+                wrapper.style.left = data.x + '%';
+                wrapper.style.top = data.y + '%';
+                wrapper.style.width = data.width + '%';
+                wrapper.style.height = data.height + '%';
+                wrapper.style.transform = 'rotate(' + (data.rotation || 0) + 'deg) scale(' + (data.scaleX || 1) + ', ' + (data.scaleY || 1) + ')';
+            }
+
+            // Setup element events
+            function setupElemEvents(wrapper) {
+                wrapper.onclick = function(e) {
+                    e.stopPropagation();
+                    selectElem(wrapper);
+                };
+            }
+
+            // Select element
+            function selectElem(wrapper) {
+                document.querySelectorAll('.canvas-elem').forEach(function(el) {
+                    el.style.borderColor = '#3b82f6';
+                });
+                wrapper.style.borderColor = '#ef4444';
+                currentCanvas.selectedElement = wrapper;
+            }
+
+            // Update layers list
+            function updateLayersList() {
+                var list = document.getElementById('layers-list');
+                if (!list) return;
+                if (currentCanvas.elements.length === 0) {
+                    list.innerHTML = '<p style="color:#999;text-align:center;">No elements</p>';
+                    return;
+                }
+                list.innerHTML = currentCanvas.elements.map(function(el, i) {
+                    var icon = el.type === 'image' ? '[Img]' : '[T]';
+                    return '<div style="padding:5px;border-bottom:1px solid #eee;cursor:pointer;" onclick="selectLayer(' + i + ')">' + icon + ' ' + (el.name || el.content) + '</div>';
+                }).join('');
+            }
+
+            // Select layer by index
+            function selectLayer(index) {
+                var elems = document.querySelectorAll('.canvas-elem');
+                if (elems[index]) selectElem(elems[index]);
+            }
+
+            // Clear saved design (clear UI only)
+            function clearSavedDesign() {
+                currentCanvas.elements = [];
+                currentCanvas.selectedElement = null;
+                var productBg = document.getElementById('product-bg');
+                if (productBg) productBg.innerHTML = '';
+                updateLayersList();
+                document.getElementById('design-status-icon').classList.add('hidden');
+            }
+
+            // Save customization
+            function saveCustomization() {
+                var elements = [];
+                document.querySelectorAll('#product-bg .canvas-elem').forEach(function(div) {
+                    if (div._elemData) {
+                        var d = div._elemData;
+                        var style = window.getComputedStyle(div);
+                        elements.push({
+                            type: d.type,
+                            content: d.content,
+                            x: parseFloat(div.style.left) || d.x,
+                            y: parseFloat(div.style.top) || d.y,
+                            width: parseFloat(div.style.width) || d.width,
+                            height: parseFloat(div.style.height) || d.height,
+                            rotation: d.rotation || 0,
+                            scaleX: d.scaleX || 1,
+                            scaleY: d.scaleY || 1,
+                            styles: d.styles || {}
+                        });
+                    }
+                });
+                
+                var customizationData = {
+                    product_id: window.customizationProductId,
+                    quantity: 1,
+                    design_uuid: window.designUUID || null,
+                    customization: {
+                        print_area_id: currentAreaId || 1,
+                        preview_image: '',
+                        elements: elements
+                    }
+                };
+
+                // Save to localStorage
+                var designKey = 'design_' + window.designUUID;
+                localStorage.setItem(designKey, JSON.stringify(customizationData.customization));
+                console.log('[DEBUG saveCustomization] Saved:', elements.length, 'elements');
+
+                // Update status icon
+                if (elements.length > 0) {
+                    document.getElementById('design-status-icon').classList.remove('hidden');
+                } else {
+                    document.getElementById('design-status-icon').classList.add('hidden');
+                }
+
+                alert('Design saved! ' + elements.length + ' element(s) saved.');
+                closeDialog();
+            }
+
+            // Load saved customization
+            function loadSavedCustomization() {
+                var designKey = 'design_' + window.designUUID;
+                var saved = localStorage.getItem(designKey);
+                console.log('[DEBUG loadSavedCustomization] Loading from:', designKey, saved ? 'found' : 'not found');
+                if (!saved) return;
+                
+                try {
+                    var data = JSON.parse(saved);
+                    if (!data.elements || data.elements.length === 0) return;
+                    
+                    var productBg = document.getElementById('product-bg');
+                    if (!productBg) return;
+                    
+                    // Clear existing elements first
+                    currentCanvas.elements = [];
+                    productBg.innerHTML = '';
+                    
+                    data.elements.forEach(function(elem) {
+                        if (elem.type === 'image') {
+                            addUploadedImage(elem.content, elem.name || 'Image');
+                        } else if (elem.type === 'text') {
+                            addTextToCanvas();
+                        }
+                    });
+                    
+                    // Update status icon
+                    document.getElementById('design-status-icon').classList.remove('hidden');
+                    console.log('[DEBUG loadSavedCustomization] Loaded', data.elements.length, 'elements');
+                } catch (e) {
+                    console.error('[DEBUG loadSavedCustomization] Error:', e);
+                }
+            }
+
+            // Add text helper for loadSavedCustomization
+            function addTextToCanvas(opts) {
+                opts = opts || {};
+                var content = opts.content || 'Sample Text';
+                var productBg = document.getElementById('product-bg');
+                if (!productBg) return;
+                var wrapper = document.createElement('div');
+                wrapper.className = 'canvas-elem';
+                wrapper.style.cssText = 'position:absolute;cursor:move;border:2px solid #3b82f6;box-sizing:border-box;padding:5px;color:' + (opts.styles && opts.styles.color ? opts.styles.color : '#000') + ';';
+                wrapper.textContent = content;
+                var elemData = {
+                    type: 'text',
+                    content: content,
+                    x: opts.x || opts.left || 20,
+                    y: opts.y || opts.top || 20,
+                    width: opts.width || opts.w || 20,
+                    height: opts.height || opts.h || 10,
+                    rotation: opts.rotation || 0,
+                    scaleX: opts.scaleX || 1,
+                    scaleY: opts.scaleY || 1,
+                    styles: opts.styles || { color: '#000', fontSize: '16px' },
+                    name: content
+                };
+                wrapper._elemData = elemData;
+                currentCanvas.elements.push(elemData);
+                setupElemEvents(wrapper);
+                productBg.appendChild(wrapper);
+                updateElemPosition(wrapper, elemData);
+                updateLayersList();
+            }
+
+            // Check design status on page load
+            function checkDesignStatus() {
+                var hasDesign = false;
+                for (var i = 0; i < localStorage.length; i++) {
+                    var key = localStorage.key(i);
+                    if (key && key.startsWith('design_')) {
+                        try {
+                            var data = JSON.parse(localStorage.getItem(key));
+                            if (data && data.elements && data.elements.length > 0) {
+                                hasDesign = true;
+                                break;
+                            }
+                        } catch (e) {}
+                    }
+                }
+                var icon = document.getElementById('design-status-icon');
+                if (icon) {
+                    if (hasDesign) icon.classList.remove('hidden');
+                    else icon.classList.add('hidden');
+                }
+            }
+
+            // Run on page load
+            document.addEventListener('DOMContentLoaded', checkDesignStatus);
+        </script>
+    @endPushOnce
 </x-shop::layouts>
