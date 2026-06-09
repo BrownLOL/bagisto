@@ -204,7 +204,74 @@ function saveCustomization() {
         }
     };
     
-    // Send to API
+    // Save to localStorage with design_uuid key
+    if (uuid) {
+        var designKey = 'design_' + uuid;
+        var productId = window.customizationProductId;
+        
+        if (elements.length > 0) {
+            // Store full design data keyed by design_uuid
+            localStorage.setItem(designKey, JSON.stringify({
+                product_id: productId,
+                customization: customizationData.customization,
+                updated_at: new Date().toISOString()
+            }));
+            
+            // Ensure UUID is in the list
+            var uuidsKey = 'design_uuids_' + productId;
+            var uuids = JSON.parse(localStorage.getItem(uuidsKey) || '[]');
+            if (!uuids.includes(uuid)) {
+                uuids.push(uuid);
+                localStorage.setItem(uuidsKey, JSON.stringify(uuids));
+            }
+            
+            console.log('[DEBUG saveCustomization] Design saved to localStorage:', designKey);
+            alert('Design saved successfully!');
+        } else {
+            // No elements, remove the design
+            localStorage.removeItem(designKey);
+            console.log('[DEBUG saveCustomization] No elements, design removed from localStorage');
+            alert('Design cleared!');
+        }
+    }
+    
+    closeDialog();
+    checkDesignStatus();
+}
+
+// Add current design to cart
+function addDesignToCart() {
+    var uuid = getDesignUUID();
+    if (!uuid) {
+        alert('No design found. Please create a design first.');
+        return;
+    }
+    
+    var designKey = 'design_' + uuid;
+    var designData = localStorage.getItem(designKey);
+    
+    if (!designData) {
+        alert('No design found. Please save your design first.');
+        return;
+    }
+    
+    var design = JSON.parse(designData);
+    var customization = design.customization;
+    
+    if (!customization || !customization.elements || customization.elements.length === 0) {
+        alert('Please add at least one element to your design before adding to cart.');
+        return;
+    }
+    
+    // Prepare data for cart API
+    var cartData = {
+        product_id: window.customizationProductId,
+        quantity: 1,
+        design_uuid: uuid,
+        customization: customization
+    };
+    
+    // Call cart API
     fetch('/api/checkout/cart/add-customization', {
         method: 'POST',
         headers: {
@@ -212,45 +279,21 @@ function saveCustomization() {
             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
             'Accept': 'application/json'
         },
-        body: JSON.stringify(customizationData)
+        body: JSON.stringify(cartData)
     })
     .then(function(response) { return response.json(); })
     .then(function(data) {
-        if (data.data) {
-            // Save to localStorage with design_uuid key
-            if (uuid) {
-                var designKey = 'design_' + uuid;
-                var productId = window.customizationProductId;
-                
-                if (elements.length > 0) {
-                    // Store full design data keyed by design_uuid
-                    localStorage.setItem(designKey, JSON.stringify({
-                        product_id: productId,
-                        customization: customizationData.customization,
-                        updated_at: new Date().toISOString()
-                    }));
-                    
-                    // Ensure UUID is in the list
-                    var uuidsKey = 'design_uuids_' + productId;
-                    var uuids = JSON.parse(localStorage.getItem(uuidsKey) || '[]');
-                    if (!uuids.includes(uuid)) {
-                        uuids.push(uuid);
-                        localStorage.setItem(uuidsKey, JSON.stringify(uuids));
-                    }
-                    
-                    console.log('[DEBUG saveCustomization] Design saved to localStorage:', designKey);
-                } else {
-                    // No elements, remove the design
-                    localStorage.removeItem(designKey);
-                    console.log('[DEBUG saveCustomization] No elements, design removed from localStorage');
-                }
-            }
+        if (data.data || data.success) {
+            alert('Design added to cart successfully!');
             closeDialog();
-            checkDesignStatus();
+            // Optionally redirect to cart page
+            // window.location.href = '/checkout/cart';
+        } else {
+            alert('Failed to add to cart: ' + (data.message || 'Please try again.'));
         }
     })
     .catch(function(error) {
-        console.error('Error:', error);
+        console.error('Error adding to cart:', error);
         alert('Failed to add to cart. Please try again.');
     });
 }
