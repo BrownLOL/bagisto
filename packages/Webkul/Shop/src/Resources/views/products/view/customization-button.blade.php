@@ -223,18 +223,52 @@ function loadSavedCustomization() {
     }
     
     console.log('[DEBUG] Restoring', savedData.elements.length, 'elements');
-    // Restore elements
-    savedData.elements.forEach(function(elem, idx) {
-        console.log('[DEBUG] Restoring element', idx, ':', elem);
-        if (elem.type === 'text') {
-            addTextToCanvas(elem.content, elem.styles.fontSize, elem.styles.color, elem.styles.fontFamily, {
-                x: elem.x, y: elem.y, w: elem.width, h: elem.height,
-                rotation: elem.rotation, scaleX: elem.scaleX, scaleY: elem.scaleY, styles: elem.styles
-            });
-        } else if (elem.type === 'image') {
-            addUploadedImage(elem.content, elem.x, elem.y, elem.width, elem.height, elem.rotation, elem.scaleX, elem.scaleY);
+    
+    // Set preview image as background if available
+    if (savedData.preview_image) {
+        var productBg = document.querySelector('.product-bg');
+        if (productBg) {
+            productBg.style.backgroundImage = 'url(' + savedData.preview_image + ')';
+            console.log('[DEBUG] Set preview image:', savedData.preview_image);
         }
-    });
+    }
+    
+    // Store area data
+    window.currentAreaData = {
+        image_url: savedData.preview_image || '',
+        x: savedData.x || 30,
+        y: savedData.y || 20,
+        width: savedData.width || 40,
+        height: savedData.height || 30
+    };
+    
+    // Restore elements after a short delay to ensure DOM is ready
+    setTimeout(function() {
+        savedData.elements.forEach(function(elem, idx) {
+            console.log('[DEBUG] Restoring element', idx, ':', elem);
+            if (elem.type === 'text') {
+                addTextToCanvas(elem.content, elem.styles.fontSize, elem.styles.color, elem.styles.fontFamily, {
+                    x: elem.x,
+                    y: elem.y,
+                    width: elem.w,
+                    height: elem.h,
+                    rotation: elem.rotation || 0,
+                    scaleX: elem.scaleX || 1,
+                    scaleY: elem.scaleY || 1
+                });
+            } else if (elem.type === 'image') {
+                addUploadedImage(elem.content, {
+                    x: elem.x,
+                    y: elem.y,
+                    width: elem.w,
+                    height: elem.h,
+                    rotation: elem.rotation || 0,
+                    scaleX: elem.scaleX || 1,
+                    scaleY: elem.scaleY || 1
+                });
+            }
+        });
+    }, 100);
     
     console.log('[DEBUG] loadSavedCustomization done');
 }
