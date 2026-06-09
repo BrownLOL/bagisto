@@ -15,6 +15,7 @@
 
 @pushOnce('scripts')
 <script>
+document.addEventListener('DOMContentLoaded', function() {
 (function() {
     var el = document.getElementById('customization-product-id');
     console.log('[DEBUG init] el:', el);
@@ -1123,5 +1124,6 @@ function addTextToCanvas(text, size, color, font, opts) {
     updateLayersList();
     updatePreview();
 }
+});
 </script>
 @endpushOnce
