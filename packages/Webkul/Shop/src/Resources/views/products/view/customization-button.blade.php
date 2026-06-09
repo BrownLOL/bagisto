@@ -34,6 +34,9 @@ function checkDesignStatus() {
     var productId = window.customizationProductId;
     var currentKey = 'current_design_' + productId;
     
+    // 刷新页面 = 新设计，清空当前编辑 UUID
+    localStorage.removeItem(currentKey);
+    
     // Check if there's a saved design for the current UUID
     var uuid = localStorage.getItem(currentKey);
     if (uuid) {
