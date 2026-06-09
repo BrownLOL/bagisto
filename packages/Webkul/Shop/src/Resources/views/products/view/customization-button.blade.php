@@ -120,15 +120,8 @@ function saveCustomization() {
     })
     .then(function(response) { return response.json(); })
     .then(function(data) {
-        if (data.message) {
-            alert(data.message);
-        }
         if (data.data) {
             closeDialog();
-            // Optionally redirect to cart
-            if (confirm('Product added to cart! Go to cart?')) {
-                window.location.href = '/checkout/cart';
-            }
         }
     })
     .catch(function(error) {
