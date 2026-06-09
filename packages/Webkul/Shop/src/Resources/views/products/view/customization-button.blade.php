@@ -3,9 +3,14 @@
 <button
     type="button"
     onclick="event.preventDefault(); openCustomizationDialog();"
-    class="secondary-button w-full mt-4"
+    class="secondary-button w-full mt-4 flex items-center justify-center gap-2"
 >
     Customize Now
+    <span id="design-status-icon" class="hidden">
+        <svg class="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+        </svg>
+    </span>
 </button>
 
 @pushOnce('scripts')
@@ -17,7 +22,36 @@
     } else {
         window.customizationProductId = 0;
     }
+    
+    // Check if there's a saved design and show/hide status icon
+    checkDesignStatus();
 })();
+
+function checkDesignStatus() {
+    var statusIcon = document.getElementById('design-status-icon');
+    if (!statusIcon || !window.customizationProductId) return;
+    
+    var sessionKey = 'design_session_' + window.customizationProductId;
+    var uuid = sessionStorage.getItem(sessionKey);
+    
+    if (uuid) {
+        var designKey = 'design_' + uuid;
+        var saved = localStorage.getItem(designKey);
+        if (saved) {
+            try {
+                var data = JSON.parse(saved);
+                if (data.customization && data.customization.elements && data.customization.elements.length > 0) {
+                    statusIcon.classList.remove('hidden');
+                    console.log('[DEBUG checkDesignStatus] Design exists, showing icon');
+                    return;
+                }
+            } catch (e) {}
+        }
+    }
+    
+    statusIcon.classList.add('hidden');
+    console.log('[DEBUG checkDesignStatus] No design, hiding icon');
+}
 
 var currentCanvas = {
     elements: [],
@@ -187,6 +221,7 @@ function saveCustomization() {
                 }
             }
             closeDialog();
+            checkDesignStatus();
         }
     })
     .catch(function(error) {
