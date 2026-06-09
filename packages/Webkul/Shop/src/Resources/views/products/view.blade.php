@@ -11,6 +11,9 @@
     $attributeData = collect($customAttributeValues)->filter(fn ($item) => ! empty($item['value']));
 @endphp
 
+<!-- Product ID for customization -->
+<div id="customization-product-id" data-id="{{ $product->id ?? 0 }}" class="hidden"></div>
+
 <!-- SEO Meta Content -->
 @push('meta')
     <meta name="csrf-token" content="{{ csrf_token() }}"/>
