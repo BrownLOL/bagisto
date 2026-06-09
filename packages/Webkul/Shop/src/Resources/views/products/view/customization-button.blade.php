@@ -13,82 +13,45 @@
     </span>
 </button>
 
+@pushOnce('scripts')
 <script>
-document.addEventListener('DOMContentLoaded', function() {
+(function() {
     var el = document.getElementById('customization-product-id');
-    console.log('[DEBUG init] el:', el);
     if (el) {
-        console.log('[DEBUG init] el.dataset.id:', el.dataset.id);
         window.customizationProductId = parseInt(el.dataset.id) || 0;
     } else {
         window.customizationProductId = 0;
     }
-    console.log('[DEBUG init] window.customizationProductId:', window.customizationProductId);
     
     // Check if there's a saved design and show/hide status icon
     checkDesignStatus();
-});
+})();
 
 function checkDesignStatus() {
     var statusIcon = document.getElementById('design-status-icon');
-    if (!statusIcon || !window.customizationProductId) {
-        console.log('[DEBUG checkDesignStatus] Early return: no statusIcon or productId');
-        return;
-    }
+    if (!statusIcon || !window.customizationProductId) return;
     
     var productId = window.customizationProductId;
-    var currentKey = 'current_design_' + productId;
-    var currentUuid = localStorage.getItem(currentKey);
+    
+    // Check if there's any saved design for this product
     var uuidsKey = 'design_uuids_' + productId;
     var uuids = JSON.parse(localStorage.getItem(uuidsKey) || '[]');
     
-    console.log('[DEBUG checkDesignStatus] productId:', productId);
-    console.log('[DEBUG checkDesignStatus] currentKey:', currentKey, 'currentUuid:', currentUuid);
-    console.log('[DEBUG checkDesignStatus] uuidsKey:', uuidsKey, 'uuids:', uuids);
-    
-    // First check current_design_{productId}
-    if (currentUuid) {
-        var designKey = 'design_' + currentUuid;
-        var saved = localStorage.getItem(designKey);
-        console.log('[DEBUG checkDesignStatus] designKey:', designKey, 'saved:', saved ? 'exists' : 'null');
-        if (saved) {
-            try {
-                var data = JSON.parse(saved);
-                console.log('[DEBUG checkDesignStatus] parsed data:', data);
-                if (data.customization && data.customization.elements && data.customization.elements.length > 0) {
-                    statusIcon.classList.remove('hidden');
-                    console.log('[DEBUG checkDesignStatus] ✓ Current design exists, showing icon');
-                    return;
-                } else {
-                    console.log('[DEBUG checkDesignStatus] No elements in current design');
-                }
-            } catch (e) {
-                console.log('[DEBUG checkDesignStatus] JSON parse error:', e);
-            }
-        }
-    } else {
-        console.log('[DEBUG checkDesignStatus] No currentUuid found');
-    }
-    
-    // Fallback: check design_uuids_{productId} list
-    var uuidsKey = 'design_uuids_' + productId;
-    var uuids = JSON.parse(localStorage.getItem(uuidsKey) || '[]');
-    
+    // Find the first design that has elements
     for (var i = uuids.length - 1; i >= 0; i--) {
         var uuid = uuids[i];
-        if (uuid === currentUuid) continue; // Already checked above
-        
         var designKey = 'design_' + uuid;
         var saved = localStorage.getItem(designKey);
         if (saved) {
             try {
                 var data = JSON.parse(saved);
                 if (data.customization && data.customization.elements && data.customization.elements.length > 0) {
-                    // Set this UUID as the current one
+                    // Set this UUID as the current one for editing
+                    var currentKey = 'current_design_' + productId;
                     localStorage.setItem(currentKey, uuid);
                     
                     statusIcon.classList.remove('hidden');
-                    console.log('[DEBUG checkDesignStatus] Found design in list, UUID:', uuid);
+                    console.log('[DEBUG checkDesignStatus] Design exists for UUID:', uuid, 'showing icon');
                     return;
                 }
             } catch (e) {}
@@ -1123,3 +1086,4 @@ function addTextToCanvas(text, size, color, font, opts) {
     updatePreview();
 }
 </script>
+@endpushOnce
