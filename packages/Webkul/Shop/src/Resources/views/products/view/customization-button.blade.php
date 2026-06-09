@@ -46,6 +46,27 @@ function closeDialog() {
     currentCanvas.selectedElement = null;
 }
 
+function clearSavedDesign() {
+    if (!confirm('Are you sure you want to clear the saved design? This action cannot be undone.')) {
+        return;
+    }
+    
+    var key = 'customization_' + window.customizationProductId;
+    localStorage.removeItem(key);
+    
+    // 清空当前界面上的元素
+    currentCanvas.elements = [];
+    currentCanvas.selectedElement = null;
+    document.querySelectorAll('.canvas-elem').forEach(function(e) { e.remove(); });
+    document.querySelectorAll('.elem-control').forEach(function(c) { c.remove(); });
+    
+    updateLayersList();
+    updateOperationButtons();
+    updatePreview();
+    
+    console.log('[DEBUG clearSavedDesign] Design cleared');
+}
+
 function saveCustomization() {
     var areaData = window.currentAreaData;
     if (!areaData) {
