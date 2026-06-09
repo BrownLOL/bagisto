@@ -47,14 +47,7 @@ function closeDialog() {
 }
 
 function clearSavedDesign() {
-    if (!confirm('Are you sure you want to clear the saved design? This action cannot be undone.')) {
-        return;
-    }
-    
-    var key = 'customization_' + window.customizationProductId;
-    localStorage.removeItem(key);
-    
-    // 清空当前界面上的元素
+    // 清空当前界面上的元素，不删除缓存
     currentCanvas.elements = [];
     currentCanvas.selectedElement = null;
     document.querySelectorAll('.canvas-elem').forEach(function(e) { e.remove(); });
@@ -64,7 +57,7 @@ function clearSavedDesign() {
     updateOperationButtons();
     updatePreview();
     
-    console.log('[DEBUG clearSavedDesign] Design cleared');
+    console.log('[DEBUG clearSavedDesign] Elements cleared from canvas');
 }
 
 function saveCustomization() {
@@ -144,8 +137,14 @@ function saveCustomization() {
     .then(function(response) { return response.json(); })
     .then(function(data) {
         if (data.data) {
-            // Save to localStorage
-            localStorage.setItem('customization_' + window.customizationProductId, JSON.stringify(customizationData.customization));
+            // Save to localStorage, if no elements then delete cache
+            var cacheKey = 'customization_' + window.customizationProductId;
+            if (elements.length === 0) {
+                localStorage.removeItem(cacheKey);
+                console.log('[DEBUG saveCustomization] No elements, cache cleared');
+            } else {
+                localStorage.setItem(cacheKey, JSON.stringify(customizationData.customization));
+            }
             closeDialog();
         }
     })
