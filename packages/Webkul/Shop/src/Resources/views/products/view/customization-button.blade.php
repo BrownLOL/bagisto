@@ -36,6 +36,7 @@ function openCustomizationDialog() {
     initTextControls();
     resetZoom();
     initCanvasPan();
+    console.log('Opening dialog, productId:', window.customizationProductId);
     loadSavedCustomization();
 }
 
@@ -139,17 +140,52 @@ function loadSavedCustomization() {
     if (!saved) return;
     
     var savedData = JSON.parse(saved);
-    if (!savedData.elements || !savedData.print_area) return;
+    if (!savedData.elements) return;
+    
+    // Find the print area by id
+    var printAreaId = savedData.print_area_id;
+    if (!printAreaId) return;
+    
+    // Get area data from window
+    var areaData = null;
+    if (window.printAreas) {
+        for (var i = 0; i < window.printAreas.length; i++) {
+            if (window.printAreas[i].id == printAreaId || window.printAreas[i].print_area_id == printAreaId) {
+                areaData = window.printAreas[i];
+                break;
+            }
+        }
+    }
+    
+    if (!areaData) {
+        // Try to find by image id in saved data
+        var imageId = savedData.image_id;
+        if (imageId && window.productImages) {
+            var img = window.productImages[imageId];
+            if (img) {
+                areaData = {
+                    id: printAreaId,
+                    image_id: imageId,
+                    image_url: img,
+                    x: savedData.x || 30,
+                    y: savedData.y || 20,
+                    width: savedData.width || 40,
+                    height: savedData.height || 30
+                };
+            }
+        }
+    }
+    
+    if (!areaData) return;
     
     // Set area data
-    window.currentAreaData = savedData.print_area;
+    window.currentAreaData = areaData;
     
     // Restore print area selection
-    var imageId = savedData.print_area.image_id;
-    if (imageId) {
-        var imgDiv = document.querySelector('[data-image-id="' + imageId + '"]');
+    if (areaData.image_id) {
+        var imgDiv = document.querySelector('[data-image-id="' + areaData.image_id + '"]');
         if (imgDiv) {
-            selectProductImage(imageId, imgDiv.querySelector('img').src);
+            selectProductImage(areaData.image_id, areaData.image_url);
         }
     }
     
