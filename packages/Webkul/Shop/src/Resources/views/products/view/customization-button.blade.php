@@ -10,8 +10,14 @@
 
 @pushOnce('scripts')
 <script>
-// Initialize product ID from hidden div
-window.customizationProductId = parseInt(document.getElementById('customization-product-id').dataset.id) || 0;
+(function() {
+    var el = document.getElementById('customization-product-id');
+    if (el) {
+        window.customizationProductId = parseInt(el.dataset.id) || 0;
+    } else {
+        window.customizationProductId = 0;
+    }
+})();
 
 var currentCanvas = {
     elements: [],
