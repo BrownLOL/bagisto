@@ -32,26 +32,44 @@ function checkDesignStatus() {
     if (!statusIcon || !window.customizationProductId) return;
     
     var productId = window.customizationProductId;
+    var currentKey = 'current_design_' + productId;
     
-    // Check if there's any saved design for this product
+    // First check current_design_{productId} - this is what getDesignUUID uses
+    var currentUuid = localStorage.getItem(currentKey);
+    if (currentUuid) {
+        var designKey = 'design_' + currentUuid;
+        var saved = localStorage.getItem(designKey);
+        if (saved) {
+            try {
+                var data = JSON.parse(saved);
+                if (data.customization && data.customization.elements && data.customization.elements.length > 0) {
+                    statusIcon.classList.remove('hidden');
+                    console.log('[DEBUG checkDesignStatus] Current design exists, UUID:', currentUuid);
+                    return;
+                }
+            } catch (e) {}
+        }
+    }
+    
+    // Fallback: check design_uuids_{productId} list
     var uuidsKey = 'design_uuids_' + productId;
     var uuids = JSON.parse(localStorage.getItem(uuidsKey) || '[]');
     
-    // Find the first design that has elements
     for (var i = uuids.length - 1; i >= 0; i--) {
         var uuid = uuids[i];
+        if (uuid === currentUuid) continue; // Already checked above
+        
         var designKey = 'design_' + uuid;
         var saved = localStorage.getItem(designKey);
         if (saved) {
             try {
                 var data = JSON.parse(saved);
                 if (data.customization && data.customization.elements && data.customization.elements.length > 0) {
-                    // Set this UUID as the current one for editing
-                    var currentKey = 'current_design_' + productId;
+                    // Set this UUID as the current one
                     localStorage.setItem(currentKey, uuid);
                     
                     statusIcon.classList.remove('hidden');
-                    console.log('[DEBUG checkDesignStatus] Design exists for UUID:', uuid, 'showing icon');
+                    console.log('[DEBUG checkDesignStatus] Found design in list, UUID:', uuid);
                     return;
                 }
             } catch (e) {}
