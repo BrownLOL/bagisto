@@ -174,6 +174,9 @@ function loadSavedCustomization() {
         if (savedData.preview_image) {
             var productBg = document.querySelector('.product-bg');
             if (productBg) {
+                // Clear existing elements first to avoid accumulation
+                productBg.innerHTML = '';
+                
                 productBg.style.backgroundImage = 'url(' + savedData.preview_image + ')';
                 productBg.style.backgroundSize = 'contain';
                 productBg.style.backgroundRepeat = 'no-repeat';
