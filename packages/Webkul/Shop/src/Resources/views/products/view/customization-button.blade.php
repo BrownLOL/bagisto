@@ -135,117 +135,59 @@ function saveCustomization() {
 }
 
 // Load saved customization from localStorage
+// Simplified loadSavedCustomization - no dependency on window.printAreas
 function loadSavedCustomization() {
     var key = 'customization_' + window.customizationProductId;
-    console.log('[DEBUG] loadSavedCustomization called, key:', key);
+    console.log('[DEBUG loadSavedCustomization] Start, key:', key);
     
     var saved = localStorage.getItem(key);
-    console.log('[DEBUG] localStorage.getItem result:', saved ? 'found' : 'not found');
-    
     if (!saved) {
-        console.log('[DEBUG] No saved data found');
+        console.log('[DEBUG loadSavedCustomization] No saved data');
         return;
     }
     
     var savedData;
     try {
         savedData = JSON.parse(saved);
-        console.log('[DEBUG] Parsed savedData:', savedData);
+        console.log('[DEBUG loadSavedCustomization] Parsed:', savedData);
     } catch(e) {
-        console.error('[DEBUG] JSON parse error:', e);
+        console.error('[DEBUG loadSavedCustomization] Parse error:', e);
         return;
     }
     
-    if (!savedData.elements) {
-        console.log('[DEBUG] No elements in savedData');
+    if (!savedData.elements || savedData.elements.length === 0) {
+        console.log('[DEBUG loadSavedCustomization] No elements to restore');
         return;
     }
     
-    // Find the print area by id
-    var printAreaId = savedData.print_area_id;
-    console.log('[DEBUG] printAreaId:', printAreaId);
-    
-    // Get area data from window
-    var areaData = null;
-    if (window.printAreas) {
-        console.log('[DEBUG] window.printAreas found:', window.printAreas.length);
-        for (var i = 0; i < window.printAreas.length; i++) {
-            console.log('[DEBUG] checking printAreas[' + i + ']:', window.printAreas[i]);
-            if (window.printAreas[i].id == printAreaId || window.printAreas[i].print_area_id == printAreaId) {
-                areaData = window.printAreas[i];
-                console.log('[DEBUG] Matched areaData:', areaData);
-                break;
-            }
-        }
-    } else {
-        console.log('[DEBUG] window.printAreas NOT found');
+    // Get the current active print area
+    var activeTab = document.querySelector('.tab-btn.active');
+    if (activeTab && activeTab.dataset.tab !== 'product') {
+        console.log('[DEBUG loadSavedCustomization] Not on product tab, switching...');
+        var productTab = document.querySelector('[data-tab="product"]');
+        if (productTab) productTab.click();
     }
     
-    if (!areaData) {
-        console.log('[DEBUG] areaData not found in window.printAreas');
-        // Try to find by image id in saved data
-        var imageId = savedData.image_id;
-        console.log('[DEBUG] Trying imageId:', imageId);
-        if (imageId && window.productImages) {
-            var img = window.productImages[imageId];
-            console.log('[DEBUG] Found image:', img);
-            if (img) {
-                areaData = {
-                    id: printAreaId,
-                    image_id: imageId,
-                    image_url: img,
-                    x: savedData.x || 30,
-                    y: savedData.y || 20,
-                    width: savedData.width || 40,
-                    height: savedData.height || 30
-                };
-            }
-        }
-    }
-    
-    if (!areaData) {
-        console.log('[DEBUG] areaData still null, cannot restore');
-        return;
-    }
-    
-    console.log('[DEBUG] Restoring with areaData:', areaData);
-    
-    // Set area data
-    window.currentAreaData = areaData;
-    
-    // Restore print area selection
-    if (areaData.image_id) {
-        var imgDiv = document.querySelector('[data-image-id="' + areaData.image_id + '"]');
-        console.log('[DEBUG] Looking for imgDiv with data-image-id:', areaData.image_id, 'found:', !!imgDiv);
-        if (imgDiv) {
-            selectProductImage(areaData.image_id, areaData.image_url);
-        }
-    }
-    
-    console.log('[DEBUG] Restoring', savedData.elements.length, 'elements');
-    
-    // Set preview image as background if available
-    if (savedData.preview_image) {
-        var productBg = document.querySelector('.product-bg');
-        if (productBg) {
-            productBg.style.backgroundImage = 'url(' + savedData.preview_image + ')';
-            console.log('[DEBUG] Set preview image:', savedData.preview_image);
-        }
-    }
-    
-    // Store area data
-    window.currentAreaData = {
-        image_url: savedData.preview_image || '',
-        x: savedData.x || 30,
-        y: savedData.y || 20,
-        width: savedData.width || 40,
-        height: savedData.height || 30
-    };
-    
-    // Restore elements after a short delay to ensure DOM is ready
+    // Wait for tab switch then restore
     setTimeout(function() {
+        // Set preview image as background
+        if (savedData.preview_image) {
+            var productBg = document.querySelector('.product-bg');
+            if (productBg) {
+                productBg.style.backgroundImage = 'url(' + savedData.preview_image + ')';
+                productBg.style.backgroundSize = 'contain';
+                productBg.style.backgroundRepeat = 'no-repeat';
+                productBg.style.backgroundPosition = 'center';
+                console.log('[DEBUG loadSavedCustomization] Set background:', savedData.preview_image);
+            }
+        }
+        
+        // Restore each element
+        console.log('[DEBUG loadSavedCustomization] Restoring', savedData.elements.length, 'elements');
+        
         savedData.elements.forEach(function(elem, idx) {
-            console.log('[DEBUG] Restoring element', idx, ':', elem);
+            console.log('[DEBUG loadSavedCustomization] Element', idx, ':', elem.type);
+            
             if (elem.type === 'text') {
                 addTextToCanvas(elem.content, elem.styles.fontSize, elem.styles.color, elem.styles.fontFamily, {
                     x: elem.x,
@@ -268,9 +210,9 @@ function loadSavedCustomization() {
                 });
             }
         });
-    }, 100);
-    
-    console.log('[DEBUG] loadSavedCustomization done');
+        
+        console.log('[DEBUG loadSavedCustomization] Done');
+    }, 200);
 }
 
 // Add event listener for save button
