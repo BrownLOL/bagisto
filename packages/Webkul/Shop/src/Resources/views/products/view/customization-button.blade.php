@@ -37,7 +37,7 @@ function openCustomizationDialog() {
     resetZoom();
     initCanvasPan();
     console.log('Opening dialog, productId:', window.customizationProductId);
-    loadSavedCustomization();
+    // loadSavedCustomization is called by loadPrintAreas on success
 }
 
 function closeDialog() {
