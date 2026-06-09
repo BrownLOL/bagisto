@@ -789,6 +789,51 @@
 
                         this.isStoring[operation] = true;
 
+                        // 检查是否有定制设计
+                        const productId = "{{ $product->id }}";
+                        const currentDesignKey = 'current_design_' + productId;
+                        const designUUID = localStorage.getItem(currentDesignKey);
+                        
+                        if (designUUID) {
+                            const designDataKey = 'design_' + designUUID;
+                            const designData = localStorage.getItem(designDataKey);
+                            
+                            if (designData) {
+                                const customization = JSON.parse(designData);
+                                
+                                // 有定制设计，调用定制购物车 API
+                                this.$axios.post('{{ route("shop.api.checkout.cart.customization.store") }}', {
+                                        product_id: productId,
+                                        quantity: 1,
+                                        design_uuid: designUUID,
+                                        customization: customization
+                                    })
+                                    .then(response => {
+                                        if (response.data.message) {
+                                            this.$emitter.emit('update-mini-cart', response.data.data);
+
+                                            this.$emitter.emit('add-flash', { type: 'success', message: response.data.message });
+
+                                            if (response.data.redirect) {
+                                                window.location.href = response.data.redirect;
+                                            }
+                                        } else {
+                                            this.$emitter.emit('add-flash', { type: 'warning', message: response.data.data.message });
+                                        }
+
+                                        this.isStoring[operation] = false;
+                                    })
+                                    .catch(error => {
+                                        this.isStoring[operation] = false;
+
+                                        this.$emitter.emit('add-flash', { type: 'warning', message: error.response.data.message });
+                                    });
+                                
+                                return;
+                            }
+                        }
+
+                        // 无定制设计，调用普通购物车 API
                         let formData = new FormData(this.$refs.formData);
 
                         this.ensureQuantity(formData);

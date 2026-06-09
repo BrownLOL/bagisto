@@ -62,6 +62,8 @@ Route::group(['prefix' => 'api'], function () {
 
         Route::post('', 'store')->name('shop.api.checkout.cart.store');
 
+        Route::post('customization', 'addCustomization')->name('shop.api.checkout.cart.customization.store');
+
         Route::put('', 'update')->name('shop.api.checkout.cart.update');
 
         Route::delete('', 'destroy')->name('shop.api.checkout.cart.destroy');
