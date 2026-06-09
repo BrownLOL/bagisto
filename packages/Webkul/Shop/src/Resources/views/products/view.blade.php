@@ -799,7 +799,8 @@
                             const designData = localStorage.getItem(designDataKey);
                             
                             if (designData) {
-                                const customization = JSON.parse(designData);
+                                const storedData = JSON.parse(designData);
+                                const customization = storedData.customization;
                                 
                                 // 有定制设计，调用定制购物车 API
                                 this.$axios.post('{{ route("shop.api.checkout.cart.customization.store") }}', {
