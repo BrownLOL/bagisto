@@ -87,9 +87,15 @@ function saveCustomization() {
         }
     });
     
-    // Get preview image (base64)
-    var previewCanvas = document.getElementById('preview-canvas');
-    var previewImage = previewCanvas.querySelector('img') ? previewCanvas.querySelector('img').src : '';
+    // Get product image from canvas
+    var canvas = document.getElementById('design-canvas-inner');
+    var previewImage = '';
+    if (canvas) {
+        var imgs = canvas.querySelectorAll('img');
+        if (imgs.length > 0) {
+            previewImage = imgs[0].src; // First img is the product bg
+        }
+    }
     
     // Prepare customization data
     var customizationData = {
