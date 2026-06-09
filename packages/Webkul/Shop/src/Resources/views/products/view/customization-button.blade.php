@@ -16,7 +16,6 @@
 @pushOnce('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-(function() {
     var el = document.getElementById('customization-product-id');
     console.log('[DEBUG init] el:', el);
     if (el) {
@@ -29,7 +28,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Check if there's a saved design and show/hide status icon
     checkDesignStatus();
-})();
+});
 
 function checkDesignStatus() {
     var statusIcon = document.getElementById('design-status-icon');
@@ -1124,6 +1123,5 @@ function addTextToCanvas(text, size, color, font, opts) {
     updateLayersList();
     updatePreview();
 }
-});
 </script>
 @endpushOnce
