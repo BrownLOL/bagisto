@@ -32,20 +32,24 @@ function checkDesignStatus() {
     if (!statusIcon || !window.customizationProductId) return;
     
     var productId = window.customizationProductId;
-    var currentKey = 'current_design_' + productId;
     
-    // 刷新页面 = 新设计，清空当前编辑 UUID
-    localStorage.removeItem(currentKey);
+    // Check if there's any saved design for this product
+    var uuidsKey = 'design_uuids_' + productId;
+    var uuids = JSON.parse(localStorage.getItem(uuidsKey) || '[]');
     
-    // Check if there's a saved design for the current UUID
-    var uuid = localStorage.getItem(currentKey);
-    if (uuid) {
+    // Find the first design that has elements
+    for (var i = uuids.length - 1; i >= 0; i--) {
+        var uuid = uuids[i];
         var designKey = 'design_' + uuid;
         var saved = localStorage.getItem(designKey);
         if (saved) {
             try {
                 var data = JSON.parse(saved);
                 if (data.customization && data.customization.elements && data.customization.elements.length > 0) {
+                    // Set this UUID as the current one for editing
+                    var currentKey = 'current_design_' + productId;
+                    localStorage.setItem(currentKey, uuid);
+                    
                     statusIcon.classList.remove('hidden');
                     console.log('[DEBUG checkDesignStatus] Design exists for UUID:', uuid, 'showing icon');
                     return;
