@@ -40,6 +40,9 @@
         var uuid = generateDesignUUID();
         localStorage.setItem(currentKey, uuid);
     }
+    
+    // Check design status after localStorage is set
+    checkDesignStatus();
 })();
 
 function checkDesignStatus() {
