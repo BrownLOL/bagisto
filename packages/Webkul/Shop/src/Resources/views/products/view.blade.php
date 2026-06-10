@@ -800,7 +800,18 @@
                             
                             if (designData) {
                                 const storedData = JSON.parse(designData);
-                                const customization = storedData.customization;
+                                
+                                // 将 print_areas 包装成 customization 对象（兼容新旧格式）
+                                const customization = storedData.print_areas 
+                                    ? { print_areas: storedData.print_areas }
+                                    : storedData.customization;
+                                
+                                if (!customization) {
+                                    // 无有效定制数据，继续普通流程
+                                    this.isStoring[operation] = false;
+                                    this.$refs.formData.dispatchEvent(new Event('submit'));
+                                    return;
+                                }
                                 
                                 // 有定制设计，调用定制购物车 API
                                 this.$axios.post('{{ route("shop.api.checkout.cart.customization.store") }}', {
