@@ -223,7 +223,7 @@
                                                     <div class="mt-1 flex flex-wrap gap-2">
                                                         @foreach ($item->additional['customization']['print_areas'] as $index => $printArea)
                                                             @if (!empty($printArea['preview_image']))
-                                                                <div class="relative group">
+                                                                <div class="relative group cursor-pointer" onclick="showDesignPreview('{{ $printArea['preview_image'] }}')">
                                                                     <img
                                                                         src="{{ $printArea['preview_image'] }}"
                                                                         class="h-16 w-16 rounded border border-gray-300 object-cover"
@@ -984,4 +984,41 @@
             </div>
         </div>
     </div>
+
+    <!-- Design Preview Modal -->
+    <div id="designPreviewModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50">
+        <div class="relative max-w-4xl max-h-[90vh] p-4">
+            <button onclick="closeDesignPreview()" class="absolute -top-10 right-0 text-white hover:text-gray-300">
+                <span class="icon-cancel-1 text-3xl"></span>
+            </button>
+            <img id="designPreviewImage" src="" class="max-h-[85vh] max-w-full rounded-lg object-contain" alt="Design Preview" />
+        </div>
+    </div>
+
+    <script>
+        function showDesignPreview(src) {
+            document.getElementById('designPreviewImage').src = src;
+            document.getElementById('designPreviewModal').classList.remove('hidden');
+            document.getElementById('designPreviewModal').classList.add('flex');
+        }
+
+        function closeDesignPreview() {
+            document.getElementById('designPreviewModal').classList.add('hidden');
+            document.getElementById('designPreviewModal').classList.remove('flex');
+        }
+
+        // Close modal on background click
+        document.getElementById('designPreviewModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeDesignPreview();
+            }
+        });
+
+        // Close modal on Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeDesignPreview();
+            }
+        });
+    </script>
 </x-admin::layouts>
