@@ -539,6 +539,7 @@
                     });
 
                     // Update window.productImages for customization component
+                    console.log('[DEBUG media] this.name:', this.name, 'this.images.length:', this.images.length);
                     if (this.name === 'images') {
                         window.productImages = this.images.map((img, idx) => ({
                             id: img.id || 'new_' + idx,
