@@ -436,8 +436,16 @@ class Cart
                 'data_additional' => $data['additional'] ?? null,
             ]);
 
-            $compareResult = $item->getTypeInstance()->compareOptions($item->additional, $data['additional']);
-            \Log::info('Cart::getItemByProduct compareResult', ['result' => $compareResult]);
+            try {
+                $compareResult = $item->getTypeInstance()->compareOptions($item->additional, $data['additional']);
+                \Log::info('Cart::getItemByProduct compareResult', ['result' => $compareResult]);
+            } catch (\Throwable $e) {
+                \Log::error('Cart::getItemByProduct compareOptions error', [
+                    'error' => $e->getMessage(),
+                    'trace' => $e->getTraceAsString(),
+                ]);
+                throw $e;
+            }
 
             if ($compareResult) {
                 \Log::info('Cart::getItemByProduct match found');
