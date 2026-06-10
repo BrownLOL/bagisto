@@ -862,6 +862,11 @@ abstract class AbstractType
             !empty($additional['customization']['print_areas'])
         );
 
+        \Log::info('getQtyRequest hasCustomization', [
+            'additional' => $additional,
+            'has_customization' => $hasCustomization,
+        ]);
+
         if ($hasCustomization) {
             return $data;
         }
