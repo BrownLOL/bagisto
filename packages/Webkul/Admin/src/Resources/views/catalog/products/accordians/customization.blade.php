@@ -396,14 +396,9 @@
                     const width = Math.abs(endX - this.drawStartX);
                     const height = Math.abs(endY - this.drawStartY);
 
-                    // 每个图片只能有一个区域
+                    // 追加新区域
                     if (width > 1 && height > 1) {
-                        if (this.tempAreas.length === 0) {
-                            this.tempAreas.push({ x, y, width, height });
-                        } else {
-                            // 替换已有的区域
-                            this.tempAreas = [{ x, y, width, height }];
-                        }
+                        this.tempAreas.push({ x, y, width, height });
                     }
 
                     this.tempRect = null;
