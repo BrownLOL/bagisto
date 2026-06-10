@@ -3,7 +3,8 @@
 <button
     type="button"
     onclick="event.preventDefault(); openCustomizationDialog();"
-    class="secondary-button w-full mt-4 flex items-center justify-center gap-2"
+    id="customize-now-btn"
+    class="secondary-button w-full mt-4 flex items-center justify-center gap-2 hidden"
 >
     Customize Now
     <span id="design-status-icon" class="hidden">
@@ -97,8 +98,35 @@ function checkDesignStatus() {
             localStorage.setItem(currentKey, uuid);
         }
         
-        // Check design status after localStorage is set
-        checkDesignStatus();
+        // Check if product has print areas and show button
+        checkPrintAreasAndShowButton();
+    }
+    
+    function checkPrintAreasAndShowButton() {
+        var productId = window.customizationProductId;
+        
+        fetch('/customization/print-areas/' + productId)
+            .then(function(response) { return response.json(); })
+            .then(function(data) {
+                var btn = document.getElementById('customize-now-btn');
+                if (!btn) return;
+                
+                if (data.success && data.data && data.data.length > 0) {
+                    // Has print areas → show button
+                    btn.classList.remove('hidden');
+                    console.log('[DEBUG checkPrintAreas] Product has print areas, showing button');
+                } else {
+                    // No print areas → hide button
+                    btn.classList.add('hidden');
+                    console.log('[DEBUG checkPrintAreas] Product has no print areas, hiding button');
+                }
+            })
+            .catch(function(err) {
+                console.error('[DEBUG checkPrintAreas] Error:', err);
+                // On error, hide button
+                var btn = document.getElementById('customize-now-btn');
+                if (btn) btn.classList.add('hidden');
+            });
     }
     
     // Start polling
