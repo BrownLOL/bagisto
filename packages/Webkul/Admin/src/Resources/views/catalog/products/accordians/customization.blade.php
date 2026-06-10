@@ -67,14 +67,14 @@
 
                 <div v-else class="flex flex-wrap gap-1 p-4">
                     <div
-                        v-for="imageData in imagesWithAreas"
-                        :key="imageData.id"
+                        v-for="(imageData, index) in imagesWithAreas"
+                        :key="index"
                         class="group relative grid max-h-[120px] min-w-[120px] justify-items-center overflow-hidden rounded border border-gray-200 transition-all hover:border-gray-400 dark:border-gray-800"
                     >
                         <!-- Image -->
                         <img
                             :src="imageData.url"
-                            :alt="'Image ' + imageData.id"
+                            :alt="'Image ' + index"
                             class="h-[120px] w-[120px] object-cover"
                         >
                         
@@ -94,12 +94,12 @@
                             <div class="flex justify-between">
                                 <span
                                     class="icon-delete cursor-pointer rounded-md p-1.5 text-2xl hover:bg-gray-200 dark:hover:bg-gray-800"
-                                    @click.stop="deleteAreaImage(imageData.id)"
+                                    @click.stop="deleteAreaImage(index)"
                                 ></span>
 
                                 <span
                                     class="icon-edit cursor-pointer rounded-md p-1.5 text-2xl hover:bg-gray-200 dark:hover:bg-gray-800"
-                                    @click.stop="openEditDialog(imageData)"
+                                    @click.stop="openEditDialog(imageData, index)"
                                 ></span>
                             </div>
                         </div>
@@ -262,6 +262,7 @@
                     dialogSelectedImageId: '',
                     dialogSelectedImageUrl: '',
                     originalImageId: null,
+                    editingKey: null, // 当前编辑的记录索引
                     isEditMode: false,
                     imageLoaded: false,
                     isDrawing: false,
@@ -306,6 +307,7 @@
                     }
 
                     this.isEditMode = false;
+                    this.editingKey = null;
                     this.originalImageId = null;
                     this.dialogSelectedImageId = '';
                     this.dialogSelectedImageUrl = '';
@@ -314,10 +316,11 @@
                     this.$refs.printAreaModal.open();
                 },
 
-                openEditDialog(imageData) {
+                openEditDialog(imageData, index) {
                     this.isEditMode = true;
+                    this.editingKey = index; // 保存当前编辑的记录索引
                     this.originalImageId = imageData.id;
-                    this.dialogSelectedImageId = imageData.id;
+                    this.dialogSelectedImageId = imageData.image_id || imageData.id;
                     this.dialogSelectedImageUrl = imageData.url;
                     this.tempAreas = JSON.parse(JSON.stringify(imageData.areas));
                     this.imageLoaded = true;
@@ -329,25 +332,34 @@
                     this.dialogSelectedImageId = '';
                     this.dialogSelectedImageUrl = '';
                     this.originalImageId = null;
+                    this.editingKey = null;
                     this.isEditMode = false;
                     this.tempRect = null;
                     this.tempAreas = [];
                     this.imageLoaded = false;
                 },
 
-                deleteAreaImage(imageId) {
-                    if (!confirm('Delete all print areas for this image?')) {
+                deleteAreaImage(index) {
+                    const record = this.imagesWithAreas[index];
+                    if (!record) return;
+
+                    // 获取真实的 image_id（可能在新记录中是 image_id 字段）
+                    const imageId = record.image_id || record.id;
+
+                    if (!confirm('Delete this print area record?')) {
                         return;
                     }
-                    
-                    this.$axios.delete(`/admin/catalog/products/print-areas/image/${imageId}`)
-                        .then(response => {
-                            this.imagesWithAreas = this.imagesWithAreas.filter(img => img.id !== imageId);
-                        })
-                        .catch(error => {
-                            console.error('Error deleting areas:', error);
-                            alert('Error deleting areas');
-                        });
+
+                    // 如果是已有的数据库记录，调用后端删除
+                    if (!String(imageId).startsWith('new_')) {
+                        this.$axios.delete(`/admin/catalog/products/print-areas/image/${imageId}`)
+                            .catch(error => {
+                                console.error('Error deleting areas:', error);
+                            });
+                    }
+
+                    // 从列表中移除
+                    this.imagesWithAreas.splice(index, 1);
                 },
 
                 onDialogImageChange() {
@@ -460,8 +472,8 @@
                         if (response.data.success) {
                             if (this.isEditMode && this.originalImageId) {
                                 // Edit 模式：更新已有记录
-                                const imageId = parseInt(requestData.image_id);
-                                const index = this.imagesWithAreas.findIndex(img => parseInt(img.id) === imageId);
+                                const editKey = this.editingKey;
+                                const index = this.imagesWithAreas.findIndex((_, idx) => idx === editKey);
                                 if (index !== -1) {
                                     this.imagesWithAreas[index].areas = requestData.areas.map((area, idx) => ({
                                         id: Date.now() + idx,
@@ -472,13 +484,14 @@
                                     }));
                                 }
                             } else {
-                                // Add 模式：追加新记录
+                                // Add 模式：追加新记录（用时间戳作为唯一 ID）
                                 const imageId = parseInt(requestData.image_id);
                                 const imageInfo = this.allImages.find(img => parseInt(img.id) === imageId || img.id === imageId);
 
                                 if (imageInfo) {
-                                    const newArea = {
-                                        id: imageId,
+                                    const newRecord = {
+                                        id: 'new_' + Date.now(), // 唯一 ID
+                                        image_id: imageId,
                                         url: imageInfo.url,
                                         path: imageInfo.path,
                                         areas: requestData.areas.map((area, idx) => ({
@@ -489,7 +502,7 @@
                                             height: area.height
                                         }))
                                     };
-                                    this.imagesWithAreas.push(newArea);
+                                    this.imagesWithAreas.push(newRecord);
                                 }
                             }
 
