@@ -280,6 +280,11 @@ class Cart
         } else {
             $parentCartItem = null;
 
+            \Log::info('Cart::addProduct before foreach', [
+                'data_keys' => array_keys($data),
+                'data_additional' => $data['additional'] ?? null,
+            ]);
+
             foreach ($cartProducts as $index => $cartProduct) {
                 \Log::info('Cart::addProduct cartProduct', [
                     'index' => $index,
