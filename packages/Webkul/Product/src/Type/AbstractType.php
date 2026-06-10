@@ -872,6 +872,23 @@ abstract class AbstractType
             ) {
                 return false;
             }
+
+            // Compare customization field - if either has customization, they must match exactly
+            $customization1 = $options1['customization'] ?? null;
+            $customization2 = $options2['customization'] ?? null;
+
+            // If one has customization and the other doesn't, don't merge
+            if ($customization1 !== $customization2) {
+                return false;
+            }
+
+            // If both have customization, compare them
+            if ($customization1 !== null && $customization2 !== null) {
+                // Compare as JSON for deep comparison
+                if (json_encode($customization1) !== json_encode($customization2)) {
+                    return false;
+                }
+            }
         }
 
         return true;
