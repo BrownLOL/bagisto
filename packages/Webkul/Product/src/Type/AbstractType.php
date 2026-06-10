@@ -818,6 +818,9 @@ abstract class AbstractType
             ],
         ];
 
+        // DEBUG LOG
+        \Log::info('prepareForCart returning', ['additional' => $products[0]['additional']]);
+
         return $products;
     }
 
