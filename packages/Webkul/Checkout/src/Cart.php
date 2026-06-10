@@ -424,15 +424,22 @@ class Cart
             'data_keys' => array_keys($data),
             'data_additional' => $data['additional'] ?? null,
             'parentData_keys' => $parentData ? array_keys($parentData) : null,
+            'cart_items_count' => $items->count(),
+            'parentData_product_id' => $parentData['product_id'] ?? null,
         ]);
 
         foreach ($items as $item) {
             \Log::info('Cart::getItemByProduct comparing', [
+                'item_id' => $item->id,
+                'item_product_id' => $item->product_id,
                 'item_additional' => $item->additional,
                 'data_additional' => $data['additional'] ?? null,
             ]);
 
-            if ($item->getTypeInstance()->compareOptions($item->additional, $data['additional'])) {
+            $compareResult = $item->getTypeInstance()->compareOptions($item->additional, $data['additional']);
+            \Log::info('Cart::getItemByProduct compareResult', ['result' => $compareResult]);
+
+            if ($compareResult) {
                 \Log::info('Cart::getItemByProduct match found');
 
                 if (
