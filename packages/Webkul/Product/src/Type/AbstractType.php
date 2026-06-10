@@ -838,18 +838,20 @@ abstract class AbstractType
     public function getQtyRequest($data)
     {
         // DEBUG LOG
-        \Log::info('getQtyRequest', [
-            'data' => $data,
-            'has_additional' => isset($data['additional']),
+        $hasAdditionalKey = isset($data['additional']);
+        \Log::info('getQtyRequest input', [
+            'data_keys' => array_keys($data),
+            'has_additional_key' => $hasAdditionalKey,
+            'additional_content' => $hasAdditionalKey ? $data['additional'] : null,
         ]);
         
         // 当有 customization 时，不累加数量，因为每个 customization 都是独立的购物车项
-        $additional = $data['additional'] ?? $data;
+        $additional = $data['additional'] ?? null;
         
         // DEBUG LOG
-        \Log::info('getQtyRequest additional', [
-            'additional' => $additional,
-            'customization' => $additional['customization'] ?? null,
+        \Log::info('getQtyRequest check', [
+            'additional_is_array' => is_array($additional),
+            'additional_keys' => is_array($additional) ? array_keys($additional) : null,
         ]);
         
         $hasCustomization = isset($additional['customization']) && (
