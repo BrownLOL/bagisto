@@ -15,52 +15,6 @@
 
 @pushOnce('scripts')
 <script>
-(function() {
-    console.log('[DEBUG IIFE] Start');
-    
-    var el = document.getElementById('customization-product-id');
-    console.log('[DEBUG IIFE] element:', el);
-    if (el) {
-        window.customizationProductId = parseInt(el.dataset.id) || 0;
-    } else {
-        window.customizationProductId = 0;
-    }
-    console.log('[DEBUG IIFE] productId:', window.customizationProductId);
-    
-    if (!window.customizationProductId) {
-        console.log('[DEBUG IIFE] No productId, return');
-        return;
-    }
-    
-    var productId = window.customizationProductId;
-    var currentKey = 'current_design_' + productId;
-    console.log('[DEBUG IIFE] currentKey:', currentKey);
-    
-    // Check URL parameter
-    var urlParams = new URLSearchParams(window.location.search);
-    var urlUuid = urlParams.get('design_uuid');
-    console.log('[DEBUG IIFE] urlUuid:', urlUuid);
-    
-    if (urlUuid) {
-        // URL has UUID → use it
-        localStorage.setItem(currentKey, urlUuid);
-        console.log('[DEBUG IIFE] Set from URL:', urlUuid);
-    } else {
-        // No UUID in URL → generate new one
-        var uuid = generateDesignUUID();
-        localStorage.setItem(currentKey, uuid);
-        console.log('[DEBUG IIFE] Generated new UUID:', uuid);
-    }
-    
-    console.log('[DEBUG IIFE] current_design value:', localStorage.getItem(currentKey));
-    console.log('[DEBUG IIFE] Calling checkDesignStatus...');
-    
-    // Check design status after localStorage is set
-    checkDesignStatus();
-    
-    console.log('[DEBUG IIFE] Done');
-})();
-
 function checkDesignStatus() {
     var statusIcon = document.getElementById('design-status-icon');
     if (!statusIcon || !window.customizationProductId) return;
@@ -86,6 +40,36 @@ function checkDesignStatus() {
     statusIcon.classList.add('hidden');
     console.log('[DEBUG checkDesignStatus] No saved design');
 }
+
+(function() {
+    var el = document.getElementById('customization-product-id');
+    if (el) {
+        window.customizationProductId = parseInt(el.dataset.id) || 0;
+    } else {
+        window.customizationProductId = 0;
+    }
+    
+    if (!window.customizationProductId) return;
+    
+    var productId = window.customizationProductId;
+    var currentKey = 'current_design_' + productId;
+    
+    // Check URL parameter
+    var urlParams = new URLSearchParams(window.location.search);
+    var urlUuid = urlParams.get('design_uuid');
+    
+    if (urlUuid) {
+        // URL has UUID → use it
+        localStorage.setItem(currentKey, urlUuid);
+    } else {
+        // No UUID in URL → generate new one
+        var uuid = generateDesignUUID();
+        localStorage.setItem(currentKey, uuid);
+    }
+    
+    // Check design status after localStorage is set
+    checkDesignStatus();
+})();
 
 var currentCanvas = {
     elements: [],
