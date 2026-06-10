@@ -420,13 +420,14 @@
                     this.saving = true;
 
                     try {
-                        // Check if it's a new image (temporary ID)
-                        const isNewImage = this.dialogSelectedImageId.startsWith('image_');
+                        // Check if it's a new image (temporary ID) - ensure string type
+                        const imageId = String(this.dialogSelectedImageId);
+                        const isNewImage = imageId.startsWith('image_');
 
                         // Build request data
                         const requestData = {
                             product_id: this.productId,
-                            image_id: this.dialogSelectedImageId,
+                            image_id: imageId,
                             areas: this.tempAreas.map((area, index) => ({
                                 name: 'Area ' + (index + 1),
                                 x: area.x,
@@ -438,7 +439,7 @@
 
                         // For new images, we need to upload the file first
                         if (isNewImage && window.productImages) {
-                            const newImage = window.productImages.find(img => img.id === this.dialogSelectedImageId);
+                            const newImage = window.productImages.find(img => img.id === imageId);
                             if (newImage && newImage.file) {
                                 // Upload image first via FormData
                                 const formData = new FormData();
