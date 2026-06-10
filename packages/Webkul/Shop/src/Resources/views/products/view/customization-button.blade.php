@@ -25,14 +25,21 @@ function checkDesignStatus() {
     var currentUuid = localStorage.getItem(currentKey);
     
     if (currentUuid) {
-        var saved = localStorage.getItem('design_' + currentUuid);
+        var designKey = 'design_' + currentUuid;
+        var saved = localStorage.getItem(designKey);
         if (saved) {
             try {
                 var data = JSON.parse(saved);
-                if (data.customization && data.customization.elements && data.customization.elements.length > 0) {
-                    statusIcon.classList.remove('hidden');
-                    console.log('[DEBUG checkDesignStatus] Saved design found:', currentUuid);
-                    return;
+                // Check if any print_area has elements
+                if (data.print_areas && Array.isArray(data.print_areas)) {
+                    var hasElements = data.print_areas.some(function(pa) {
+                        return pa.elements && pa.elements.length > 0;
+                    });
+                    if (hasElements) {
+                        statusIcon.classList.remove('hidden');
+                        console.log('[DEBUG checkDesignStatus] Saved design found:', currentUuid);
+                        return;
+                    }
                 }
             } catch (e) {}
         }
@@ -262,43 +269,63 @@ function saveCustomization() {
         }
     }
     
-    // Prepare customization data
+    // Prepare customization data for current print area
     var uuid = getDesignUUID(); // Ensure we have a UUID
-    var customizationData = {
-        product_id: window.customizationProductId,
-        quantity: 1,
-        design_uuid: uuid,
-        customization: {
+    var productId = window.customizationProductId;
+    
+    // Get current print area record key
+    var currentRecordKey = currentCanvas.currentImageKey || 'default';
+    
+    if (uuid && elements.length > 0) {
+        var designKey = 'design_' + uuid;
+        
+        // Load existing data or create new structure
+        var existingData = null;
+        try {
+            var saved = localStorage.getItem(designKey);
+            if (saved) {
+                existingData = JSON.parse(saved);
+            }
+        } catch (e) {}
+        
+        // Initialize print_areas array
+        var printAreas = existingData && existingData.print_areas ? existingData.print_areas : [];
+        
+        // Find and update or add print area record
+        var existingIndex = printAreas.findIndex(function(pa) {
+            return pa.record_key === currentRecordKey;
+        });
+        
+        var recordData = {
             print_area_id: parseInt(printAreaId),
+            record_key: currentRecordKey,
             preview_image: previewImage,
             elements: elements
-        }
-    };
-    
-    // Save to localStorage with design_uuid key
-    if (uuid) {
-        var designKey = 'design_' + uuid;
-        var productId = window.customizationProductId;
+        };
         
-        if (elements.length > 0) {
-            // Store full design data keyed by design_uuid
-            localStorage.setItem(designKey, JSON.stringify({
-                product_id: productId,
-                customization: customizationData.customization,
-                updated_at: new Date().toISOString()
-            }));
-            
-            // Ensure UUID is in the list
-            var uuidsKey = 'design_uuids_' + productId;
-            var uuids = JSON.parse(localStorage.getItem(uuidsKey) || '[]');
-            if (!uuids.includes(uuid)) {
-                uuids.push(uuid);
-                localStorage.setItem(uuidsKey, JSON.stringify(uuids));
-            }
+        if (existingIndex >= 0) {
+            printAreas[existingIndex] = recordData;
         } else {
-            // No elements, remove the design
-            localStorage.removeItem(designKey);
+            printAreas.push(recordData);
         }
+        
+        // Store full design data with print_areas array
+        localStorage.setItem(designKey, JSON.stringify({
+            product_id: productId,
+            print_areas: printAreas,
+            updated_at: new Date().toISOString()
+        }));
+        
+        // Ensure UUID is in the list
+        var uuidsKey = 'design_uuids_' + productId;
+        var uuids = JSON.parse(localStorage.getItem(uuidsKey) || '[]');
+        if (!uuids.includes(uuid)) {
+            uuids.push(uuid);
+            localStorage.setItem(uuidsKey, JSON.stringify(uuids));
+        }
+        
+        // Also update layerStore with current elements
+        currentCanvas.layerStore[currentRecordKey] = elements;
     }
     
     closeDialog();
@@ -331,63 +358,67 @@ function loadSavedCustomization() {
         return;
     }
     
-    // Get the customization data (may be nested under 'customization' key)
-    var customization = savedData.customization || savedData;
+    // Get the print_areas array
+    var printAreas = savedData.print_areas || [];
     
-    if (!customization.elements || customization.elements.length === 0) {
-        console.log('[DEBUG loadSavedCustomization] No elements to restore');
+    if (!printAreas || printAreas.length === 0) {
+        console.log('[DEBUG loadSavedCustomization] No print areas to restore');
         return;
     }
     
-    // Get the current active print area
-    var activeTab = document.querySelector('.tab-btn.active');
-    if (activeTab && activeTab.dataset.tab !== 'product') {
-        console.log('[DEBUG loadSavedCustomization] Not on product tab, switching...');
-        var productTab = document.querySelector('[data-tab="product"]');
-        if (productTab) productTab.click();
-    }
+    // Restore all print area data to layerStore
+    printAreas.forEach(function(pa) {
+        if (pa.elements && pa.elements.length > 0) {
+            var recordKey = pa.record_key || 'default';
+            currentCanvas.layerStore[recordKey] = pa.elements;
+            console.log('[DEBUG loadSavedCustomization] Restored record:', recordKey, 'with', pa.elements.length, 'elements');
+        }
+    });
     
-    // Wait for tab switch then restore
-    setTimeout(function() {
-        // Set preview image as background
-        if (customization.preview_image) {
+    // Check if current view has saved elements
+    var currentRecordKey = currentCanvas.currentImageKey;
+    if (currentRecordKey && currentCanvas.layerStore[currentRecordKey]) {
+        var elements = currentCanvas.layerStore[currentRecordKey];
+        
+        // Get the current print area record
+        var currentPA = printAreas.find(function(pa) {
+            return pa.record_key === currentRecordKey;
+        });
+        
+        if (currentPA && currentPA.preview_image) {
             var productBg = document.querySelector('.product-bg');
             if (productBg) {
-                // Clear existing elements first to avoid accumulation
-                productBg.innerHTML = '';
-                
-                productBg.style.backgroundImage = 'url(' + customization.preview_image + ')';
+                productBg.style.backgroundImage = 'url(' + currentPA.preview_image + ')';
                 productBg.style.backgroundSize = 'contain';
                 productBg.style.backgroundRepeat = 'no-repeat';
                 productBg.style.backgroundPosition = 'center';
-                console.log('[DEBUG loadSavedCustomization] Set background:', customization.preview_image);
             }
         }
         
-        // Restore each element
-        console.log('[DEBUG loadSavedCustomization] Restoring', customization.elements.length, 'elements');
-        
-        customization.elements.forEach(function(elem, idx) {
-            console.log('[DEBUG loadSavedCustomization] Element', idx, ':', elem.type);
+        // Wait for content to be ready, then restore elements
+        setTimeout(function() {
+            elements.forEach(function(elem, idx) {
+                console.log('[DEBUG loadSavedCustomization] Element', idx, ':', elem.type);
+                
+                if (elem.type === 'text') {
+                    addTextToCanvas(elem.content, elem.styles && elem.styles.fontSize, elem.styles && elem.styles.color, elem.styles && elem.styles.fontFamily, {
+                        x: elem.x,
+                        y: elem.y,
+                        width: elem.width,
+                        height: elem.height,
+                        rotation: elem.rotation || 0,
+                        scaleX: elem.scaleX || 1,
+                        scaleY: elem.scaleY || 1,
+                        styles: elem.styles || {}
+                    });
+                } else if (elem.type === 'image') {
+                    addUploadedImage(elem.content, elem.x, elem.y, elem.width, elem.height, elem.rotation || 0, elem.scaleX || 1, elem.scaleY || 1);
+                }
+            });
             
-            if (elem.type === 'text') {
-                addTextToCanvas(elem.content, elem.styles && elem.styles.fontSize, elem.styles && elem.styles.color, elem.styles && elem.styles.fontFamily, {
-                    x: elem.x,
-                    y: elem.y,
-                    width: elem.width,
-                    height: elem.height,
-                    rotation: elem.rotation || 0,
-                    scaleX: elem.scaleX || 1,
-                    scaleY: elem.scaleY || 1,
-                    styles: elem.styles || {}
-                });
-            } else if (elem.type === 'image') {
-                addUploadedImage(elem.content, elem.x, elem.y, elem.width, elem.height, elem.rotation || 0, elem.scaleX || 1, elem.scaleY || 1);
-            }
-        });
-        
-        console.log('[DEBUG loadSavedCustomization] Done');
-    }, 200);
+            console.log('[DEBUG loadSavedCustomization] Restored', elements.length, 'elements');
+        }, 200);
+    }
 }
 
 // Add event listener for save button

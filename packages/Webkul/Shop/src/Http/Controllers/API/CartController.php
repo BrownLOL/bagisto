@@ -105,8 +105,15 @@ class CartController extends APIController
             'quantity'      => 'integer|min:1',
             'design_uuid'   => 'sometimes|string|uuid',
             'customization' => 'required|array',
-            'customization.print_area_id' => 'required|integer|exists:product_image_print_areas,id',
-            'customization.preview_image' => 'sometimes|string',
+            // Support both single print_area (legacy) and print_areas array (new)
+            'customization.print_areas'  => 'sometimes|array',
+            'customization.print_areas.*.print_area_id' => 'required_with:customization.print_areas|integer|exists:product_image_print_areas,id',
+            'customization.print_areas.*.preview_image' => 'sometimes|string',
+            'customization.print_areas.*.elements' => 'sometimes|array',
+            // Legacy single print_area support
+            'customization.print_area_id' => 'required_without:customization.print_areas|integer|exists:product_image_print_areas,id',
+            'customization.preview_image' => 'sometimes_without:customization.print_areas|string',
+            'customization.elements' => 'sometimes_without:customization.print_areas|array',
         ]);
 
         $product = $this->productRepository->with('parent')->findOrFail(request()->input('product_id'));
