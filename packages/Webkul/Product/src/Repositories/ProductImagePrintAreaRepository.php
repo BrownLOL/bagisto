@@ -41,14 +41,11 @@ class ProductImagePrintAreaRepository extends Repository
     }
 
     /**
-     * Save print areas for an image.
+     * Save print areas for an image (append mode).
      */
     public function saveForImage(int $imageId, array $areas): void
     {
-        // Delete existing areas
-        $this->model->where('product_image_id', $imageId)->delete();
-
-        // Create new areas
+        // Create new areas (keep existing ones)
         foreach ($areas as $area) {
             if (isset($area['x'], $area['y'], $area['width'], $area['height'])) {
                 $this->create([
