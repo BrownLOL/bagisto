@@ -4,11 +4,9 @@ namespace Webkul\Admin\Http\Controllers\Catalog;
 
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Webkul\Admin\Http\Controllers\Controller;
-use Webkul\Core\ImageManager;
 use Webkul\Product\Repositories\ProductImageRepository;
 use Webkul\Product\Repositories\ProductImagePrintAreaRepository;
 
@@ -113,7 +111,7 @@ class ProductCustomizationController extends Controller
 
             // 上传图片并获取存储路径
             if (Str::contains($file->getMimeType(), 'image')) {
-                $encoded = ImageManager::read($file)->encodeByExtension('webp');
+                $encoded = image_manager()->read($file)->encodeByExtension('webp');
                 $path = 'product/'.$productId.'/'.Str::random(40).'.webp';
                 Storage::put($path, (string) $encoded);
             } else {
