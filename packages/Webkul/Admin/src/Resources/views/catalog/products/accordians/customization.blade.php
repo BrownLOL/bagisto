@@ -458,7 +458,30 @@
                         const response = await this.$axios.post("{{ route('admin.catalog.products.print-areas.save') }}", requestData);
 
                         if (response.data.success) {
-                            window.location.reload();
+                            // 保存成功后，将新区域添加到列表（不刷新页面）
+                            const imageId = parseInt(requestData.image_id);
+                            const imageInfo = this.allImages.find(img => parseInt(img.id) === imageId || img.id === imageId);
+
+                            if (imageInfo) {
+                                // 构建新区域的数据
+                                const newArea = {
+                                    id: imageId,
+                                    url: imageInfo.url,
+                                    path: imageInfo.path,
+                                    areas: requestData.areas.map((area, idx) => ({
+                                        id: Date.now() + idx, // 临时 ID
+                                        x: area.x,
+                                        y: area.y,
+                                        width: area.width,
+                                        height: area.height
+                                    }))
+                                };
+
+                                // 添加到列表
+                                this.imagesWithAreas.push(newArea);
+                            }
+
+                            this.closeDialog();
                         } else {
                             alert('Error: ' + response.data.message);
                         }
