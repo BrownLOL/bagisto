@@ -280,7 +280,12 @@ class Cart
         } else {
             $parentCartItem = null;
 
-            foreach ($cartProducts as $cartProduct) {
+            foreach ($cartProducts as $index => $cartProduct) {
+                \Log::info('Cart::addProduct cartProduct', [
+                    'index' => $index,
+                    'keys' => array_keys($cartProduct),
+                    'product_id' => $cartProduct['product_id'] ?? 'missing',
+                ]);
                 $cartItem = $this->getItemByProduct($cartProduct, $data);
 
                 // If has customization (design_uuid or print_areas), don't merge - create new item
