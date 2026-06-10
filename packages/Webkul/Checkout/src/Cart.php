@@ -267,6 +267,8 @@ class Cart
             'cart_id' => $this->cart->id,
         ], $data));
 
+        \Log::info('Cart::addProduct after prepareForCart', ['cartProducts_type' => gettype($cartProducts), 'cartProducts_keys' => is_array($cartProducts) ? array_keys($cartProducts) : null]);
+        
         if (is_string($cartProducts)) {
             if (! $this->cart->all_items->count()) {
                 $this->removeCart($this->cart);
