@@ -123,11 +123,14 @@ class CartController extends APIController
                 throw new \Exception(trans('shop::app.checkout.cart.inactive-add'));
             }
 
-            // Move customization to additional for Cart::addProduct
-            $data = request()->all();
-            $data['additional'] = [
-                'customization'  => $data['customization'],
-                'design_uuid'    => $data['design_uuid'] ?? null,
+            // Build clean data for Cart::addProduct
+            $data = [
+                'product_id'  => request()->input('product_id'),
+                'quantity'    => request()->input('quantity', 1),
+                'additional'  => [
+                    'customization' => request()->input('customization'),
+                    'design_uuid'   => request()->input('design_uuid'),
+                ],
             ];
 
             $cart = Cart::addProduct($product, $data);
