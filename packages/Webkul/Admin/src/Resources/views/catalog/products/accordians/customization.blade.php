@@ -288,9 +288,9 @@
 
             computed: {
                 availableImages() {
-                    // In add mode, only show images without areas
-                    const imagesWithAreaIds = this.imagesWithAreas.map(img => img.id);
-                    return this.allImages.filter(img => !imagesWithAreaIds.includes(img.id));
+                    // Show all images, including those with existing areas
+                    // This allows re-adding areas to the same image
+                    return this.allImages;
                 }
             },
 
