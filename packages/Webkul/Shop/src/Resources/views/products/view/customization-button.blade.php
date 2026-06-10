@@ -67,8 +67,42 @@ function checkDesignStatus() {
         localStorage.setItem(currentKey, uuid);
     }
     
-    // Check design status after localStorage is set
-    checkDesignStatus();
+    // Wait for DOM to be ready, then check design status
+    function waitForElementAndInit() {
+        var el = document.getElementById('customization-product-id');
+        var statusIcon = document.getElementById('design-status-icon');
+        
+        if (!el || !statusIcon) {
+            setTimeout(waitForElementAndInit, 50);
+            return;
+        }
+        
+        window.customizationProductId = parseInt(el.dataset.id) || 0;
+        
+        if (!window.customizationProductId) return;
+        
+        var productId = window.customizationProductId;
+        var currentKey = 'current_design_' + productId;
+        
+        // Check URL parameter
+        var urlParams = new URLSearchParams(window.location.search);
+        var urlUuid = urlParams.get('design_uuid');
+        
+        if (urlUuid) {
+            // URL has UUID → use it
+            localStorage.setItem(currentKey, urlUuid);
+        } else {
+            // No UUID in URL → generate new one
+            var uuid = generateDesignUUID();
+            localStorage.setItem(currentKey, uuid);
+        }
+        
+        // Check design status after localStorage is set
+        checkDesignStatus();
+    }
+    
+    // Start polling
+    waitForElementAndInit();
 })();
 
 var currentCanvas = {
