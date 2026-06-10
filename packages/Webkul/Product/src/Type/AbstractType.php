@@ -837,8 +837,21 @@ abstract class AbstractType
      */
     public function getQtyRequest($data)
     {
+        // DEBUG LOG
+        \Log::info('getQtyRequest', [
+            'data' => $data,
+            'has_additional' => isset($data['additional']),
+        ]);
+        
         // 当有 customization 时，不累加数量，因为每个 customization 都是独立的购物车项
         $additional = $data['additional'] ?? $data;
+        
+        // DEBUG LOG
+        \Log::info('getQtyRequest additional', [
+            'additional' => $additional,
+            'customization' => $additional['customization'] ?? null,
+        ]);
+        
         $hasCustomization = isset($additional['customization']) && (
             !empty($additional['customization']['design_uuid']) ||
             !empty($additional['customization']['print_areas'])
@@ -864,6 +877,13 @@ abstract class AbstractType
      */
     public function compareOptions($options1, $options2)
     {
+        // DEBUG LOG
+        \Log::info('compareOptions', [
+            'options1' => $options1,
+            'options2' => $options2,
+            'product_id_match' => $this->product->id == $options2['product_id'],
+        ]);
+        
         if ($this->product->id != $options2['product_id']) {
             return false;
         } else {
@@ -889,8 +909,17 @@ abstract class AbstractType
             $customization1 = $options1['customization'] ?? ($options1['additional']['customization'] ?? null);
             $customization2 = $options2['customization'] ?? ($options2['additional']['customization'] ?? null);
 
+            // DEBUG LOG
+            \Log::info('compareOptions customization', [
+                'customization1' => $customization1,
+                'customization2' => $customization2,
+                'c1_type' => gettype($customization1),
+                'c2_type' => gettype($customization2),
+            ]);
+
             // If one has customization and the other doesn't, don't merge
             if ($customization1 !== $customization2) {
+                \Log::info('compareOptions: customization mismatch, not merging');
                 return false;
             }
 
