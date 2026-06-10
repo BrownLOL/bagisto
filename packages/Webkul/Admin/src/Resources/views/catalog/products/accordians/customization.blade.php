@@ -414,7 +414,11 @@
                     this.saving = true;
 
                     try {
-                        const response = await this.$axios.post("{{ route('admin.catalog.products.print-areas.save') }}", {
+                        // Check if it's a new image (temporary ID)
+                        const isNewImage = this.dialogSelectedImageId.startsWith('image_');
+
+                        // Build request data
+                        const requestData = {
                             product_id: this.productId,
                             image_id: this.dialogSelectedImageId,
                             areas: this.tempAreas.map((area, index) => ({
@@ -424,7 +428,32 @@
                                 width: area.width,
                                 height: area.height
                             }))
-                        });
+                        };
+
+                        // For new images, we need to upload the file first
+                        if (isNewImage && window.productImages) {
+                            const newImage = window.productImages.find(img => img.id === this.dialogSelectedImageId);
+                            if (newImage && newImage.file) {
+                                // Upload image first via FormData
+                                const formData = new FormData();
+                                formData.append('file', newImage.file);
+                                formData.append('product_id', this.productId);
+
+                                const uploadResponse = await this.$axios.post(
+                                    "{{ route('admin.catalog.products.images.upload') }}",
+                                    formData,
+                                    { headers: { 'Content-Type': 'multipart/form-data' } }
+                                );
+
+                                if (uploadResponse.data.success) {
+                                    requestData.image_id = uploadResponse.data.image_id;
+                                } else {
+                                    throw new Error(uploadResponse.data.message || 'Image upload failed');
+                                }
+                            }
+                        }
+
+                        const response = await this.$axios.post("{{ route('admin.catalog.products.print-areas.save') }}", requestData);
 
                         if (response.data.success) {
                             window.location.reload();

@@ -30,7 +30,7 @@ class ProductCustomizationController extends Controller
     {
         $validated = $request->validate([
             'product_id'  => 'required|integer|exists:products,id',
-            'image_id'    => 'required', // 允许临时 ID 或真实 ID
+            'image_id'    => 'required|integer|exists:product_images,id',
             'areas'       => 'required|array',
             'areas.*.name' => 'nullable|string|max:255',
             'areas.*.x'    => 'required|numeric|min:0|max:100',
@@ -40,15 +40,8 @@ class ProductCustomizationController extends Controller
         ]);
 
         try {
-            $imageId = $validated['image_id'];
-
-            // 处理临时 ID（如 "image_0"）- 先保存图片到数据库
-            if (!is_numeric($imageId)) {
-                $imageId = $this->saveTempImageAndGetId($request, $validated['product_id']);
-            }
-
             $this->printAreaRepository->saveForImage(
-                $imageId,
+                $validated['image_id'],
                 $validated['areas']
             );
 
@@ -62,44 +55,6 @@ class ProductCustomizationController extends Controller
                 'message' => 'Failed to save print areas: ' . $e->getMessage(),
             ], 500);
         }
-    }
-
-    /**
-     * Save temporary uploaded image and return the real image ID.
-     */
-    protected function saveTempImageAndGetId(Request $request, int $productId): int
-    {
-        // 从临时 ID 获取图片索引
-        $tempId = $request->input('image_id');
-        $tempIndex = (int) str_replace('image_', '', $tempId);
-
-        // 获取上传的文件
-        $file = $request->file("images.{$tempIndex}.file");
-
-        if (!$file) {
-            throw new \Exception('Image file not found for temporary ID: ' . $tempId);
-        }
-
-        // 获取 position
-        $position = $request->input("images.{$tempIndex}.position", 1);
-
-        // 上传图片并获取存储路径（参考 ProductMediaRepository::upload）
-        if (Str::contains($file->getMimeType(), 'image')) {
-            $encoded = ImageManager::read($file)->encodeByExtension('webp');
-            $path = 'product/'.$productId.'/'.Str::random(40).'.webp';
-            Storage::put($path, (string) $encoded);
-        } else {
-            $path = $file->store('product/'.$productId);
-        }
-
-        // 保存图片到数据库
-        $savedImage = $this->productImageRepository->create([
-            'product_id' => $productId,
-            'path'       => $path,
-            'position'   => $position,
-        ]);
-
-        return $savedImage->id;
     }
 
     /**
@@ -138,6 +93,54 @@ class ProductCustomizationController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to delete print areas: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Upload a product image and return its ID.
+     */
+    public function uploadImage(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'product_id' => 'required|integer|exists:products,id',
+            'file'       => 'required|file|image|max:5120',
+        ]);
+
+        try {
+            $file = $request->file('file');
+            $productId = $validated['product_id'];
+
+            // 上传图片并获取存储路径
+            if (Str::contains($file->getMimeType(), 'image')) {
+                $encoded = ImageManager::read($file)->encodeByExtension('webp');
+                $path = 'product/'.$productId.'/'.Str::random(40).'.webp';
+                Storage::put($path, (string) $encoded);
+            } else {
+                $path = $file->store('product/'.$productId);
+            }
+
+            // 获取当前最大 position
+            $maxPosition = $this->productImageRepository->where('product_id', $productId)->max('position') ?? 0;
+
+            // 保存图片到数据库
+            $savedImage = $this->productImageRepository->create([
+                'product_id' => $productId,
+                'path'       => $path,
+                'position'   => $maxPosition + 1,
+            ]);
+
+            return response()->json([
+                'success'    => true,
+                'message'    => 'Image uploaded successfully.',
+                'image_id'   => $savedImage->id,
+                'image_path' => $savedImage->path,
+                'image_url'  => url('storage/' . $savedImage->path),
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to upload image: ' . $e->getMessage(),
             ], 500);
         }
     }
