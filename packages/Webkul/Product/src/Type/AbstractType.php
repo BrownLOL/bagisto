@@ -837,6 +837,16 @@ abstract class AbstractType
      */
     public function getQtyRequest($data)
     {
+        // 当有 customization 时，不累加数量，因为每个 customization 都是独立的购物车项
+        $hasCustomization = isset($data['customization']) && (
+            !empty($data['customization']['design_uuid']) ||
+            !empty($data['customization']['print_areas'])
+        );
+
+        if ($hasCustomization) {
+            return $data;
+        }
+
         if ($item = Cart::getItemByProduct(['additional' => $data])) {
             $data['quantity'] += $item->quantity;
         }
