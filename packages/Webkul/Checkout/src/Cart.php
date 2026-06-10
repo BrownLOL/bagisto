@@ -282,9 +282,10 @@ class Cart
                 $cartItem = $this->getItemByProduct($cartProduct, $data);
 
                 // If has customization (design_uuid or print_areas), don't merge - create new item
-                $hasCustomization = isset($data['customization']) && (
-                    !empty($data['customization']['design_uuid']) ||
-                    !empty($data['customization']['print_areas'])
+                $customization = $data['additional']['customization'] ?? null;
+                $hasCustomization = $customization && (
+                    !empty($customization['design_uuid']) ||
+                    !empty($customization['print_areas'])
                 );
 
                 if (isset($cartProduct['parent_id'])) {
