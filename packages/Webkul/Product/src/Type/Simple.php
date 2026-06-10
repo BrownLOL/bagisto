@@ -394,6 +394,9 @@ class Simple extends AbstractType
         // This prevents additional from being polluted with product_id, quantity, etc.
         if (isset($data['additional'])) {
             $additional = $data['additional'];
+            
+            // DEBUG LOG
+            \Log::info('getAdditionalOptions returning additional', ['additional' => $additional]);
 
             // Add attributes if customizable_options exist
             if (! empty($data['formatted_customizable_options'])) {
