@@ -116,6 +116,9 @@ function checkDesignStatus() {
         
         // Check if product has print areas and show button
         checkPrintAreasAndShowButton();
+        
+        // Check if there's a saved design and show status icon
+        checkDesignStatus();
     }
     
     function checkPrintAreasAndShowButton() {
