@@ -512,33 +512,36 @@ function loadPrintAreas() {
 function selectProductImage(imgUrl, areaData) {
     // Save current area data
     window.currentAreaData = areaData;
-    
+
     var canvas = document.getElementById('design-canvas-inner');
-    
+
+    // 用记录ID作为key，而不是图片URL（同一图片可能有多个PrintArea记录）
+    var recordKey = areaData.id || areaData.record_id || imgUrl;
+
     if (currentCanvas.currentImageKey && currentCanvas.elements.length > 0) {
         currentCanvas.layerStore[currentCanvas.currentImageKey] = currentCanvas.elements.slice();
     }
-    
-    currentCanvas.currentImageKey = imgUrl;
-    
+
+    currentCanvas.currentImageKey = recordKey;
+
     if (currentCanvas.layerStore[currentCanvas.currentImageKey]) {
         currentCanvas.elements = currentCanvas.layerStore[currentCanvas.currentImageKey];
     } else {
         currentCanvas.elements = [];
     }
     currentCanvas.selectedElement = null;
-    
+
     document.querySelectorAll('.canvas-elem').forEach(function(e) { e.remove(); });
     document.querySelectorAll('.elem-control').forEach(function(c) { c.remove(); });
-    
+
     canvas.innerHTML = '';
     canvas.style.position = 'relative';
-    
+
     var bgImg = document.createElement('img');
     bgImg.src = imgUrl;
     bgImg.style.cssText = 'position:absolute;left:0;top:0;width:100%;height:100%;object-fit:contain;pointer-events:none;';
     canvas.appendChild(bgImg);
-    
+
     if (areaData && areaData.x !== undefined) {
         var printAreaId = 'print-area-' + (areaData.id || areaData.print_area_id || 'default');
         var printArea = document.createElement('div');
