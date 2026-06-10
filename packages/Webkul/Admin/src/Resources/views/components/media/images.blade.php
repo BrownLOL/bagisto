@@ -537,6 +537,15 @@
                             file: file
                         });
                     });
+
+                    // Update window.productImages for customization component
+                    if (this.name === 'images') {
+                        window.productImages = this.images.map((img, idx) => ({
+                            id: img.id || 'new_' + idx,
+                            url: img.url || URL.createObjectURL(img.file),
+                            file: img.file
+                        }));
+                    }
                 },
 
                 remove(image) {

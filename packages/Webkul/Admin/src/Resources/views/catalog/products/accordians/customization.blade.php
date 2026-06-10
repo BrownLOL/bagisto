@@ -296,6 +296,15 @@
 
             methods: {
                 openAddDialog() {
+                    // Sync with newly uploaded images from media.images component
+                    if (window.productImages) {
+                        this.allImages = window.productImages.map(img => ({
+                            id: img.id,
+                            url: img.url,
+                            path: img.path || img.url
+                        }));
+                    }
+
                     this.isEditMode = false;
                     this.originalImageId = null;
                     this.dialogSelectedImageId = '';
