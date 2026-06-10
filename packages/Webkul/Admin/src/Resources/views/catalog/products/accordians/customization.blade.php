@@ -233,7 +233,7 @@
                             class="cursor-pointer rounded bg-red-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-red-600"
                             @click="deleteAllAreas"
                         >
-                            Delete All
+                            Delete
                         </button>
 
                         <button
@@ -396,8 +396,14 @@
                     const width = Math.abs(endX - this.drawStartX);
                     const height = Math.abs(endY - this.drawStartY);
 
+                    // 每个图片只能有一个区域
                     if (width > 1 && height > 1) {
-                        this.tempAreas.push({ x, y, width, height });
+                        if (this.tempAreas.length === 0) {
+                            this.tempAreas.push({ x, y, width, height });
+                        } else {
+                            // 替换已有的区域
+                            this.tempAreas = [{ x, y, width, height }];
+                        }
                     }
 
                     this.tempRect = null;
