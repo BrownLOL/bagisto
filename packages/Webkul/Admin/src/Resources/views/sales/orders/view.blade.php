@@ -986,38 +986,21 @@
     </div>
 
     <!-- Design Preview Modal -->
-    <div id="designPreviewModal" style="display: none; position: fixed; inset: 0; z-index: 9999; background: rgba(0,0,0,0.5); align-items: center; justify-content: center;">
-        <div class="relative max-w-4xl max-h-[90vh] p-4">
-            <button onclick="closeDesignPreview()" class="absolute -top-10 right-0 text-white hover:text-gray-300">
-                <span class="icon-cancel-1 text-3xl"></span>
-            </button>
-            <img id="designPreviewImage" src="" class="max-h-[85vh] max-w-full rounded-lg object-contain" alt="Design Preview" />
+    <div id="designPreviewModal" onclick="closeDesignPreview()" style="display: none; position: fixed; inset: 0; z-index: 99999; background: rgba(0,0,0,0.8); cursor: pointer;">
+        <div onclick="event.stopPropagation(); return false;" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); max-width: 90vw; max-height: 90vh;">
+            <button onclick="closeDesignPreview(); return false;" style="position: absolute; top: -40px; right: 0; background: none; border: none; color: white; font-size: 28px; cursor: pointer; z-index: 100000;">&times;</button>
+            <img id="designPreviewImage" src="" style="max-width: 90vw; max-height: 85vh; display: block;" />
         </div>
     </div>
 
     <script>
         function showDesignPreview(src) {
-            var modal = document.getElementById('designPreviewModal');
             document.getElementById('designPreviewImage').src = src;
-            modal.style.display = 'flex';
+            document.getElementById('designPreviewModal').style.display = 'block';
         }
 
         function closeDesignPreview() {
             document.getElementById('designPreviewModal').style.display = 'none';
         }
-
-        // Close modal on background click
-        document.getElementById('designPreviewModal').addEventListener('click', function(e) {
-            if (e.target === this) {
-                closeDesignPreview();
-            }
-        });
-
-        // Close modal on Escape key
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape') {
-                closeDesignPreview();
-            }
-        });
     </script>
 </x-admin::layouts>
