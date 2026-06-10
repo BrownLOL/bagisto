@@ -64,6 +64,8 @@ class CartController extends APIController
 
         $product = $this->productRepository->with('parent')->findOrFail(request()->input('product_id'));
 
+        \Log::info('addCustomization before try', ['product_id' => $product->id]);
+
         try {
             if (! $product->status) {
                 throw new \Exception(trans('shop::app.checkout.cart.inactive-add'));
@@ -126,6 +128,8 @@ class CartController extends APIController
                     'design_uuid'   => request()->input('design_uuid'),
                 ],
             ];
+
+            \Log::info('addCustomization calling Cart::addProduct', ['data' => $data]);
 
             $cart = Cart::addProduct($product, $data);
 

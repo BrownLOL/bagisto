@@ -255,6 +255,8 @@ class Cart
      */
     public function addProduct(ProductContract $product, array $data): Contracts\Cart|\Exception
     {
+        \Log::info('Cart::addProduct called', ['data_keys' => array_keys($data), 'additional' => $data['additional'] ?? null]);
+        
         Event::dispatch('checkout.cart.add.before', $product->id);
 
         if (! $this->cart) {
