@@ -131,11 +131,11 @@
                             >
                                 <option value="">Choose an image...</option>
                                 <option
-                                    v-for="image in availableImages"
+                                    v-for="(image, index) in availableImages"
                                     :key="image.id"
                                     :value="image.id"
                                 >
-                                    @{{ image.id }}@{{ image.is_new ? ' (new)' : '' }}
+                                    Image @{{ index + 1 }}@{{ image.is_new ? ' (new)' : '' }}
                                 </option>
                             </select>
                         </div>
