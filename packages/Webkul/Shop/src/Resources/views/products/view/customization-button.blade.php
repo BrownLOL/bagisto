@@ -22,29 +22,6 @@
     } else {
         window.customizationProductId = 0;
     }
-    
-    // Check URL for design_uuid parameter (from cart)
-    var urlParams = new URLSearchParams(window.location.search);
-    var designUuid = urlParams.get('design_uuid');
-    
-    if (designUuid && window.customizationProductId) {
-        // Set current design from URL parameter
-        var currentKey = 'current_design_' + window.customizationProductId;
-        var uuidsKey = 'design_uuids_' + window.customizationProductId;
-        localStorage.setItem(currentKey, designUuid);
-        
-        // Add to uuids list if not exists
-        var uuids = JSON.parse(localStorage.getItem(uuidsKey) || '[]');
-        if (!uuids.includes(designUuid)) {
-            uuids.push(designUuid);
-            localStorage.setItem(uuidsKey, JSON.stringify(uuids));
-        }
-        
-        console.log('[DEBUG] Set design from URL:', designUuid);
-    }
-    
-    // Check if there's a saved design and show/hide status icon
-    checkDesignStatus();
 })();
 
 function checkDesignStatus() {
@@ -52,10 +29,12 @@ function checkDesignStatus() {
     if (!statusIcon || !window.customizationProductId) return;
     
     var productId = window.customizationProductId;
-    var currentKey = 'current_design_' + productId;
-    var uuid = localStorage.getItem(currentKey);
+    var uuidsKey = 'design_uuids_' + productId;
+    var uuids = JSON.parse(localStorage.getItem(uuidsKey) || '[]');
     
-    if (uuid) {
+    // Check if any saved design has elements
+    for (var i = uuids.length - 1; i >= 0; i--) {
+        var uuid = uuids[i];
         var designKey = 'design_' + uuid;
         var saved = localStorage.getItem(designKey);
         if (saved) {
@@ -63,7 +42,7 @@ function checkDesignStatus() {
                 var data = JSON.parse(saved);
                 if (data.customization && data.customization.elements && data.customization.elements.length > 0) {
                     statusIcon.classList.remove('hidden');
-                    console.log('[DEBUG checkDesignStatus] Current design exists:', uuid);
+                    console.log('[DEBUG checkDesignStatus] Saved design found:', uuid);
                     return;
                 }
             } catch (e) {}
@@ -71,7 +50,7 @@ function checkDesignStatus() {
     }
     
     statusIcon.classList.add('hidden');
-    console.log('[DEBUG checkDesignStatus] No current design');
+    console.log('[DEBUG checkDesignStatus] No saved design');
 }
 
 var currentCanvas = {
@@ -95,27 +74,21 @@ function getDesignUUID() {
     if (!window.customizationProductId) return null;
     
     var productId = window.customizationProductId;
-    var currentKey = 'current_design_' + productId;
     
-    // Check if there's a current design UUID
-    var uuid = localStorage.getItem(currentKey);
+    // 1. Check URL parameter (from cart)
+    var urlParams = new URLSearchParams(window.location.search);
+    var urlUuid = urlParams.get('design_uuid');
     
-    if (!uuid) {
-        // Generate new UUID and set as current
-        uuid = generateDesignUUID();
-        localStorage.setItem(currentKey, uuid);
-        
-        // Add to the list of design UUIDs for this product
-        var uuidsKey = 'design_uuids_' + productId;
-        var uuids = JSON.parse(localStorage.getItem(uuidsKey) || '[]');
-        uuids.push(uuid);
-        localStorage.setItem(uuidsKey, JSON.stringify(uuids));
-        
-        console.log('[DEBUG getDesignUUID] Generated new UUID:', uuid);
-    } else {
-        console.log('[DEBUG getDesignUUID] Using existing UUID:', uuid);
+    if (urlUuid && localStorage.getItem('design_' + urlUuid)) {
+        // URL has valid UUID → use it
+        window.designUUID = urlUuid;
+        console.log('[DEBUG getDesignUUID] Using UUID from URL:', urlUuid);
+        return urlUuid;
     }
     
+    // 2. No valid UUID → generate new one
+    var uuid = generateDesignUUID();
+    console.log('[DEBUG getDesignUUID] Generated new UUID:', uuid);
     return uuid;
 }
 
