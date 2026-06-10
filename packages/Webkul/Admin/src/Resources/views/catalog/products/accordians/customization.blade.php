@@ -408,9 +408,9 @@
                     const width = Math.abs(endX - this.drawStartX);
                     const height = Math.abs(endY - this.drawStartY);
 
-                    // 追加新区域
+                    // 只能有一个区域，画新区域会替换旧区域
                     if (width > 1 && height > 1) {
-                        this.tempAreas.push({ x, y, width, height });
+                        this.tempAreas = [{ x, y, width, height }];
                     }
 
                     this.tempRect = null;
