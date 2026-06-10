@@ -14,6 +14,15 @@
     </span>
 </button>
 
+@pushOnce('styles')
+<style>
+.product-image-item.selected {
+    border-color: #3b82f6 !important;
+    background-color: rgba(59, 130, 246, 0.1);
+}
+</style>
+@endpushOnce
+
 @pushOnce('scripts')
 <script>
 function checkDesignStatus() {
@@ -526,8 +535,10 @@ function loadPrintAreas() {
                 
                 data.data.forEach(function(item) {
                     var imgUrl = item.image_url || item.url || '';
+                    var recordKey = item.id || item.record_id || imgUrl;
                     var div = document.createElement('div');
-                    div.className = 'cursor-pointer border-2 border-gray-300 rounded p-1 hover:border-blue-500';
+                    div.className = 'product-image-item cursor-pointer border-2 border-gray-300 rounded p-1 hover:border-blue-500';
+                    div.setAttribute('data-record-key', recordKey);
                     div.style.cssText = 'width: 100%; aspect-ratio: 1; object-fit: contain;';
                     div.innerHTML = '<img src="' + imgUrl + '" class="w-full h-full object-contain" />';
                     div.onclick = function() { selectProductImage(imgUrl, item); };
@@ -564,6 +575,15 @@ function selectProductImage(imgUrl, areaData) {
 
     document.querySelectorAll('.canvas-elem').forEach(function(e) { e.remove(); });
     document.querySelectorAll('.elem-control').forEach(function(c) { c.remove(); });
+
+    // Update image selection visual state
+    document.querySelectorAll('.product-image-item').forEach(function(item) {
+        item.classList.remove('selected');
+    });
+    var selectedItem = document.querySelector('.product-image-item[data-record-key="' + recordKey + '"]');
+    if (selectedItem) {
+        selectedItem.classList.add('selected');
+    }
 
     canvas.innerHTML = '';
     canvas.style.position = 'relative';
