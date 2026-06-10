@@ -458,27 +458,39 @@
                         const response = await this.$axios.post("{{ route('admin.catalog.products.print-areas.save') }}", requestData);
 
                         if (response.data.success) {
-                            // 保存成功后，将新区域添加到列表（不刷新页面）
-                            const imageId = parseInt(requestData.image_id);
-                            const imageInfo = this.allImages.find(img => parseInt(img.id) === imageId || img.id === imageId);
-
-                            if (imageInfo) {
-                                // 构建新区域的数据
-                                const newArea = {
-                                    id: imageId,
-                                    url: imageInfo.url,
-                                    path: imageInfo.path,
-                                    areas: requestData.areas.map((area, idx) => ({
-                                        id: Date.now() + idx, // 临时 ID
+                            if (this.isEditMode && this.originalImageId) {
+                                // Edit 模式：更新已有记录
+                                const imageId = parseInt(requestData.image_id);
+                                const index = this.imagesWithAreas.findIndex(img => parseInt(img.id) === imageId);
+                                if (index !== -1) {
+                                    this.imagesWithAreas[index].areas = requestData.areas.map((area, idx) => ({
+                                        id: Date.now() + idx,
                                         x: area.x,
                                         y: area.y,
                                         width: area.width,
                                         height: area.height
-                                    }))
-                                };
+                                    }));
+                                }
+                            } else {
+                                // Add 模式：追加新记录
+                                const imageId = parseInt(requestData.image_id);
+                                const imageInfo = this.allImages.find(img => parseInt(img.id) === imageId || img.id === imageId);
 
-                                // 添加到列表
-                                this.imagesWithAreas.push(newArea);
+                                if (imageInfo) {
+                                    const newArea = {
+                                        id: imageId,
+                                        url: imageInfo.url,
+                                        path: imageInfo.path,
+                                        areas: requestData.areas.map((area, idx) => ({
+                                            id: Date.now() + idx,
+                                            x: area.x,
+                                            y: area.y,
+                                            width: area.width,
+                                            height: area.height
+                                        }))
+                                    };
+                                    this.imagesWithAreas.push(newArea);
+                                }
                             }
 
                             this.closeDialog();
