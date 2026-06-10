@@ -986,7 +986,7 @@
     </div>
 
     <!-- Design Preview Modal -->
-    <div id="designPreviewModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50">
+    <div id="designPreviewModal" style="display: none; position: fixed; inset: 0; z-index: 9999; background: rgba(0,0,0,0.5); align-items: center; justify-content: center;">
         <div class="relative max-w-4xl max-h-[90vh] p-4">
             <button onclick="closeDesignPreview()" class="absolute -top-10 right-0 text-white hover:text-gray-300">
                 <span class="icon-cancel-1 text-3xl"></span>
@@ -997,14 +997,13 @@
 
     <script>
         function showDesignPreview(src) {
+            var modal = document.getElementById('designPreviewModal');
             document.getElementById('designPreviewImage').src = src;
-            document.getElementById('designPreviewModal').classList.remove('hidden');
-            document.getElementById('designPreviewModal').classList.add('flex');
+            modal.style.display = 'flex';
         }
 
         function closeDesignPreview() {
-            document.getElementById('designPreviewModal').classList.add('hidden');
-            document.getElementById('designPreviewModal').classList.remove('flex');
+            document.getElementById('designPreviewModal').style.display = 'none';
         }
 
         // Close modal on background click
