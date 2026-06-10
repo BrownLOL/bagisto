@@ -384,18 +384,50 @@ class Simple extends AbstractType
      */
     public function getAdditionalOptions($data)
     {
+        // Only keep 'additional' field if it exists (for customization)
+        // This prevents additional from being polluted with product_id, quantity, etc.
+        if (isset($data['additional'])) {
+            $additional = $data['additional'];
+
+            // Add attributes if customizable_options exist
+            if (! empty($data['formatted_customizable_options'])) {
+                $additional['attributes'] = [];
+
+                foreach ($data['formatted_customizable_options'] as $option) {
+                    if (in_array($option['type'], ['checkbox', 'multiselect'])) {
+                        $additional['attributes'][] = [
+                            'attribute_type' => $option['type'],
+                            'attribute_name' => $option['label'][app()->getLocale()] ?? $option['label'][app()->getFallbackLocale()],
+                            'option_label' => collect($option['prices'])->pluck('label')->join(', ', ' and '),
+                        ];
+                    } else {
+                        $additional['attributes'][] = [
+                            'attribute_type' => $option['type'],
+                            'attribute_name' => $option['label'][app()->getLocale()] ?? $option['label'][app()->getFallbackLocale()],
+                            'option_label' => $option['prices'][0]['label'],
+                        ];
+                    }
+                }
+            }
+
+            return $additional;
+        }
+
+        // No additional field, return filtered data for other use cases
+        $result = [];
+
         if (! empty($data['formatted_customizable_options'])) {
-            $data['attributes'] = [];
+            $result['attributes'] = [];
 
             foreach ($data['formatted_customizable_options'] as $option) {
                 if (in_array($option['type'], ['checkbox', 'multiselect'])) {
-                    $data['attributes'][] = [
+                    $result['attributes'][] = [
                         'attribute_type' => $option['type'],
                         'attribute_name' => $option['label'][app()->getLocale()] ?? $option['label'][app()->getFallbackLocale()],
                         'option_label' => collect($option['prices'])->pluck('label')->join(', ', ' and '),
                     ];
                 } else {
-                    $data['attributes'][] = [
+                    $result['attributes'][] = [
                         'attribute_type' => $option['type'],
                         'attribute_name' => $option['label'][app()->getLocale()] ?? $option['label'][app()->getFallbackLocale()],
                         'option_label' => $option['prices'][0]['label'],
@@ -404,7 +436,7 @@ class Simple extends AbstractType
             }
         }
 
-        return $data;
+        return $result;
     }
 
     /**
