@@ -838,9 +838,10 @@ abstract class AbstractType
     public function getQtyRequest($data)
     {
         // 当有 customization 时，不累加数量，因为每个 customization 都是独立的购物车项
-        $hasCustomization = isset($data['customization']) && (
-            !empty($data['customization']['design_uuid']) ||
-            !empty($data['customization']['print_areas'])
+        $additional = $data['additional'] ?? $data;
+        $hasCustomization = isset($additional['customization']) && (
+            !empty($additional['customization']['design_uuid']) ||
+            !empty($additional['customization']['print_areas'])
         );
 
         if ($hasCustomization) {
@@ -884,8 +885,9 @@ abstract class AbstractType
             }
 
             // Compare customization field - if either has customization, they must match exactly
-            $customization1 = $options1['customization'] ?? null;
-            $customization2 = $options2['customization'] ?? null;
+            // Check both direct and nested (in additional) locations for backward compatibility
+            $customization1 = $options1['customization'] ?? ($options1['additional']['customization'] ?? null);
+            $customization2 = $options2['customization'] ?? ($options2['additional']['customization'] ?? null);
 
             // If one has customization and the other doesn't, don't merge
             if ($customization1 !== $customization2) {
