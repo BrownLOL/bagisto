@@ -286,7 +286,8 @@ class Cart
                     'keys' => array_keys($cartProduct),
                     'product_id' => $cartProduct['product_id'] ?? 'missing',
                 ]);
-                $cartItem = $this->getItemByProduct($cartProduct, $data);
+                // Pass additional as first param and parent data (with product_id) as second param
+                $cartItem = $this->getItemByProduct($data['additional'] ?? [], $data);
 
                 // If has customization (design_uuid or print_areas), don't merge - create new item
                 $customization = $data['additional']['customization'] ?? null;
