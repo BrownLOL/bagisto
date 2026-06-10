@@ -135,7 +135,7 @@
                                     :key="image.id"
                                     :value="image.id"
                                 >
-                                    @{{ image.path && !image.path.startsWith('blob:') ? image.id + ' - ' + image.path : image.id }}@{{ image.is_new ? ' (new)' : '' }}
+                                    @{{ image.id }}@{{ image.is_new ? ' (new)' : '' }}
                                 </option>
                             </select>
                         </div>
