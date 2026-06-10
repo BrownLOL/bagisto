@@ -34,6 +34,18 @@ class SmartButtonController extends Controller
     public function createOrder()
     {
         try {
+            $cart = Cart::getCart();
+            
+            // Debug: Log cart data
+            \Log::info('PayPal Cart Debug', [
+                'sub_total' => $cart->sub_total,
+                'tax_total' => $cart->tax_total,
+                'discount_amount' => $cart->discount_amount,
+                'cart_currency_code' => $cart->cart_currency_code,
+                'shipping_price' => $cart->selected_shipping_rate ? $cart->selected_shipping_rate->price : 0,
+                'items_count' => $cart->items->count(),
+            ]);
+            
             $order = $this->smartButton->createOrder($this->buildRequestBody());
 
             return response()->json(['result' => $order]);
