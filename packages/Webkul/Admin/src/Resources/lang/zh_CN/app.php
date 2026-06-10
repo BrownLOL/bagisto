@@ -473,6 +473,7 @@ return [
                 'shipping-price' => '配送费用',
                 'sku' => 'SKU - :sku',
                 'status' => '状态',
+                'customization-design' => '定制设计 (:count)',
                 'sub-total' => '小计 - :sub_total',
                 'sub-total-excl-tax' => '小计（不含税） - :sub_total',
                 'sub-total-incl-tax' => '小计（含税） - :sub_total',

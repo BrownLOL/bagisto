@@ -473,6 +473,7 @@ return [
                 'shipping-price' => 'Shipping Price',
                 'sku' => 'SKU - :sku',
                 'status' => 'Status',
+                'customization-design' => 'Customization Design (:count)',
                 'sub-total' => 'Sub Total - :sub_total',
                 'sub-total-excl-tax' => 'Sub Total (Excl. Tax) - :sub_total',
                 'sub-total-incl-tax' => 'Sub Total (Incl. Tax) - :sub_total',

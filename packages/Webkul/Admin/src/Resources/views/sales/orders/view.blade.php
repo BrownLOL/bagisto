@@ -214,6 +214,31 @@
                                                 @endforeach
                                             @endif
 
+                                            {{-- Customization Design Preview --}}
+                                            @if (isset($item->additional['customization']['print_areas']))
+                                                <div class="mt-2">
+                                                    <p class="text-sm font-semibold text-gray-800 dark:text-white">
+                                                        @lang('admin::app.sales.orders.view.customization-design', ['count' => count($item->additional['customization']['print_areas'])])
+                                                    </p>
+                                                    <div class="mt-1 flex flex-wrap gap-2">
+                                                        @foreach ($item->additional['customization']['print_areas'] as $index => $printArea)
+                                                            @if (!empty($printArea['preview_image']))
+                                                                <div class="relative group">
+                                                                    <img
+                                                                        src="{{ $printArea['preview_image'] }}"
+                                                                        class="h-16 w-16 rounded border border-gray-300 object-cover"
+                                                                        alt="Design {{ $index + 1 }}"
+                                                                    />
+                                                                    <span class="absolute -bottom-1 -right-1 rounded-full bg-darkPink px-1.5 text-xs text-white">
+                                                                        {{ $index + 1 }}
+                                                                    </span>
+                                                                </div>
+                                                            @endif
+                                                        @endforeach
+                                                    </div>
+                                                </div>
+                                            @endif
+
                                             <p class="text-gray-600 dark:text-gray-300">
                                                 @lang('admin::app.sales.orders.view.sku', ['sku' => $item->getTypeInstance()->getOrderedItem($item)->sku ])
                                             </p>
