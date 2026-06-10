@@ -279,11 +279,17 @@ class Cart
             foreach ($cartProducts as $cartProduct) {
                 $cartItem = $this->getItemByProduct($cartProduct, $data);
 
+                // If has customization (design_uuid or print_areas), don't merge - create new item
+                $hasCustomization = isset($data['customization']) && (
+                    !empty($data['customization']['design_uuid']) ||
+                    !empty($data['customization']['print_areas'])
+                );
+
                 if (isset($cartProduct['parent_id'])) {
                     $cartProduct['parent_id'] = $parentCartItem->id;
                 }
 
-                if (! $cartItem) {
+                if (! $cartItem || $hasCustomization) {
                     $cartItem = $this->cartItemRepository->create(array_merge($cartProduct, ['cart_id' => $this->cart->id]));
                 } else {
                     if (
