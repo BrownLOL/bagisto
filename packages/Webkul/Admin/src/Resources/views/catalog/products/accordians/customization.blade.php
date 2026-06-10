@@ -9,25 +9,27 @@
         ];
     })->toArray();
 
-    $imagesWithAreas = [];
-    foreach ($product->images as $image) {
-        if ($image->printAreas->count() > 0) {
-            $imagesWithAreas[] = [
-                'id' => $image->id,
-                'path' => $image->path,
-                'url' => url('storage/' . $image->path),
-                'areas' => $image->printAreas->map(function($area) {
-                    return [
-                        'id' => $area->id,
-                        'x' => $area->x,
-                        'y' => $area->y,
-                        'width' => $area->width,
-                        'height' => $area->height,
-                    ];
-                })->toArray(),
-            ];
-        }
-    }
+    // 每条 PrintArea 记录作为独立记录返回
+    $printAreas = \Webkul\Product\Models\ProductImagePrintArea::whereHas('productImage', function($q) use ($product) {
+        $q->where('product_id', $product->id);
+    })->where('is_active', true)->with('productImage')->get();
+
+    $imagesWithAreas = $printAreas->map(function($area) {
+        $image = $area->productImage;
+        return [
+            'id' => 'record_' . $area->id,
+            'image_id' => $image->id,
+            'url' => url('storage/' . $image->path),
+            'path' => $image->path,
+            'areas' => [[
+                'id' => $area->id,
+                'x' => $area->x,
+                'y' => $area->y,
+                'width' => $area->width,
+                'height' => $area->height,
+            ]],
+        ];
+    })->toArray();
 @endphp
 
 @pushOnce('scripts')
