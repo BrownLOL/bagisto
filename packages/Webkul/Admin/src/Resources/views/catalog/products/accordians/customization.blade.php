@@ -357,6 +357,24 @@
 
                 onDialogImageChange() {
                     this.tempAreas = [];
+                    
+                    // Try to get URL from DOM first (for newly uploaded images)
+                    const selectedRadio = document.querySelector(`input[name="images[]"][value="${this.dialogSelectedImageId}"]`);
+                    if (selectedRadio) {
+                        const imageContainer = selectedRadio.closest('.image-item');
+                        if (imageContainer) {
+                            const img = imageContainer.querySelector('img');
+                            if (img && img.src) {
+                                // Only use if it's a valid URL (not blob)
+                                if (!img.src.startsWith('blob:') && !img.src.startsWith('data:')) {
+                                    this.dialogSelectedImageUrl = img.src;
+                                    return;
+                                }
+                            }
+                        }
+                    }
+                    
+                    // Fallback to allImages data
                     const image = this.allImages.find(img => img.id == this.dialogSelectedImageId);
                     this.dialogSelectedImageUrl = image ? image.url : '';
                 },
