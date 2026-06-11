@@ -22,6 +22,14 @@
         :uploaded-images="$product->images"
     />
 
+    <!-- Hidden input to track uploaded image IDs from API -->
+    <input
+        type="hidden"
+        name="images[uploaded_ids]"
+        id="uploaded_image_ids"
+        value=""
+    />
+
     <x-admin::form.control-group.error control-name='images.files[0]' />
 </div>
 

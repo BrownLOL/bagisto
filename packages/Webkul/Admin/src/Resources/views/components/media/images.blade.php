@@ -558,6 +558,16 @@
                                     imageObj.path = response.data.image_path;
                                     imageObj.uploading = false;
                                     
+                                    // Update hidden input for form submission
+                                    const hiddenInput = document.getElementById('uploaded_image_ids');
+                                    if (hiddenInput) {
+                                        const existingIds = hiddenInput.value ? hiddenInput.value.split(',') : [];
+                                        if (!existingIds.includes(String(response.data.image_id))) {
+                                            existingIds.push(response.data.image_id);
+                                            hiddenInput.value = existingIds.join(',');
+                                        }
+                                    }
+                                    
                                     // Update window.productImages for customization component
                                     window.productImages = this.images.map((img, idx) => ({
                                         id: img.id || 'new_' + idx,

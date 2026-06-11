@@ -82,7 +82,18 @@ class ProductMediaRepository extends Repository
             }
         }
 
+        // Get uploaded IDs from API (these should NOT be deleted)
+        $uploadedIds = [];
+        if (! empty($data[$uploadFileType]['uploaded_ids'])) {
+            $uploadedIds = array_map('intval', explode(',', $data[$uploadFileType]['uploaded_ids']));
+        }
+
         foreach ($previousIds as $indexOrModelId) {
+            // Skip if this image was uploaded via API
+            if (in_array($indexOrModelId, $uploadedIds)) {
+                continue;
+            }
+
             if (! $model = $this->find($indexOrModelId)) {
                 continue;
             }
