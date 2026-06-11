@@ -677,6 +677,8 @@ function loadSavedCustomization() {
             });
             
             console.log('[DEBUG loadSavedCustomization] Restored', elements.length, 'elements');
+            // Update preview after elements are created
+            updatePreview();
         }, 200);
     }
 }
@@ -768,6 +770,12 @@ function updatePreview() {
     // Clone the inner canvas content with fixed 250x250 dimensions
     var clone = inner.cloneNode(true);
     clone.style.cssText = 'position: relative; width: 250px; height: 250px; flex-shrink: 0;';
+    
+    // Remove borders from print areas and canvas wrapper in preview
+    clone.querySelectorAll('[style*="border"]').forEach(function(elem) {
+        elem.style.border = 'none';
+    });
+    
     clone.querySelectorAll('.canvas-elem').forEach(function(elem) {
         elem.style.pointerEvents = 'none';
     });
