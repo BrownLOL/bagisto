@@ -457,6 +457,31 @@ class Simple extends AbstractType
      */
     public function compareOptions($options1, $options2)
     {
+        // Handle null options2 - this happens when adding customized products
+        if ($options2 === null) {
+            return $options1 === null || empty($options1);
+        }
+        
+        // Extract customization from options2 (may be direct or wrapped in additional)
+        $customization2 = isset($options2['additional']) 
+            ? ($options2['additional']['customization'] ?? null)
+            : ($options2['customization'] ?? null);
+        
+        // If new product has customization, never merge with existing cart items
+        if ($customization2 !== null) {
+            return false;
+        }
+        
+        // Extract customization from options1 (cart item)
+        $customization1 = isset($options1['additional']) 
+            ? ($options1['additional']['customization'] ?? null)
+            : ($options1['customization'] ?? null);
+        
+        // If existing cart item has customization but new product doesn't, don't merge
+        if ($customization1 !== null) {
+            return false;
+        }
+        
         if (
             isset($options1['customizable_options'])
             && isset($options2['customizable_options'])
@@ -481,7 +506,7 @@ class Simple extends AbstractType
             ! isset($options1['customizable_options'])
             && ! isset($options2['customizable_options'])
         ) {
-            return $this->product->id == $options2['product_id'];
+            return $this->product->id == ($options2['product_id'] ?? null);
         }
 
         return false;
