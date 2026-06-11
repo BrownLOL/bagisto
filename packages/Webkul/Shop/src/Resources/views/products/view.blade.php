@@ -27,11 +27,17 @@
         </script>
     @endif
 
-    <?php $productBaseImage = product_image()->getProductBaseImage($product); ?>
+    <?php 
+        $productBaseImage = product_image()->getProductBaseImage($product);
+        // Get original storage URL instead of cache URL (cache might not exist)
+        $productBaseImagePath = $product?->images?->first()?->path ?? null;
+        $productBaseStorageUrl = $productBaseImagePath ? url('storage/' . $productBaseImagePath) : null;
+    ?>
     
     <script>
         // Store product base image URL for preview generation
-        window.productBaseImageUrl = "{{ $productBaseImage['medium_image_url'] }}";
+        // Use storage URL (original image) instead of cache URL (might not exist)
+        window.productBaseImageUrl = "{{ $productBaseStorageUrl ?? $productBaseImage['medium_image_url'] }}";
     </script>
     
     <meta name="twitter:card" content="summary_large_image" />
