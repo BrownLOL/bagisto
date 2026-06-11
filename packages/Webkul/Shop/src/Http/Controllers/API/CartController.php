@@ -102,7 +102,18 @@ class CartController extends APIController
      */
     public function addCustomization()
     {
-        \Log::info('addCustomization received data', request()->all());
+        $requestData = request()->all();
+        \Log::info('addCustomization received data', $requestData);
+        
+        // Debug: check if preview_image exists
+        if (isset($requestData['customization']['print_areas'])) {
+            foreach ($requestData['customization']['print_areas'] as $index => $pa) {
+                \Log::info("print_area[$index] preview_image", [
+                    'has_preview_image' => isset($pa['preview_image']),
+                    'preview_image' => $pa['preview_image'] ?? 'NOT SET'
+                ]);
+            }
+        }
 
         $this->validate(request(), [
             'product_id'    => 'required|integer|exists:products,id',
@@ -132,6 +143,14 @@ class CartController extends APIController
             \Log::info('addCustomization calling Cart::addProduct', ['data' => $data]);
 
             $cart = Cart::addProduct($product, $data);
+            
+            // Debug: check the cart item's additional data
+            if ($cart && $cart->items->isNotEmpty()) {
+                $lastItem = $cart->items->last();
+                \Log::info('Cart item additional', [
+                    'additional' => $lastItem->additional,
+                ]);
+            }
 
             return new JsonResource([
                 'data'    => new CartResource($cart),

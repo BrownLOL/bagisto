@@ -986,6 +986,8 @@
                                         }
                                     }
                                     
+                                    console.log('[DEBUG addToCart] Sending customization data:', JSON.stringify(customization));
+                                    
                                     // 有定制设计，调用定制购物车 API
                                     this.$axios.post('{{ route("shop.api.checkout.cart.customization.store") }}', {
                                             product_id: productId,
@@ -994,6 +996,7 @@
                                             customization: customization
                                         })
                                         .then(response => {
+                                            console.log('[DEBUG addToCart] Server response:', response.data);
                                             if (response.data.message) {
                                                 this.$emitter.emit('update-mini-cart', response.data.data);
 
