@@ -784,6 +784,128 @@
                 },
 
                 methods: {
+                    async generateAndUploadPreview(designUUID) {
+                        // Get design data from localStorage
+                        const designDataKey = 'design_' + designUUID;
+                        const designData = localStorage.getItem(designDataKey);
+                        
+                        if (!designData) return null;
+                        
+                        const storedData = JSON.parse(designData);
+                        const printAreas = storedData.print_areas || [];
+                        
+                        if (!printAreas.length) return null;
+                        
+                        // Get the first print area
+                        const firstPA = printAreas[0];
+                        if (!firstPA.elements || !firstPA.elements.length) return null;
+                        
+                        // Get the product image URL from window
+                        const productId = "{{ $product->id }}";
+                        let productImageUrl = '';
+                        
+                        // Try to get from window.productImages
+                        if (window.productImages && window.productImages.length > 0) {
+                            productImageUrl = window.productImages[0].url || window.productImages[0].image_url;
+                        }
+                        
+                        if (!productImageUrl) {
+                            console.warn('generateAndUploadPreview: No product image URL found');
+                            return null;
+                        }
+                        
+                        console.log('generateAndUploadPreview: Starting with product image:', productImageUrl.substring(0, 80));
+                        
+                        try {
+                            // Load background image
+                            const bgImg = await this.loadImage(productImageUrl);
+                            console.log('generateAndUploadPreview: bgImg loaded, size:', bgImg.width, 'x', bgImg.height);
+                            
+                            // Create canvas
+                            const canvas = document.createElement('canvas');
+                            canvas.width = bgImg.width;
+                            canvas.height = bgImg.height;
+                            const ctx = canvas.getContext('2d');
+                            
+                            // Draw background
+                            ctx.drawImage(bgImg, 0, 0);
+                            
+                            // Draw each element
+                            const loadPromises = [];
+                            
+                            for (const elem of firstPA.elements) {
+                                const capturedElem = elem; // Capture to avoid closure issues
+                                
+                                if (capturedElem.type === 'text') {
+                                    // Draw text
+                                    ctx.save();
+                                    const x = (capturedElem.x / 100) * bgImg.width;
+                                    const y = (capturedElem.y / 100) * bgImg.height;
+                                    ctx.font = `${capturedElem.styles?.fontSize || 24}px ${capturedElem.styles?.fontFamily || 'Arial'}`;
+                                    ctx.fillStyle = capturedElem.styles?.color || '#000000';
+                                    ctx.fillText(capturedElem.content, x, y);
+                                    ctx.restore();
+                                } else if (capturedElem.type === 'image') {
+                                    // Draw image
+                                    const loadPromise = this.loadImage(capturedElem.content).then(img => {
+                                        const x = (capturedElem.x / 100) * bgImg.width;
+                                        const y = (capturedElem.y / 100) * bgImg.height;
+                                        const w = ((capturedElem.width || 80) / 100) * bgImg.width * (capturedElem.scaleX || 1);
+                                        const h = ((capturedElem.height || 60) / 100) * bgImg.height * (capturedElem.scaleY || 1);
+                                        
+                                        ctx.save();
+                                        if (capturedElem.rotation) {
+                                            const centerX = x + w / 2;
+                                            const centerY = y + h / 2;
+                                            ctx.translate(centerX, centerY);
+                                            ctx.rotate((capturedElem.rotation * Math.PI) / 180);
+                                            ctx.translate(-centerX, -centerY);
+                                        }
+                                        ctx.drawImage(img, x, y, w, h);
+                                        ctx.restore();
+                                    });
+                                    loadPromises.push(loadPromise);
+                                }
+                            }
+                            
+                            // Wait for all images to load
+                            await Promise.all(loadPromises);
+                            
+                            // Get data URL
+                            const dataUrl = canvas.toDataURL('image/png');
+                            console.log('generateAndUploadPreview: Preview generated, length:', dataUrl.length);
+                            
+                            // Upload to server
+                            const response = await this.$axios.post('{{ route("shop.customization.upload-preview") }}', {
+                                image: dataUrl
+                            }, {
+                                headers: {
+                                    'Content-Type': 'multipart/form-data',
+                                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content
+                                }
+                            });
+                            
+                            if (response.data.success) {
+                                console.log('generateAndUploadPreview: Uploaded, URL:', response.data.url);
+                                return response.data.url;
+                            }
+                        } catch (error) {
+                            console.error('generateAndUploadPreview error:', error);
+                        }
+                        
+                        return null;
+                    },
+                    
+                    loadImage(src) {
+                        return new Promise((resolve, reject) => {
+                            const img = new Image();
+                            img.crossOrigin = 'anonymous';
+                            img.onload = () => resolve(img);
+                            img.onerror = reject;
+                            img.src = src;
+                        });
+                    },
+                    
                     addToCart(params) {
                         const operation = this.is_buy_now ? 'buyNow' : 'addToCart';
 
@@ -813,33 +935,45 @@
                                     return;
                                 }
                                 
-                                // 有定制设计，调用定制购物车 API
-                                this.$axios.post('{{ route("shop.api.checkout.cart.customization.store") }}', {
-                                        product_id: productId,
-                                        quantity: 1,
-                                        design_uuid: designUUID,
-                                        customization: customization
-                                    })
-                                    .then(response => {
-                                        if (response.data.message) {
-                                            this.$emitter.emit('update-mini-cart', response.data.data);
-
-                                            this.$emitter.emit('add-flash', { type: 'success', message: response.data.message });
-
-                                            if (response.data.redirect) {
-                                                window.location.href = response.data.redirect;
-                                            }
-                                        } else {
-                                            this.$emitter.emit('add-flash', { type: 'warning', message: response.data.data.message });
+                                // 生成并上传预览图
+                                this.generateAndUploadPreview(designUUID).then(previewUrl => {
+                                    if (previewUrl) {
+                                        // Add preview_image to each print_area (admin expects it there)
+                                        if (customization.print_areas) {
+                                            customization.print_areas.forEach(pa => {
+                                                pa.preview_image = previewUrl;
+                                            });
                                         }
+                                    }
+                                    
+                                    // 有定制设计，调用定制购物车 API
+                                    this.$axios.post('{{ route("shop.api.checkout.cart.customization.store") }}', {
+                                            product_id: productId,
+                                            quantity: 1,
+                                            design_uuid: designUUID,
+                                            customization: customization
+                                        })
+                                        .then(response => {
+                                            if (response.data.message) {
+                                                this.$emitter.emit('update-mini-cart', response.data.data);
 
-                                        this.isStoring[operation] = false;
-                                    })
-                                    .catch(error => {
-                                        this.isStoring[operation] = false;
+                                                this.$emitter.emit('add-flash', { type: 'success', message: response.data.message });
 
-                                        this.$emitter.emit('add-flash', { type: 'warning', message: error.response.data.message });
-                                    });
+                                                if (response.data.redirect) {
+                                                    window.location.href = response.data.redirect;
+                                                }
+                                            } else {
+                                                this.$emitter.emit('add-flash', { type: 'warning', message: response.data.data.message });
+                                            }
+
+                                            this.isStoring[operation] = false;
+                                        })
+                                        .catch(error => {
+                                            this.isStoring[operation] = false;
+
+                                            this.$emitter.emit('add-flash', { type: 'warning', message: error.response.data.message });
+                                        });
+                                });
                                 
                                 return;
                             }

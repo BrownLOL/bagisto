@@ -54,18 +54,46 @@ class ProductCustomizationController extends Controller
     }
 
     /**
-     * Upload preview image.
+     * Upload preview image (supports both file upload and base64 data).
      */
     public function uploadPreview(Request $request): JsonResponse
     {
-        $request->validate([
-            'image' => 'required|image|max:5120',
-        ]);
+        // Check if it's a file upload or base64 data
+        if ($request->hasFile('image')) {
+            // File upload
+            $request->validate([
+                'image' => 'required|image|max:5120',
+            ]);
 
-        $image = $request->file('image');
-        $filename = 'customization/uploads/' . Str::random(20) . '.' . $image->getClientOriginalExtension();
+            $image = $request->file('image');
+            $filename = 'customization/previews/' . Str::random(20) . '.' . $image->getClientOriginalExtension();
 
-        Storage::disk('public')->put($filename, file_get_contents($image));
+            Storage::disk('public')->put($filename, file_get_contents($image));
+        } else {
+            // Base64 data
+            $request->validate([
+                'image' => 'required|string',
+            ]);
+
+            $base64Data = $request->input('image');
+            
+            // Handle data URL format
+            if (str_contains($base64Data, ',')) {
+                $base64Data = explode(',', $base64Data)[1];
+            }
+            
+            $imageData = base64_decode($base64Data);
+            
+            if (!$imageData) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Invalid base64 image data.',
+                ], 400);
+            }
+
+            $filename = 'customization/previews/' . Str::random(20) . '.png';
+            Storage::disk('public')->put($filename, $imageData);
+        }
 
         $url = Storage::url($filename);
 

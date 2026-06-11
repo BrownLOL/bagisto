@@ -509,11 +509,12 @@ function saveCustomizationWithPreview(previewImage, elements) {
         var recordData = {
             print_area_id: parseInt(printAreaId),
             record_key: currentRecordKey,
-            preview_image: previewImage,
+            // DON'T store preview_image - it's too large for localStorage (1MB+)
+            // Preview will be generated on-the-fly when needed
             elements: elements
         };
         
-        console.log('[DEBUG saveCustomizationWithPreview] recordData preview_image length:', previewImage ? previewImage.length : 0);
+        console.log('[DEBUG saveCustomizationWithPreview] recordData elements count:', elements.length);
         
         if (existingIndex >= 0) {
             printAreas[existingIndex] = recordData;
@@ -529,7 +530,8 @@ function saveCustomizationWithPreview(previewImage, elements) {
         };
         
         console.log('[DEBUG saveCustomizationWithPreview] Saving designData with print_areas count:', printAreas.length);
-        console.log('[DEBUG saveCustomizationWithPreview] First print_area preview_image length:', printAreas[0]?.preview_image?.length || 0);
+        console.log('[DEBUG saveCustomizationWithPreview] First print_area elements count:', printAreas[0]?.elements?.length || 0);
+        console.log('[DEBUG saveCustomizationWithPreview] Storage size (without preview_image):', JSON.stringify(designDataToSave).length, 'bytes');
         
         localStorage.setItem(designKey, JSON.stringify(designDataToSave));
         
@@ -599,20 +601,8 @@ function loadSavedCustomization() {
     if (currentRecordKey && currentCanvas.layerStore[currentRecordKey]) {
         var elements = currentCanvas.layerStore[currentRecordKey];
         
-        // Get the current print area record
-        var currentPA = printAreas.find(function(pa) {
-            return pa.record_key === currentRecordKey;
-        });
-        
-        if (currentPA && currentPA.preview_image) {
-            var productBg = document.querySelector('.product-bg');
-            if (productBg) {
-                productBg.style.backgroundImage = 'url(' + currentPA.preview_image + ')';
-                productBg.style.backgroundSize = 'contain';
-                productBg.style.backgroundRepeat = 'no-repeat';
-                productBg.style.backgroundPosition = 'center';
-            }
-        }
+        // Don't try to load preview_image - it's no longer stored in localStorage
+        // Background image is already set from window.currentAreaData.image_url
         
         // Wait for content to be ready, then restore elements
         setTimeout(function() {
