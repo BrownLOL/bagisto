@@ -28,7 +28,12 @@
     @endif
 
     <?php $productBaseImage = product_image()->getProductBaseImage($product); ?>
-
+    
+    <script>
+        // Store product base image URL for preview generation
+        window.productBaseImageUrl = "{{ $productBaseImage['medium_image_url'] }}";
+    </script>
+    
     <meta name="twitter:card" content="summary_large_image" />
 
     <meta name="twitter:title" content="{{ $product->name }}" />
@@ -811,6 +816,10 @@
                         // Priority 2: Try window.productImages
                         else if (window.productImages && window.productImages.length > 0) {
                             productImageUrl = window.productImages[0].url || window.productImages[0].image_url;
+                        }
+                        // Priority 3: Use product base image URL (defined in Blade template)
+                        else if (window.productBaseImageUrl) {
+                            productImageUrl = window.productBaseImageUrl;
                         }
                         
                         if (!productImageUrl) {
