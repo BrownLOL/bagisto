@@ -271,48 +271,180 @@ function saveCustomization() {
         }
     });
     
-    // Get preview image from localStorage (saved by ProductCustomization.vue)
+    // Generate composed preview image with all layers using canvas
     var productId = window.customizationProductId;
     var previewImage = '';
-    try {
-        var savedDesign = localStorage.getItem('customization_' + productId);
-        if (savedDesign) {
-            var designData = JSON.parse(savedDesign);
-            previewImage = designData.previewImage || '';
-        }
-    } catch (e) {
-        console.error('Error loading saved design:', e);
-    }
     
-    // If no preview image from localStorage, generate from canvas with all layers
-    if (!previewImage) {
-        var canvas = document.getElementById('design-canvas-inner');
-        console.log('saveCustomization: canvas found:', !!canvas);
-        if (canvas) {
-            // Use canvas toDataURL to get the composed image with all layers
-            try {
-                previewImage = canvas.toDataURL('image/png');
-                console.log('saveCustomization: generated previewImage length:', previewImage ? previewImage.length : 0);
-            } catch (e) {
-                console.error('saveCustomization: toDataURL error:', e);
-                // Fallback: get first image if CORS issue
-                var imgs = canvas.querySelectorAll('img');
-                console.log('saveCustomization: fallback imgs count:', imgs.length);
-                if (imgs.length > 0) {
-                    previewImage = imgs[0].src;
-                    console.log('saveCustomization: using fallback img src');
+    (async function() {
+        try {
+            // Priority 1: Get original product image from currentAreaData (always the original, not the saved preview)
+            var bgImageUrl = '';
+            
+            if (window.currentAreaData) {
+                bgImageUrl = window.currentAreaData.image_url || window.currentAreaData.url || '';
+            }
+            
+            // Priority 2: Try to get from product-bg background-image, but need to check if it's original or saved preview
+            if (!bgImageUrl) {
+                var productBg = document.querySelector('.product-bg');
+                if (productBg) {
+                    var bgStyle = productBg.style.backgroundImage;
+                    if (bgStyle && bgStyle !== 'none') {
+                        // Extract URL from background-image: url('...')
+                        var urlMatch = bgStyle.match(/url\(["']?([^"']+)["']?\)/);
+                        if (urlMatch && urlMatch[1]) {
+                            bgImageUrl = urlMatch[1];
+                        }
+                    }
+                }
+            }
+            
+            // Priority 3: Get from product images list
+            if (!bgImageUrl && window.productImages && window.productImages.length > 0) {
+                bgImageUrl = window.productImages[0].url;
+            }
+            
+            if (!bgImageUrl) {
+                console.error('saveCustomization: No background image found');
+                return;
+            }
+            
+            console.log('saveCustomization: using bgImageUrl:', bgImageUrl.substring(0, 80));
+            
+            // Load background image to get dimensions
+            var bgImg = new Image();
+            bgImg.crossOrigin = 'anonymous';
+            
+            await new Promise(function(resolve, reject) {
+                bgImg.onload = resolve;
+                bgImg.onerror = reject;
+                bgImg.src = bgImageUrl;
+            });
+            
+            console.log('saveCustomization: bgImg loaded, size:', bgImg.width, 'x', bgImg.height);
+            
+            // Create temporary canvas
+            var tempCanvas = document.createElement('canvas');
+            tempCanvas.width = bgImg.width;
+            tempCanvas.height = bgImg.height;
+            var ctx = tempCanvas.getContext('2d');
+            
+            // Draw background image
+            ctx.drawImage(bgImg, 0, 0);
+            
+            // Get print area info for coordinate conversion
+            var areaData = window.currentAreaData || {};
+            var areaX = areaData.x ? parseFloat(areaData.x) : 0; // print area left percent
+            var areaY = areaData.y ? parseFloat(areaData.y) : 0; // print area top percent
+            var areaW = areaData.width ? parseFloat(areaData.width) : 100; // print area width percent
+            var areaH = areaData.height ? parseFloat(areaData.height) : 100; // print area height percent
+            
+            console.log('saveCustomization: areaData:', areaX, areaY, areaW, areaH);
+            
+            // Convert element position to canvas pixels
+            // Element position is relative to print area (in %)
+            // Need to convert to absolute position on background image (in pixels)
+            function getCanvasX(elemX) {
+                // elemX is in percentage relative to print area
+                // print area starts at areaX% on background image
+                var absolutePercent = areaX + (elemX / 100) * areaW;
+                return (absolutePercent / 100) * bgImg.width;
+            }
+            
+            function getCanvasY(elemY) {
+                var absolutePercent = areaY + (elemY / 100) * areaH;
+                return (absolutePercent / 100) * bgImg.height;
+            }
+            
+            // Draw each element (text or image)
+            var drawPromises = [];
+            
+            for (var i = 0; i < elements.length; i++) {
+                var elem = elements[i];
+                
+                if (elem.type === 'text') {
+                    // Draw text element - position is relative to print area
+                    var x = getCanvasX(elem.x);
+                    var y = getCanvasY(elem.y);
+                    var fontSize = elem.styles && elem.styles.fontSize ? elem.styles.fontSize : 24;
+                    var color = elem.styles && elem.styles.color ? elem.styles.color : '#000000';
+                    var fontFamily = elem.styles && elem.styles.fontFamily ? elem.styles.fontFamily : 'Arial';
+                    var rotation = elem.rotation || 0;
+                    
+                    ctx.save();
+                    ctx.translate(x, y);
+                    ctx.rotate(rotation * Math.PI / 180);
+                    ctx.font = fontSize + 'px ' + fontFamily;
+                    ctx.fillStyle = color;
+                    ctx.fillText(elem.content, 0, 0);
+                    ctx.restore();
+                    
+                } else if (elem.type === 'image') {
+                    // Draw uploaded image element
+                    var elImg = new Image();
+                    elImg.crossOrigin = 'anonymous';
+                    
+                    var drawPromise = new Promise(function(resolve) {
+                        elImg.onload = function() {
+                            var x = getCanvasX(elem.x);
+                            var y = getCanvasY(elem.y);
+                            var rotation = elem.rotation || 0;
+                            var scaleX = elem.scaleX || 1;
+                            var scaleY = elem.scaleY || 1;
+                            var drawWidth = elImg.width * scaleX;
+                            var drawHeight = elImg.height * scaleY;
+                            
+                            ctx.save();
+                            ctx.translate(x, y);
+                            ctx.rotate(rotation * Math.PI / 180);
+                            ctx.drawImage(elImg, -drawWidth / 2, -drawHeight / 2, drawWidth, drawHeight);
+                            ctx.restore();
+                            
+                            resolve();
+                        };
+                        elImg.onerror = resolve; // Continue even if image fails
+                        elImg.src = elem.content;
+                    });
+                    
+                    drawPromises.push(drawPromise);
+                }
+            }
+            
+            // Wait for all images to load and draw
+            await Promise.all(drawPromises);
+            
+            // Get composed preview image
+            previewImage = tempCanvas.toDataURL('image/png');
+            console.log('saveCustomization: composed preview generated, length:', previewImage.length);
+            
+        } catch (e) {
+            console.error('saveCustomization: Failed to generate composed preview:', e);
+            // Fallback: try to get image from product-bg
+            var productBg = document.querySelector('.product-bg');
+            if (productBg) {
+                var bgStyle = productBg.style.backgroundImage;
+                var urlMatch = bgStyle.match(/url\(["']?([^"']+)["']?\)/);
+                if (urlMatch && urlMatch[1]) {
+                    previewImage = urlMatch[1];
+                    console.log('saveCustomization: using fallback bg image');
                 }
             }
         }
-    } else {
-        console.log('saveCustomization: using localStorage previewImage length:', previewImage.length);
-    }
+        
+        // Continue with saving after preview image is ready
+        saveCustomizationWithPreview(previewImage, elements);
+    })();
+}
+
+function saveCustomizationWithPreview(previewImage, elements) {
+    var productId = window.customizationProductId;
     
     // Prepare customization data for current print area
     var uuid = getDesignUUID(); // Ensure we have a UUID
     
     // Get current print area record key
     var currentRecordKey = currentCanvas.currentImageKey || 'default';
+    var printAreaId = window.currentAreaData?.id || window.currentAreaData?.print_area_id;
     
     if (uuid && elements.length > 0) {
         var designKey = 'design_' + uuid;
@@ -342,7 +474,6 @@ function saveCustomization() {
         };
         
         console.log('saveCustomization: recordData.preview_image length:', previewImage ? previewImage.length : 0);
-        console.log('saveCustomization: recordData.preview_image starts with:', previewImage ? previewImage.substring(0, 50) : 'null');
         
         if (existingIndex >= 0) {
             printAreas[existingIndex] = recordData;
