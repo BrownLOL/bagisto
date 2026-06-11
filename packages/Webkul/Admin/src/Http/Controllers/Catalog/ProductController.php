@@ -18,6 +18,7 @@ use Webkul\Admin\Http\Resources\ProductResource;
 use Webkul\Attribute\Repositories\AttributeFamilyRepository;
 use Webkul\Core\Rules\Slug;
 use Webkul\Customer\Repositories\CustomerRepository;
+use Webkul\Product\Models\ProductImagePrintArea;
 use Webkul\Product\Helpers\Product;
 use Webkul\Product\Helpers\ProductType;
 use Webkul\Product\Repositories\ProductAttributeValueRepository;
@@ -150,25 +151,29 @@ class ProductController extends Controller
         })->toArray();
 
         // Get images with print areas
-        $imagesWithAreas = $product->images
-            ->map(function ($image) {
-                return [
-                    'id'  => $image->id,
-                    'url' => $image->url,
-                    'areas' => $image->printAreas->map(function ($area) {
-                        return [
-                            'id'       => $area->id,
-                            'x'        => (float) $area->x,
-                            'y'        => (float) $area->y,
-                            'width'    => (float) $area->width,
-                            'height'   => (float) $area->height,
-                        ];
-                    })->toArray(),
+        $printAreas = \Webkul\Product\Models\ProductImagePrintArea::where('product_id', $product->id)
+            ->where('is_active', true)
+            ->get();
+
+        $imagesWithAreas = [];
+        foreach ($printAreas as $area) {
+            $url = $area->image_url;
+            if (!isset($imagesWithAreas[$url])) {
+                $imagesWithAreas[$url] = [
+                    'id'   => $area->id,
+                    'url'  => $url,
+                    'areas' => [],
                 ];
-            })
-            ->filter(fn($img) => count($img['areas']) > 0)
-            ->values()
-            ->toArray();
+            }
+            $imagesWithAreas[$url]['areas'][] = [
+                'id'       => $area->id,
+                'x'        => (float) $area->x,
+                'y'        => (float) $area->y,
+                'width'    => (float) $area->width,
+                'height'   => (float) $area->height,
+            ];
+        }
+        $imagesWithAreas = array_values($imagesWithAreas);
 
         return view('admin::catalog.products.edit', compact('product', 'productImages', 'imagesWithAreas'));
     }
