@@ -287,18 +287,25 @@ function saveCustomization() {
     // If no preview image from localStorage, generate from canvas with all layers
     if (!previewImage) {
         var canvas = document.getElementById('design-canvas-inner');
+        console.log('saveCustomization: canvas found:', !!canvas);
         if (canvas) {
             // Use canvas toDataURL to get the composed image with all layers
             try {
                 previewImage = canvas.toDataURL('image/png');
+                console.log('saveCustomization: generated previewImage length:', previewImage ? previewImage.length : 0);
             } catch (e) {
+                console.error('saveCustomization: toDataURL error:', e);
                 // Fallback: get first image if CORS issue
                 var imgs = canvas.querySelectorAll('img');
+                console.log('saveCustomization: fallback imgs count:', imgs.length);
                 if (imgs.length > 0) {
                     previewImage = imgs[0].src;
+                    console.log('saveCustomization: using fallback img src');
                 }
             }
         }
+    } else {
+        console.log('saveCustomization: using localStorage previewImage length:', previewImage.length);
     }
     
     // Prepare customization data for current print area
@@ -333,6 +340,9 @@ function saveCustomization() {
             preview_image: previewImage,
             elements: elements
         };
+        
+        console.log('saveCustomization: recordData.preview_image length:', previewImage ? previewImage.length : 0);
+        console.log('saveCustomization: recordData.preview_image starts with:', previewImage ? previewImage.substring(0, 50) : 'null');
         
         if (existingIndex >= 0) {
             printAreas[existingIndex] = recordData;
