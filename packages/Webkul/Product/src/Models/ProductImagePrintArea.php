@@ -54,12 +54,13 @@ class ProductImagePrintArea extends Model implements ProductImagePrintAreaContra
     public function toAreaArray(): array
     {
         return [
-            'id'     => $this->id,
-            'name'   => $this->name,
-            'x'      => (float) $this->x,
-            'y'      => (float) $this->y,
-            'width'  => (float) $this->width,
-            'height' => (float) $this->height,
+            'id'               => $this->id,
+            'product_image_id' => $this->product_image_id,
+            'name'             => $this->name,
+            'x'                => (float) $this->x,
+            'y'                => (float) $this->y,
+            'width'            => (float) $this->width,
+            'height'           => (float) $this->height,
         ];
     }
 }

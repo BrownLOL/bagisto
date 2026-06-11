@@ -223,8 +223,24 @@
                                                     <div class="mt-1 flex flex-wrap gap-2" id="customization-container-{{ $loop->index }}">
                                                         @foreach ($item->additional['customization']['print_areas'] as $index => $printArea)
                                                             @php
-                                                                $backgroundUrl = $printArea['background_url'] ?? '';
                                                                 $elements = json_encode($printArea['elements'] ?? []);
+                                                                
+                                                                // Try to get correct image URL using product_image_id
+                                                                $backgroundUrl = '';
+                                                                $productImageId = $printArea['product_image_id'] ?? null;
+                                                                if ($productImageId) {
+                                                                    $product = $item->product;
+                                                                    if ($product) {
+                                                                        $productImage = $product->images->firstWhere('id', $productImageId);
+                                                                        if ($productImage) {
+                                                                            $backgroundUrl = Storage::url($productImage->path);
+                                                                        }
+                                                                    }
+                                                                }
+                                                                // Fallback to stored URL if lookup failed
+                                                                if (!$backgroundUrl) {
+                                                                    $backgroundUrl = $printArea['background_url'] ?? '';
+                                                                }
                                                             @endphp
                                                             <div 
                                                                 id="customization-preview-{{ $loop->parent->index }}-{{ $index }}"
