@@ -420,10 +420,32 @@
                     this.saving = true;
 
                     try {
+                        let imageUrl = this.dialogSelectedImageUrl;
+
+                        // 如果是 blob URL，先上传图片获取真实 URL
+                        if (imageUrl && imageUrl.startsWith('blob:')) {
+                            const formData = new FormData();
+                            const blob = await fetch(imageUrl).then(r => r.blob());
+                            formData.append('file', blob, 'image.png');
+                            formData.append('product_id', this.productId);
+
+                            const uploadResponse = await this.$axios.post(
+                                "{{ route('admin.catalog.products.images.upload') }}",
+                                formData,
+                                { headers: { 'Content-Type': 'multipart/form-data' } }
+                            );
+
+                            if (uploadResponse.data.success) {
+                                imageUrl = uploadResponse.data.image_url;
+                            } else {
+                                throw new Error(uploadResponse.data.message || 'Image upload failed');
+                            }
+                        }
+
                         // Build request data
                         const requestData = {
                             product_id: this.productId,
-                            image_url: this.dialogSelectedImageUrl,
+                            image_url: imageUrl,
                             areas: this.tempAreas.map((area, index) => ({
                                 name: 'Area ' + (index + 1),
                                 x: area.x,
@@ -448,13 +470,13 @@
                                         width: area.width,
                                         height: area.height
                                     }));
-                                    this.imagesWithAreas[index].image_url = this.dialogSelectedImageUrl;
+                                    this.imagesWithAreas[index].image_url = imageUrl;
                                 }
                             } else {
                                 // Add 模式：追加新记录（用时间戳作为唯一 ID）
                                 const newRecord = {
                                     id: 'new_' + Date.now(), // 唯一 ID
-                                    image_url: requestData.image_url,
+                                    image_url: imageUrl,
                                     areas: requestData.areas.map((area, idx) => ({
                                         id: Date.now() + idx,
                                         x: area.x,

@@ -464,10 +464,36 @@ function updatePreview() {
 
 // Save design
 async function saveDesign() {
+    let imageUrl = state.printArea?.image_url || '';
+
+    // 如果是 blob 或 data URL，先上传获取真实 URL
+    if (imageUrl && (imageUrl.startsWith('blob:') || imageUrl.startsWith('data:'))) {
+        try {
+            const formData = new FormData();
+            const blob = await fetch(imageUrl).then(r => r.blob());
+            formData.append('image', blob, 'design-image.png');
+
+            const uploadResponse = await fetch('/api/customization/upload-preview', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || ''
+                }
+            });
+
+            const uploadResult = await uploadResponse.json();
+            if (uploadResult.success) {
+                imageUrl = uploadResult.url;
+            }
+        } catch (error) {
+            console.error('Error uploading image:', error);
+        }
+    }
+
     const designData = {
         product_id: state.productId,
         print_area_id: state.printArea?.id,
-        image_url: state.printArea?.image_url || '',
+        image_url: imageUrl,
         elements: state.elements.map(e => ({
             type: e.type,
             content: e.content,
