@@ -887,66 +887,72 @@ abstract class AbstractType
      */
     public function compareOptions($options1, $options2)
     {
+        // options1 = cart item additional (may be empty or have customization)
+        // options2 = new product additional (has customization)
+        
+        // Extract customization from both formats
+        // Format 1: direct {"customization":..., "design_uuid":...}
+        // Format 2: wrapped {"additional": {"customization":..., "design_uuid":...}}
+        $customization1 = isset($options1['additional']) 
+            ? ($options1['additional']['customization'] ?? null) 
+            : ($options1['customization'] ?? null);
+        $customization2 = isset($options2['additional']) 
+            ? ($options2['additional']['customization'] ?? null) 
+            : ($options2['customization'] ?? null);
+        
         // DEBUG LOG
         \Log::info('compareOptions', [
             'options1' => $options1,
             'options2' => $options2,
-            'product_id_match' => $this->product->id == $options2['product_id'],
+            'customization1' => $customization1,
+            'customization2' => $customization2,
         ]);
         
-        if ($this->product->id != $options2['product_id']) {
+        // If new product has customization, it should never merge with any existing cart item
+        if ($customization2 !== null) {
+            \Log::info('compareOptions: new product has customization, not merging');
             return false;
-        } else {
-            if (
-                isset($options1['parent_id'])
-                && isset($options2['parent_id'])
-            ) {
-                return $options1['parent_id'] == $options2['parent_id'];
-            } elseif (
-                isset($options1['parent_id'])
-                && ! isset($options2['parent_id'])
-            ) {
-                return false;
-            } elseif (
-                isset($options2['parent_id'])
-                && ! isset($options1['parent_id'])
-            ) {
-                return false;
-            }
-
-            // Compare customization field - if either has customization, they must match exactly
-            // $options can be either:
-            // 1. Direct format: {"customization":..., "design_uuid":...}
-            // 2. Wrapped format: {"additional": {"customization":..., "design_uuid":...}}
-            $customization1 = $options1['customization'] ?? ($options1['additional']['customization'] ?? null);
-            // For $options2, check if it has 'additional' key first, otherwise check direct keys
-            $customization2 = isset($options2['additional']) 
-                ? ($options2['additional']['customization'] ?? null)
-                : ($options2['customization'] ?? null);
-            
-            // DEBUG LOG
-            \Log::info('compareOptions customization', [
-                'customization1' => $customization1,
-                'customization2' => $customization2,
-                'c1_type' => gettype($customization1),
-                'c2_type' => gettype($customization2),
+        }
+        
+        // If existing cart item has customization but new product doesn't, don't merge
+        if ($customization1 !== null) {
+            \Log::info('compareOptions: cart item has customization, new product does not, not merging');
+            return false;
+        }
+        
+        // Neither has customization - this is a normal product merge
+        // Check if product_id matches (may be in options2 directly or wrapped in additional)
+        $productId2 = $options2['product_id'] 
+            ?? ($options2['additional']['product_id'] ?? null);
+        
+        // If we can't determine product_id from options2, check via product instance
+        if ($productId2 === null || $this->product->id != $productId2) {
+            \Log::info('compareOptions: product_id mismatch or missing', [
+                'product_id2' => $productId2,
+                'this_product_id' => $this->product->id,
             ]);
-
-            // If one has customization and the other doesn't, don't merge
-            if ($customization1 !== $customization2) {
-                \Log::info('compareOptions: customization mismatch, not merging');
-                return false;
-            }
-
-            // If both have customization, compare them
-            if ($customization1 !== null && $customization2 !== null) {
-                // Compare as JSON for deep comparison
-                if (json_encode($customization1) !== json_encode($customization2)) {
-                    return false;
-                }
-            }
+            return false;
+        }
+        
+        // Check parent_id if present
+        if (
+            isset($options1['parent_id'])
+            && isset($options2['parent_id'])
+        ) {
+            return $options1['parent_id'] == $options2['parent_id'];
+        } elseif (
+            isset($options1['parent_id'])
+            && ! isset($options2['parent_id'])
+        ) {
+            return false;
+        } elseif (
+            isset($options2['parent_id'])
+            && ! isset($options1['parent_id'])
+        ) {
+            return false;
         }
 
+        \Log::info('compareOptions: no customization, product matches, allowing merge');
         return true;
     }
 
