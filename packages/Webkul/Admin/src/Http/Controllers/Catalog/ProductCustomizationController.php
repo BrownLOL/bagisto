@@ -114,9 +114,9 @@ class ProductCustomizationController extends Controller
             if (Str::contains($file->getMimeType(), 'image')) {
                 $encoded = image_manager()->read($file)->encodeByExtension('webp');
                 $path = 'product/'.$productId.'/'.Str::random(40).'.webp';
-                Storage::put($path, (string) $encoded);
+                Storage::disk('public')->put($path, (string) $encoded);
             } else {
-                $path = $file->store('product/'.$productId);
+                $path = $file->store('product/'.$productId, 'public');
             }
 
             // 获取当前最大 position
