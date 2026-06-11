@@ -779,6 +779,12 @@ function updatePreview() {
     // Remove background from print areas in preview
     clone.querySelectorAll('[class*="print-area"]').forEach(function(elem) {
         elem.style.background = 'transparent';
+        elem.style.backgroundColor = 'transparent';
+    });
+    
+    // Also remove background from the main container if any
+    clone.querySelectorAll('[style*="background"]').forEach(function(elem) {
+        elem.style.background = 'none';
     });
     
     clone.querySelectorAll('.canvas-elem').forEach(function(elem) {
