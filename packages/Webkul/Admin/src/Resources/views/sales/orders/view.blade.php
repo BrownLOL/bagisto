@@ -223,14 +223,28 @@
                                                     <div class="mt-1 flex flex-wrap gap-2">
                                                         @foreach ($item->additional['customization']['print_areas'] as $index => $printArea)
                                                             @php
-                                                                // Get the first element's content as preview image (user's design with layers)
-                                                                $previewImage = $printArea['preview_image'] ?? null;
-                                                                if (!empty($printArea['elements']) && isset($printArea['elements'][0]['content'])) {
-                                                                    $previewImage = $printArea['elements'][0]['content'];
+                                                                // Priority 1: Use the composed preview image (with all layers)
+                                                                // Priority 2: If preview_image is empty/invalid, use first element's content
+                                                                // Priority 3: If no elements, skip this print area
+                                                                $previewImage = $printArea['preview_image'] ?? '';
+                                                                
+                                                                // Check if preview_image is a valid data URL or URL (not empty)
+                                                                $hasValidPreview = !empty($previewImage) && (
+                                                                    strpos($previewImage, 'data:image') === 0 ||
+                                                                    strpos($previewImage, 'http') === 0
+                                                                );
+                                                                
+                                                                // If no valid preview image, check elements
+                                                                if (!$hasValidPreview && !empty($printArea['elements'])) {
+                                                                    // Get the first element's content as fallback
+                                                                    $firstElement = $printArea['elements'][0] ?? null;
+                                                                    if ($firstElement && isset($firstElement['content'])) {
+                                                                        $previewImage = $firstElement['content'];
+                                                                    }
                                                                 }
                                                             @endphp
-                                                            @if ($previewImage)
-                                                                <div class="relative group cursor-pointer" onclick="showDesignPreview('{{ $previewImage }}')">
+                                                            @if (!empty($previewImage))
+                                                                <div class="relative group cursor-pointer" onclick="showDesignPreview('{{ addslashes($previewImage) }}')">
                                                                     <img
                                                                         src="{{ $previewImage }}"
                                                                         class="h-16 w-16 rounded border border-gray-300 object-cover"

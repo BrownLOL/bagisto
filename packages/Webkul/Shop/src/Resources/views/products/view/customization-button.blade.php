@@ -275,6 +275,9 @@ function saveCustomization() {
     var productId = window.customizationProductId;
     var previewImage = '';
     
+    console.log('[DEBUG saveCustomization] Starting with elements count:', elements.length);
+    console.log('[DEBUG saveCustomization] window.currentAreaData:', window.currentAreaData);
+    
     (async function() {
         try {
             // Priority 1: Get original product image from currentAreaData (always the original, not the saved preview)
@@ -282,6 +285,7 @@ function saveCustomization() {
             
             if (window.currentAreaData) {
                 bgImageUrl = window.currentAreaData.image_url || window.currentAreaData.url || '';
+                console.log('[DEBUG saveCustomization] Got bgImageUrl from currentAreaData:', bgImageUrl ? bgImageUrl.substring(0, 80) : 'empty');
             }
             
             // Priority 2: Try to get from product-bg background-image, but need to check if it's original or saved preview
@@ -294,6 +298,7 @@ function saveCustomization() {
                         var urlMatch = bgStyle.match(/url\(["']?([^"']+)["']?\)/);
                         if (urlMatch && urlMatch[1]) {
                             bgImageUrl = urlMatch[1];
+                            console.log('[DEBUG saveCustomization] Got bgImageUrl from product-bg:', bgImageUrl.substring(0, 80));
                         }
                     }
                 }
@@ -302,14 +307,17 @@ function saveCustomization() {
             // Priority 3: Get from product images list
             if (!bgImageUrl && window.productImages && window.productImages.length > 0) {
                 bgImageUrl = window.productImages[0].url;
+                console.log('[DEBUG saveCustomization] Got bgImageUrl from productImages list:', bgImageUrl.substring(0, 80));
             }
             
             if (!bgImageUrl) {
-                console.error('saveCustomization: No background image found');
+                console.error('[DEBUG saveCustomization] No background image found!');
+                // Save without preview image
+                saveCustomizationWithPreview('', elements);
                 return;
             }
             
-            console.log('saveCustomization: using bgImageUrl:', bgImageUrl.substring(0, 80));
+            console.log('[DEBUG saveCustomization] Loading background image...');
             
             // Load background image to get dimensions
             var bgImg = new Image();
@@ -384,13 +392,16 @@ function saveCustomization() {
                     var elImg = new Image();
                     elImg.crossOrigin = 'anonymous';
                     
+                    // Capture elem in closure
+                    var capturedElem = elem;
+                    
                     var drawPromise = new Promise(function(resolve) {
                         elImg.onload = function() {
-                            var x = getCanvasX(elem.x);
-                            var y = getCanvasY(elem.y);
-                            var rotation = elem.rotation || 0;
-                            var scaleX = elem.scaleX || 1;
-                            var scaleY = elem.scaleY || 1;
+                            var x = getCanvasX(capturedElem.x);
+                            var y = getCanvasY(capturedElem.y);
+                            var rotation = capturedElem.rotation || 0;
+                            var scaleX = capturedElem.scaleX || 1;
+                            var scaleY = capturedElem.scaleY || 1;
                             var drawWidth = elImg.width * scaleX;
                             var drawHeight = elImg.height * scaleY;
                             
@@ -402,36 +413,58 @@ function saveCustomization() {
                             
                             resolve();
                         };
-                        elImg.onerror = resolve; // Continue even if image fails
-                        elImg.src = elem.content;
+                        elImg.onerror = function() {
+                            console.log('[DEBUG saveCustomization] Failed to load image element:', capturedElem.content ? capturedElem.content.substring(0, 50) : 'no content');
+                            resolve(); // Continue even if image fails
+                        };
+                        elImg.src = capturedElem.content;
                     });
                     
                     drawPromises.push(drawPromise);
                 }
             }
             
+            console.log('[DEBUG saveCustomization] Waiting for', drawPromises.length, 'image draws to complete');
+            
             // Wait for all images to load and draw
             await Promise.all(drawPromises);
             
+            console.log('[DEBUG saveCustomization] All images drawn, generating data URL');
+            
             // Get composed preview image
             previewImage = tempCanvas.toDataURL('image/png');
-            console.log('saveCustomization: composed preview generated, length:', previewImage.length);
+            console.log('[DEBUG saveCustomization] SUCCESS: composed preview generated, length:', previewImage.length);
             
         } catch (e) {
-            console.error('saveCustomization: Failed to generate composed preview:', e);
-            // Fallback: try to get image from product-bg
-            var productBg = document.querySelector('.product-bg');
-            if (productBg) {
-                var bgStyle = productBg.style.backgroundImage;
-                var urlMatch = bgStyle.match(/url\(["']?([^"']+)["']?\)/);
-                if (urlMatch && urlMatch[1]) {
-                    previewImage = urlMatch[1];
-                    console.log('saveCustomization: using fallback bg image');
+            console.error('[DEBUG saveCustomization] ERROR: Failed to generate composed preview:', e.message || e);
+            
+            // Fallback: use first uploaded image as preview if available
+            if (elements.length > 0) {
+                for (var i = 0; i < elements.length; i++) {
+                    if (elements[i].type === 'image' && elements[i].content) {
+                        previewImage = elements[i].content;
+                        console.log('[DEBUG saveCustomization] Using first image element as fallback preview');
+                        break;
+                    }
+                }
+            }
+            
+            // If still no preview, try to get from product-bg
+            if (!previewImage) {
+                var productBg = document.querySelector('.product-bg');
+                if (productBg) {
+                    var bgStyle = productBg.style.backgroundImage;
+                    var urlMatch = bgStyle.match(/url\(["']?([^"']+)["']?\)/);
+                    if (urlMatch && urlMatch[1]) {
+                        previewImage = urlMatch[1];
+                        console.log('[DEBUG saveCustomization] Using product-bg as fallback');
+                    }
                 }
             }
         }
         
         // Continue with saving after preview image is ready
+        console.log('[DEBUG saveCustomization] Calling saveCustomizationWithPreview, previewImage length:', previewImage ? previewImage.length : 0);
         saveCustomizationWithPreview(previewImage, elements);
     })();
 }
@@ -439,12 +472,19 @@ function saveCustomization() {
 function saveCustomizationWithPreview(previewImage, elements) {
     var productId = window.customizationProductId;
     
+    console.log('[DEBUG saveCustomizationWithPreview] Starting with previewImage length:', previewImage ? previewImage.length : 0);
+    console.log('[DEBUG saveCustomizationWithPreview] elements count:', elements.length);
+    
     // Prepare customization data for current print area
     var uuid = getDesignUUID(); // Ensure we have a UUID
+    
+    console.log('[DEBUG saveCustomizationWithPreview] UUID:', uuid);
     
     // Get current print area record key
     var currentRecordKey = currentCanvas.currentImageKey || 'default';
     var printAreaId = window.currentAreaData?.id || window.currentAreaData?.print_area_id;
+    
+    console.log('[DEBUG saveCustomizationWithPreview] currentRecordKey:', currentRecordKey, 'printAreaId:', printAreaId);
     
     if (uuid && elements.length > 0) {
         var designKey = 'design_' + uuid;
@@ -473,7 +513,7 @@ function saveCustomizationWithPreview(previewImage, elements) {
             elements: elements
         };
         
-        console.log('saveCustomization: recordData.preview_image length:', previewImage ? previewImage.length : 0);
+        console.log('[DEBUG saveCustomizationWithPreview] recordData preview_image length:', previewImage ? previewImage.length : 0);
         
         if (existingIndex >= 0) {
             printAreas[existingIndex] = recordData;
@@ -482,11 +522,18 @@ function saveCustomizationWithPreview(previewImage, elements) {
         }
         
         // Store full design data with print_areas array
-        localStorage.setItem(designKey, JSON.stringify({
+        var designDataToSave = {
             product_id: productId,
             print_areas: printAreas,
             updated_at: new Date().toISOString()
-        }));
+        };
+        
+        console.log('[DEBUG saveCustomizationWithPreview] Saving designData with print_areas count:', printAreas.length);
+        console.log('[DEBUG saveCustomizationWithPreview] First print_area preview_image length:', printAreas[0]?.preview_image?.length || 0);
+        
+        localStorage.setItem(designKey, JSON.stringify(designDataToSave));
+        
+        console.log('[DEBUG saveCustomizationWithPreview] Saved to localStorage, key:', designKey);
         
         // Ensure UUID is in the list
         var uuidsKey = 'design_uuids_' + productId;
