@@ -55,7 +55,6 @@ class ProductImagePrintArea extends Model implements ProductImagePrintAreaContra
     {
         return [
             'id'               => $this->id,
-            'product_image_id' => $this->product_image_id,
             'name'             => $this->name,
             'x'                => (float) $this->x,
             'y'                => (float) $this->y,

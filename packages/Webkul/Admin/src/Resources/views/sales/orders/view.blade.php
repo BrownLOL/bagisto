@@ -225,21 +225,15 @@
                                                             @php
                                                                 $elements = json_encode($printArea['elements'] ?? []);
                                                                 
-                                                                // Try to get correct image URL using product_image_id
+                                                                // Get product image URL from order item's product
                                                                 $backgroundUrl = '';
-                                                                $productImageId = $printArea['product_image_id'] ?? null;
-                                                                if ($productImageId) {
-                                                                    $product = $item->product;
-                                                                    if ($product) {
-                                                                        $productImage = $product->images->firstWhere('id', $productImageId);
-                                                                        if ($productImage) {
-                                                                            $backgroundUrl = Storage::url($productImage->path);
-                                                                        }
+                                                                $product = $item->product;
+                                                                if ($product && $product->images->count() > 0) {
+                                                                    // Get first image (sorted by position)
+                                                                    $firstImage = $product->images->sortBy('position')->first();
+                                                                    if ($firstImage) {
+                                                                        $backgroundUrl = Storage::url($firstImage->path);
                                                                     }
-                                                                }
-                                                                // Fallback to stored URL if lookup failed
-                                                                if (!$backgroundUrl) {
-                                                                    $backgroundUrl = $printArea['background_url'] ?? '';
                                                                 }
                                                             @endphp
                                                             <div 
