@@ -42,7 +42,8 @@ class ProductCustomizationController extends Controller
             $this->printAreaRepository->saveForImage(
                 $validated['image_id'],
                 $validated['areas'],
-                $validated['image_url']
+                $validated['image_url'],
+                $validated['product_id']
             );
 
             return response()->json([

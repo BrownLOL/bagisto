@@ -12,18 +12,32 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // 添加 image_url 字段，存储图片完整URL
+        // 添加 product_id 和 image_url 字段
         Schema::table('product_image_print_areas', function (Blueprint $table) {
-            $table->string('image_url', 500)->nullable()->after('product_image_id');
+            $table->unsignedInteger('product_id')->nullable()->after('product_image_id');
+            $table->string('image_url', 500)->nullable()->after('product_id');
         });
 
-        // 填充现有数据：将关联的图片URL填充到 image_url 字段
+        // 回填 product_id：根据 product_image_id 关联 product_images 表获取 product_id
+        DB::statement(<<<SQL
+            UPDATE product_image_print_areas pa
+            INNER JOIN product_images pi ON pa.product_image_id = pi.id
+            SET pa.product_id = pi.product_id
+            WHERE pa.product_id IS NULL
+        SQL);
+
+        // 回填 image_url：将关联的图片URL填充到 image_url 字段
         DB::statement(<<<SQL
             UPDATE product_image_print_areas pa
             INNER JOIN product_images pi ON pa.product_image_id = pi.id
             SET pa.image_url = CONCAT('/storage/', pi.path)
             WHERE pa.image_url IS NULL
         SQL);
+
+        // 将 product_id 改为非空（回填后应该都有值）
+        Schema::table('product_image_print_areas', function (Blueprint $table) {
+            $table->unsignedInteger('product_id')->nullable(false)->change();
+        });
     }
 
     /**
@@ -32,7 +46,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('product_image_print_areas', function (Blueprint $table) {
-            $table->dropColumn('image_url');
+            $table->dropColumn(['product_id', 'image_url']);
         });
     }
 };

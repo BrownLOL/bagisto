@@ -20,6 +20,7 @@ class ProductImagePrintArea extends Model implements ProductImagePrintAreaContra
      * The attributes that are mass assignable.
      */
     protected $fillable = [
+        'product_id',
         'product_image_id',
         'image_url',
         'name',
@@ -56,6 +57,7 @@ class ProductImagePrintArea extends Model implements ProductImagePrintAreaContra
     {
         return [
             'id'               => $this->id,
+            'product_id'       => $this->product_id,
             'name'             => $this->name,
             'x'                => (float) $this->x,
             'y'                => (float) $this->y,

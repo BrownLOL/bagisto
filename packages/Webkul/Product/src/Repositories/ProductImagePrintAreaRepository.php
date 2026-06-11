@@ -43,20 +43,21 @@ class ProductImagePrintAreaRepository extends Repository
     /**
      * Save print areas for an image (append mode).
      */
-    public function saveForImage(int $imageId, array $areas, ?string $imageUrl = null): void
+    public function saveForImage(int $imageId, array $areas, ?string $imageUrl = null, ?int $productId = null): void
     {
         // Create new areas (keep existing ones)
         foreach ($areas as $area) {
             if (isset($area['x'], $area['y'], $area['width'], $area['height'])) {
                 $this->create([
                     'product_image_id' => $imageId,
-                    'name'             => $area['name'] ?? 'Print Area',
-                    'x'                => $area['x'],
-                    'y'                => $area['y'],
-                    'width'            => $area['width'],
-                    'height'           => $area['height'],
-                    'is_active'        => true,
-                    'image_url'        => $imageUrl, // Store image URL directly
+                    'product_id'      => $productId,
+                    'name'            => $area['name'] ?? 'Print Area',
+                    'x'               => $area['x'],
+                    'y'               => $area['y'],
+                    'width'           => $area['width'],
+                    'height'          => $area['height'],
+                    'is_active'       => true,
+                    'image_url'       => $imageUrl,
                 ]);
             }
         }
