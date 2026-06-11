@@ -1005,6 +1005,14 @@
                                                 if (response.data.redirect) {
                                                     window.location.href = response.data.redirect;
                                                 }
+                                                
+                                                // Debug: check the cart item customization data
+                                                var cartData = response.data.data;
+                                                if (cartData && cartData.items) {
+                                                    cartData.items.forEach(function(item, idx) {
+                                                        console.log('[DEBUG CartResponse] Item ' + idx + ' additional:', JSON.stringify(item.additional).substring(0, 500));
+                                                    });
+                                                }
                                             } else {
                                                 this.$emitter.emit('add-flash', { type: 'warning', message: response.data.data.message });
                                             }
