@@ -1019,6 +1019,7 @@
 
             // Load and draw background
             const loadPromises = [];
+            let hasBackground = false;
 
             // Load background image
             if (backgroundUrl) {
@@ -1026,10 +1027,15 @@
                     const img = new Image();
                     img.crossOrigin = 'anonymous';
                     img.onload = () => {
+                        hasBackground = true;
                         ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
                         resolve();
                     };
-                    img.onerror = () => resolve();
+                    img.onerror = () => {
+                        // Draw placeholder background when image fails
+                        hasBackground = false;
+                        resolve();
+                    };
                     img.src = backgroundUrl;
                 });
                 loadPromises.push(bgPromise);
@@ -1115,6 +1121,13 @@
 
             // After all images loaded, set canvas as preview image
             Promise.all(loadPromises).then(() => {
+                // Draw placeholder background if no background was loaded
+                if (!hasBackground) {
+                    // Draw a light gray background as placeholder
+                    ctx.fillStyle = '#e5e7eb';
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                }
+
                 const dataUrl = canvas.toDataURL('image/png');
                 container.innerHTML = `
                     <div class="relative group cursor-pointer" onclick="showDesignPreview('${dataUrl}')">
