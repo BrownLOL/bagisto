@@ -915,10 +915,15 @@ abstract class AbstractType
             }
 
             // Compare customization field - if either has customization, they must match exactly
-            // Check both direct and nested (in additional) locations for backward compatibility
+            // $options can be either:
+            // 1. Direct format: {"customization":..., "design_uuid":...}
+            // 2. Wrapped format: {"additional": {"customization":..., "design_uuid":...}}
             $customization1 = $options1['customization'] ?? ($options1['additional']['customization'] ?? null);
-            $customization2 = $options2['customization'] ?? ($options2['additional']['customization'] ?? null);
-
+            // For $options2, check if it has 'additional' key first, otherwise check direct keys
+            $customization2 = isset($options2['additional']) 
+                ? ($options2['additional']['customization'] ?? null)
+                : ($options2['customization'] ?? null);
+            
             // DEBUG LOG
             \Log::info('compareOptions customization', [
                 'customization1' => $customization1,
