@@ -1003,52 +1003,28 @@
                                     return;
                                 }
                                 
-                                // 生成并上传预览图
-                                console.log('[DEBUG addToCart] Calling generateAndUploadPreview with UUID:', designUUID);
-                                this.generateAndUploadPreview(designUUID)
-                                    .then(previewUrl => {
-                                        console.log('[DEBUG addToCart] generateAndUploadPreview returned:', previewUrl ? previewUrl.substring(0, 80) : 'null');
-                                        if (previewUrl) {
-                                            // Add preview_image to each print_area (admin expects it there)
-                                            if (customization.print_areas) {
-                                                customization.print_areas.forEach(pa => {
-                                                    pa.preview_image = previewUrl;
-                                                });
-                                            }
-                                        }
-                                        
-                                        console.log('[DEBUG addToCart] Sending customization data:', JSON.stringify(customization));
-                                        
-                                        // 有定制设计，调用定制购物车 API
-                                        return this.$axios.post('{{ route("shop.api.checkout.cart.customization.store") }}', {
-                                                product_id: productId,
-                                                quantity: 1,
-                                                design_uuid: designUUID,
-                                                customization: customization
-                                            });
+                                // 直接发送定制数据（不预生成预览图，由后台动态渲染）
+                                console.log('[DEBUG addToCart] Sending customization data:', JSON.stringify(customization));
+                                
+                                this.$axios.post('{{ route("shop.api.checkout.cart.customization.store") }}', {
+                                        product_id: productId,
+                                        quantity: 1,
+                                        design_uuid: designUUID,
+                                        customization: customization
                                     })
                                     .then(response => {
                                         console.log('[DEBUG addToCart] Server response:', response.data);
                                         if (response.data.message) {
                                             this.$emitter.emit('update-mini-cart', response.data.data);
-
                                             this.$emitter.emit('add-flash', { type: 'success', message: response.data.message });
-
+                                            
                                             if (response.data.redirect) {
                                                 window.location.href = response.data.redirect;
-                                            }
-                                            
-                                            // Debug: check the cart item customization data
-                                            var cartData = response.data.data;
-                                            if (cartData && cartData.items) {
-                                                cartData.items.forEach(function(item, idx) {
-                                                    console.log('[DEBUG CartResponse] Item ' + idx + ' additional:', JSON.stringify(item.additional).substring(0, 500));
-                                                });
                                             }
                                         } else {
                                             this.$emitter.emit('add-flash', { type: 'warning', message: response.data.data.message });
                                         }
-
+                                        
                                         this.isStoring[operation] = false;
                                     })
                                     .catch(error => {

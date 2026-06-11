@@ -214,49 +214,33 @@
                                                 @endforeach
                                             @endif
 
-                                            {{-- Customization Design Preview --}}
+                                            {{-- Customization Design Preview (dynamically rendered) --}}
                                             @if (isset($item->additional['customization']['print_areas']))
                                                 <div class="mt-2">
                                                     <p class="text-sm font-semibold text-gray-800 dark:text-white">
                                                         @lang('admin::app.sales.orders.view.customization-design', ['count' => count($item->additional['customization']['print_areas'])])
                                                     </p>
-                                                    <div class="mt-1 flex flex-wrap gap-2">
+                                                    <div class="mt-1 flex flex-wrap gap-2" id="customization-container-{{ $loop->index }}">
                                                         @foreach ($item->additional['customization']['print_areas'] as $index => $printArea)
                                                             @php
-                                                                // Priority 1: Use the composed preview image (with all layers)
-                                                                // Priority 2: If preview_image is empty/invalid, use first element's content
-                                                                // Priority 3: If no elements, skip this print area
-                                                                $previewImage = $printArea['preview_image'] ?? '';
-                                                                
-                                                                // Check if preview_image is a valid data URL or URL (not empty)
-                                                                $hasValidPreview = !empty($previewImage) && (
-                                                                    strpos($previewImage, 'data:image') === 0 ||
-                                                                    strpos($previewImage, 'http') === 0
-                                                                );
-                                                                
-                                                                // If no valid preview image, check elements
-                                                                if (!$hasValidPreview && !empty($printArea['elements'])) {
-                                                                    // Get the first element's content as fallback
-                                                                    $firstElement = $printArea['elements'][0] ?? null;
-                                                                    if ($firstElement && isset($firstElement['content'])) {
-                                                                        $previewImage = $firstElement['content'];
-                                                                    }
-                                                                }
+                                                                $backgroundUrl = $printArea['background_url'] ?? '';
+                                                                $elements = json_encode($printArea['elements'] ?? []);
                                                             @endphp
-                                                            @if (!empty($previewImage))
-                                                                <div class="relative group cursor-pointer" onclick="showDesignPreview('{{ addslashes($previewImage) }}')">
-                                                                    <img
-                                                                        src="{{ $previewImage }}"
-                                                                        class="h-16 w-16 rounded border border-gray-300 object-cover"
-                                                                        alt="Design {{ $index + 1 }}"
-                                                                    />
-                                                                    <span class="absolute -bottom-1 -right-1 rounded-full bg-darkPink px-1.5 text-xs text-white">
-                                                                        {{ $index + 1 }}
-                                                                    </span>
-                                                                </div>
-                                                            @endif
+                                                            <div 
+                                                                id="customization-preview-{{ $loop->parent->index }}-{{ $index }}"
+                                                                data-customization='@json($printArea)'
+                                                                data-item-index="{{ $loop->parent->index }}"
+                                                                data-print-area-index="{{ $index }}"
+                                                                data-background-url="{{ $backgroundUrl }}"
+                                                                data-elements="{{ $elements }}"
+                                                                class="w-16 h-16 flex items-center justify-center bg-gray-100 rounded border border-gray-300"
+                                                            >
+                                                                <span class="text-xs text-gray-500">Loading...</span>
+                                                            </div>
                                                         @endforeach
                                                     </div>
+                                                </div>
+                                            @endif
                                                 </div>
                                             @endif
 
@@ -1023,5 +1007,146 @@
         function closeDesignPreview() {
             document.getElementById('designPreviewModal').style.display = 'none';
         }
+
+        // Render customization design preview dynamically
+        function renderCustomizationPreview(itemIndex, printAreaIndex, backgroundUrl, elements) {
+            const container = document.getElementById('customization-preview-' + itemIndex + '-' + printAreaIndex);
+            if (!container || !elements || elements.length === 0) return;
+
+            // Create a canvas to render the design
+            const canvas = document.createElement('canvas');
+            canvas.width = 400;
+            canvas.height = 400;
+            const ctx = canvas.getContext('2d');
+
+            // Load and draw background
+            const loadPromises = [];
+
+            // Load background image
+            if (backgroundUrl) {
+                const bgPromise = new Promise((resolve) => {
+                    const img = new Image();
+                    img.crossOrigin = 'anonymous';
+                    img.onload = () => {
+                        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                        resolve();
+                    };
+                    img.onerror = () => resolve();
+                    img.src = backgroundUrl;
+                });
+                loadPromises.push(bgPromise);
+            }
+
+            // Load and draw each element
+            elements.forEach((elem) => {
+                if (elem.type === 'text' && elem.content) {
+                    // Render text as image (to avoid browser font limitations)
+                    const textPromise = new Promise((resolve) => {
+                        const tempCanvas = document.createElement('canvas');
+                        tempCanvas.width = 400;
+                        tempCanvas.height = 100;
+                        const tempCtx = tempCanvas.getContext('2d');
+
+                        // Set font styles
+                        const fontSize = elem.styles?.fontSize || 24;
+                        const fontFamily = elem.styles?.fontFamily || 'Arial';
+                        const fontColor = elem.styles?.color || '#000000';
+                        const fontWeight = elem.styles?.fontWeight || 'normal';
+
+                        tempCtx.font = fontWeight + ' ' + fontSize + 'px ' + fontFamily;
+                        tempCtx.fillStyle = fontColor;
+                        tempCtx.textBaseline = 'top';
+
+                        // Word wrap
+                        const words = elem.content.split(' ');
+                        let line = '';
+                        let y = 0;
+                        const maxWidth = 380;
+
+                        words.forEach((word) => {
+                            const testLine = line + word + ' ';
+                            const metrics = tempCtx.measureText(testLine);
+                            if (metrics.width > maxWidth && line !== '') {
+                                tempCtx.fillText(line, 0, y);
+                                line = word + ' ';
+                                y += fontSize * 1.2;
+                            } else {
+                                line = testLine;
+                            }
+                        });
+                        tempCtx.fillText(line, 0, y);
+
+                        // Calculate position
+                        const x = (elem.x / 100) * canvas.width;
+                        const yPos = (elem.y / 100) * canvas.height;
+
+                        // Draw on main canvas
+                        ctx.drawImage(tempCanvas, x, yPos);
+                        resolve();
+                    });
+                    loadPromises.push(textPromise);
+                } else if (elem.type === 'image' && elem.content) {
+                    // Render image element
+                    const imgPromise = new Promise((resolve) => {
+                        const img = new Image();
+                        img.crossOrigin = 'anonymous';
+                        img.onload = () => {
+                            const x = (elem.x / 100) * canvas.width;
+                            const y = (elem.y / 100) * canvas.height;
+                            const width = ((elem.width || 100) / 100) * canvas.width;
+                            const height = ((elem.height || 100) / 100) * canvas.height;
+
+                            // Apply rotation if needed
+                            if (elem.rotation) {
+                                ctx.save();
+                                ctx.translate(x + width/2, y + height/2);
+                                ctx.rotate(elem.rotation * Math.PI / 180);
+                                ctx.drawImage(img, -width/2, -height/2, width, height);
+                                ctx.restore();
+                            } else {
+                                ctx.drawImage(img, x, y, width, height);
+                            }
+                            resolve();
+                        };
+                        img.onerror = () => resolve();
+                        img.src = elem.content;
+                    });
+                    loadPromises.push(imgPromise);
+                }
+            });
+
+            // After all images loaded, set canvas as preview image
+            Promise.all(loadPromises).then(() => {
+                const dataUrl = canvas.toDataURL('image/png');
+                container.innerHTML = `
+                    <div class="relative group cursor-pointer" onclick="showDesignPreview('${dataUrl}')">
+                        <img src="${dataUrl}" class="h-16 w-16 rounded border border-gray-300 object-cover" alt="Design ${printAreaIndex + 1}" />
+                        <span class="absolute -bottom-1 -right-1 rounded-full bg-darkPink px-1.5 text-xs text-white">
+                            ${printAreaIndex + 1}
+                        </span>
+                    </div>
+                `;
+            });
+        }
+
+        // Initialize customization previews after page load
+        document.addEventListener('DOMContentLoaded', function() {
+            // Find all customization data and render previews
+            document.querySelectorAll('[data-customization]').forEach((el) => {
+                try {
+                    const data = JSON.parse(el.dataset.customization);
+                    const itemIndex = el.dataset.itemIndex;
+                    const printAreaIndex = el.dataset.printAreaIndex;
+                    renderCustomizationPreview(
+                        itemIndex,
+                        printAreaIndex,
+                        data.background_url || null,
+                        data.elements || []
+                    );
+                } catch (e) {
+                    console.error('Error rendering customization preview:', e);
+                }
+            });
+        });
     </script>
 </x-admin::layouts>

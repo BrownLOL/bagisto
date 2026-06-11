@@ -1409,50 +1409,70 @@ function addTextToCanvas(text, size, color, font, opts) {
     var savedScaleY = opts ? opts.scaleY : null;
     var savedStyles = opts ? opts.styles : null;
     
-    var wrapper = document.createElement('div');
-    wrapper.className = 'canvas-elem';
-    var left = savedX !== null ? savedX + '%' : '10%';
-    var top = savedY !== null ? savedY + '%' : '10%';
-    var width = savedW !== null ? savedW + '%' : '80%';
-    var height = savedH !== null ? savedH + '%' : '80%';
-    wrapper.style.cssText = 'position:absolute;left:' + left + ';top:' + top + ';width:' + width + ';height:' + height + ';cursor:move;transform-origin:center center;';
-    if (savedRotation !== null) {
-        var scaleXStr = savedScaleX !== null ? ' scaleX(' + savedScaleX + ')' : '';
-        var scaleYStr = savedScaleY !== null ? ' scaleY(' + savedScaleY + ')' : '';
-        wrapper.style.transform = 'rotate(' + savedRotation + 'deg)' + scaleXStr + scaleYStr;
-    }
-    wrapper.textContent = text;
-    wrapper.style.fontSize = (savedStyles && savedStyles.fontSize ? savedStyles.fontSize : (size || 24)) + 'px';
-    wrapper.style.color = (savedStyles && savedStyles.color ? savedStyles.color : (color || '#000'));
-    wrapper.style.fontFamily = (savedStyles && savedStyles.fontFamily ? savedStyles.fontFamily : (font || 'Noto Sans TC, sans-serif'));
-    wrapper.style.display = 'flex';
-    wrapper.style.alignItems = 'center';
-    wrapper.style.justifyContent = 'center';
-    wrapper.style.wordBreak = 'break-word';
-    wrapper.style.textAlign = 'center';
+    var fontSize = savedStyles && savedStyles.fontSize ? savedStyles.fontSize : (size || 24);
+    var textColor = savedStyles && savedStyles.color ? savedStyles.color : (color || '#000');
+    var fontFamily = savedStyles && savedStyles.fontFamily ? savedStyles.fontFamily : (font || 'Noto Sans TC, sans-serif');
     
-    var elemData = {
-        dom: wrapper,
-        type: 'text',
-        content: text,
-        x: savedX !== null ? savedX : 10, 
-        y: savedY !== null ? savedY : 10, 
-        w: savedW !== null ? savedW : 80, 
-        h: savedH !== null ? savedH : 80, 
+    // Render text to canvas and convert to image
+    var canvas = document.createElement('canvas');
+    var ctx = canvas.getContext('2d');
+    canvas.width = 1024;
+    canvas.height = 256;
+    
+    // Measure text to set proper canvas size
+    ctx.font = fontSize + 'px ' + fontFamily;
+    var metrics = ctx.measureText(text);
+    var textWidth = Math.min(metrics.width + 20, 1024);
+    var textHeight = fontSize * 1.5;
+    canvas.width = textWidth;
+    canvas.height = textHeight;
+    
+    // Redraw with correct size
+    ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.font = fontSize + 'px ' + fontFamily;
+    ctx.fillStyle = textColor;
+    ctx.textBaseline = 'middle';
+    ctx.textAlign = 'center';
+    ctx.fillText(text, canvas.width / 2, canvas.height / 2);
+    
+    var dataUrl = canvas.toDataURL('image/png');
+    
+    // Calculate percentage dimensions based on text size vs print area
+    var areaWidth = printArea.offsetWidth;
+    var areaHeight = printArea.offsetHeight;
+    var imgAspect = canvas.width / canvas.height;
+    var areaAspect = areaWidth / areaHeight;
+    
+    var imgWidth, imgHeight;
+    if (imgAspect > areaAspect) {
+        imgWidth = 80;
+        imgHeight = 80 / imgAspect;
+    } else {
+        imgHeight = 80;
+        imgWidth = 80 * imgAspect;
+    }
+    
+    // Use provided dimensions or calculate new ones
+    var finalW = savedW !== null ? savedW : imgWidth;
+    var finalH = savedH !== null ? savedH : imgHeight;
+    var finalX = savedX !== null ? savedX : 10;
+    var finalY = savedY !== null ? savedY : 10;
+    
+    // Add as image element
+    addUploadedImage(dataUrl, finalX, finalY, finalW, finalH, {
         rotation: savedRotation !== null ? savedRotation : 0,
         scaleX: savedScaleX !== null ? savedScaleX : 1,
         scaleY: savedScaleY !== null ? savedScaleY : 1,
-        styles: savedStyles || { color: color || '#000', fontSize: size || 24, fontFamily: font || 'Noto Sans TC, sans-serif' },
-        id: savedStyles && savedStyles.id ? savedStyles.id : Date.now()
-    };
-    
-    wrapper._elemData = elemData;
-    setupElemEvents(wrapper, elemData);
-    printArea.appendChild(wrapper);
-    currentCanvas.elements.push(elemData);
-    selectElem(elemData);
-    updateLayersList();
-    updatePreview();
+        styles: {
+            ...savedStyles,
+            originalType: 'text',
+            originalText: text,
+            fontSize: fontSize,
+            color: textColor,
+            fontFamily: fontFamily
+        }
+    });
 }
 </script>
 @endpushOnce
