@@ -222,10 +222,17 @@
                                                     </p>
                                                     <div class="mt-1 flex flex-wrap gap-2">
                                                         @foreach ($item->additional['customization']['print_areas'] as $index => $printArea)
-                                                            @if (!empty($printArea['preview_image']))
-                                                                <div class="relative group cursor-pointer" onclick="showDesignPreview('{{ $printArea['preview_image'] }}')">
+                                                            @php
+                                                                // Get the first element's content as preview image (user's design with layers)
+                                                                $previewImage = $printArea['preview_image'] ?? null;
+                                                                if (!empty($printArea['elements']) && isset($printArea['elements'][0]['content'])) {
+                                                                    $previewImage = $printArea['elements'][0]['content'];
+                                                                }
+                                                            @endphp
+                                                            @if ($previewImage)
+                                                                <div class="relative group cursor-pointer" onclick="showDesignPreview('{{ $previewImage }}')">
                                                                     <img
-                                                                        src="{{ $printArea['preview_image'] }}"
+                                                                        src="{{ $previewImage }}"
                                                                         class="h-16 w-16 rounded border border-gray-300 object-cover"
                                                                         alt="Design {{ $index + 1 }}"
                                                                     />
