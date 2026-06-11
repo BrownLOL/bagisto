@@ -550,19 +550,21 @@
                         }).then(response => {
                             if (response.data.success) {
                                 const imageObj = this.images.find(img => img.id === tempId);
+                                console.log('Upload success, this.name:', this.name);
+                                console.log('Updating window.productImages');
                                 if (imageObj) {
                                     imageObj.id = response.data.image_id;
                                     imageObj.url = response.data.image_url;
+                                    imageObj.path = response.data.image_path;
                                     imageObj.uploading = false;
                                     
                                     // Update window.productImages for customization component
-                                    if (this.name && this.name.startsWith('images')) {
-                                        window.productImages = this.images.map((img, idx) => ({
-                                            id: img.id || 'new_' + idx,
-                                            url: img.url || '',
-                                            path: img.path || img.url
-                                        }));
-                                    }
+                                    window.productImages = this.images.map((img, idx) => ({
+                                        id: img.id || 'new_' + idx,
+                                        url: img.url || '',
+                                        path: img.path || img.url
+                                    }));
+                                    console.log('window.productImages updated:', window.productImages);
                                 }
                             }
                         }).catch(error => {
