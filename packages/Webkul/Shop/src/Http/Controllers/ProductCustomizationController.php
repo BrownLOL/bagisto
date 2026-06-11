@@ -40,7 +40,8 @@ class ProductCustomizationController extends Controller
             foreach ($printAreas as $area) {
                 $areaData = $area->toAreaArray();
                 if ($area->productImage) {
-                    $areaData['image_url'] = $area->productImage->url;
+                    // Use Storage facade to get correct URL
+                    $areaData['image_url'] = Storage::url($area->productImage->path);
                 }
                 $areas[] = $areaData;
             }
