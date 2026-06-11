@@ -284,13 +284,19 @@ function saveCustomization() {
         console.error('Error loading saved design:', e);
     }
     
-    // If no preview image from localStorage, try to get from canvas
+    // If no preview image from localStorage, generate from canvas with all layers
     if (!previewImage) {
         var canvas = document.getElementById('design-canvas-inner');
         if (canvas) {
-            var imgs = canvas.querySelectorAll('img');
-            if (imgs.length > 0) {
-                previewImage = imgs[0].src; // First img is the product bg
+            // Use canvas toDataURL to get the composed image with all layers
+            try {
+                previewImage = canvas.toDataURL('image/png');
+            } catch (e) {
+                // Fallback: get first image if CORS issue
+                var imgs = canvas.querySelectorAll('img');
+                if (imgs.length > 0) {
+                    previewImage = imgs[0].src;
+                }
             }
         }
     }
