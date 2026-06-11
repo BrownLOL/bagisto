@@ -604,6 +604,9 @@ function loadSavedCustomization() {
         // Don't try to load preview_image - it's no longer stored in localStorage
         // Background image is already set from window.currentAreaData.image_url
         
+        // Update currentCanvas.elements to match layerStore (important for other functions)
+        currentCanvas.elements = elements.slice();
+        
         // Wait for content to be ready, then restore elements
         setTimeout(function() {
             // Get canvas dimensions for debugging
@@ -846,28 +849,9 @@ function selectProductImage(imgUrl, areaData) {
         printArea.style.cssText = 'position:absolute;left:' + areaData.x + '%;top:' + areaData.y + '%;width:' + areaData.width + '%;height:' + areaData.height + '%;border:2px dashed red;background:rgba(255,255,255,0.3);overflow:hidden;';
         canvas.appendChild(printArea);
         
-        currentCanvas.elements.forEach(function(elemData) {
-            var wrapper = document.createElement('div');
-            wrapper.className = 'canvas-elem';
-            wrapper.style.cssText = 'position:absolute;left:' + elemData.x + '%;top:' + elemData.y + '%;width:' + elemData.w + '%;height:' + elemData.h + '%;cursor:move;transform:rotate(' + elemData.rotation + 'deg);transform-origin:center center;';
-            
-            if (elemData.type === 'image') {
-                var img = document.createElement('img');
-                img.src = elemData.content;
-                img.style.cssText = 'width:100%;height:100%;object-fit:fill;pointer-events:none;';
-                wrapper.appendChild(img);
-            } else if (elemData.type === 'text') {
-                wrapper.textContent = elemData.content;
-                wrapper.style.fontSize = '24px';
-                wrapper.style.color = elemData.styles.color || '#000';
-                wrapper.style.display = 'flex';
-                wrapper.style.alignItems = 'center';
-                wrapper.style.justifyContent = 'center';
-            }
-            
-            setupElemEvents(wrapper, elemData);
-            printArea.appendChild(wrapper);
-        });
+        // DON'T create elements here - loadSavedCustomization will do it after checking localStorage
+        // This prevents duplicate elements when reloading a saved design
+        console.log('[DEBUG selectProductImage] Skip element creation, loadSavedCustomization will handle it');
     }
     
     updateLayersList();
