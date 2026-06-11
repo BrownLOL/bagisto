@@ -77,11 +77,6 @@ class ProductImage extends Model implements ProductImageContract
         return $this->attribute_family->custom_attributes->pluck('code')->contains($attribute);
     }
 
-    /**
-     * Get the print areas for customization.
-     */
-    public function printAreas(): HasMany
-    {
-        return $this->hasMany(ProductImagePrintAreaProxy::modelClass(), 'product_image_id');
-    }
+    // printAreas 关联已移除，改用 product_id + image_url 模式
+    // 如需查询，请直接通过 ProductImagePrintArea 模型按 product_id 查询
 }
