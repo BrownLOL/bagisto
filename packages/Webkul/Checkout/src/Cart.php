@@ -433,11 +433,17 @@ class Cart
                 'item_id' => $item->id,
                 'item_product_id' => $item->product_id,
                 'item_additional' => $item->additional,
-                'data_additional' => $data['additional'] ?? null,
+                'data_type' => gettype($data),
+                'data_is_array' => is_array($data),
+                'data_keys' => is_array($data) ? array_keys($data) : null,
+                'data_has_additional' => is_array($data) ? array_key_exists('additional', $data) : false,
+                'data_additional' => is_array($data) ? ($data['additional'] ?? 'KEY_NOT_EXISTS') : null,
             ]);
 
+            $options2 = is_array($data) ? ($data['additional'] ?? null) : null;
+            
             try {
-                $compareResult = $item->getTypeInstance()->compareOptions($item->additional, $data['additional']);
+                $compareResult = $item->getTypeInstance()->compareOptions($item->additional, $options2);
                 \Log::info('Cart::getItemByProduct compareResult', ['result' => $compareResult]);
             } catch (\Throwable $e) {
                 \Log::error('Cart::getItemByProduct compareOptions error', [
