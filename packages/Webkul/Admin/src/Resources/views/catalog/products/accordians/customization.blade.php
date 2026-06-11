@@ -248,6 +248,9 @@
     </script>
 
     <script type="module">
+        // Set window.productId for images.blade.php component
+        window.productId = {{ $product->id ?? 0 }};
+        
         app.component('v-product-customization', {
             template: '#v-product-customization-template',
 
