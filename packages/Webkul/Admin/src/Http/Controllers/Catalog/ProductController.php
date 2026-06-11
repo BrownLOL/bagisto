@@ -436,46 +436,57 @@ class ProductController extends Controller
      */
     protected function updatePrintAreasForNewProduct($product)
     {
-        \Log::info('=== updatePrintAreasForNewProduct START ===');
-        \Log::info('Product ID: ' . $product->id);
+        // Debug: return JSON response for testing
+        $debug = [
+            'product_id' => $product->id,
+            'method_called' => 'updatePrintAreasForNewProduct',
+        ];
 
         // 1. Move product images from product/0/ to product/{id}/
         $oldPath = 'product/0';
         $newPath = 'product/' . $product->id;
 
         $files = Storage::disk('public')->files($oldPath);
-        \Log::info('Files in product/0/: ' . json_encode($files));
+        $debug['files_in_product_0'] = $files;
 
         foreach ($files as $file) {
             $filename = basename($file);
             $moved = Storage::disk('public')->move($file, $newPath . '/' . $filename);
-            \Log::info("Moved: $file -> $newPath/$filename, result: " . ($moved ? 'true' : 'false'));
+            $debug["moved_$filename"] = $moved;
         }
 
         // 2. Find print areas with product_id = 0 (temporary placeholder)
         $printAreas = \Webkul\Product\Models\ProductImagePrintArea::where('product_id', 0)->get();
-        \Log::info('Print areas with product_id=0: ' . $printAreas->count());
+        $debug['print_areas_count'] = $printAreas->count();
+        $debug['print_areas'] = $printAreas->toArray();
 
         if ($printAreas->isEmpty()) {
-            \Log::info('No print areas to update');
-            return;
+            // Try to see what product_ids exist
+            $allIds = \Webkul\Product\Models\ProductImagePrintArea::select('product_id')->distinct()->get();
+            $debug['all_product_ids'] = $allIds->pluck('product_id')->toArray();
+            
+            // Return debug as JSON
+            return response()->json(['debug' => $debug, 'success' => false, 'message' => 'No print areas with product_id=0']);
         }
 
         // 3. Update print areas: change product_id and fix image_url paths
         foreach ($printAreas as $printArea) {
             $oldUrl = '/storage/product/0/';
             $newUrl = '/storage/product/' . $product->id . '/';
-
             $newImageUrl = str_replace($oldUrl, $newUrl, $printArea->image_url);
-
-            \Log::info("Updating print area {$printArea->id}: {$printArea->image_url} -> {$newImageUrl}");
 
             $printArea->update([
                 'product_id' => $product->id,
                 'image_url' => $newImageUrl,
             ]);
+
+            $debug['updated'][] = [
+                'id' => $printArea->id,
+                'old' => $printArea->getOriginal('image_url'),
+                'new' => $newImageUrl,
+            ];
         }
 
-        \Log::info('=== updatePrintAreasForNewProduct END ===');
+        return response()->json(['debug' => $debug, 'success' => true]);
     }
 }
