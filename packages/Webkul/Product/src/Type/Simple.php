@@ -462,8 +462,13 @@ class Simple extends AbstractType
             return $options1 === null || empty($options1);
         }
         
+        // Ensure options2 is an array
+        if (!is_array($options2)) {
+            return false;
+        }
+        
         // Extract customization from options2 (may be direct or wrapped in additional)
-        $customization2 = isset($options2['additional']) 
+        $customization2 = array_key_exists('additional', $options2) && is_array($options2['additional'])
             ? ($options2['additional']['customization'] ?? null)
             : ($options2['customization'] ?? null);
         
@@ -473,7 +478,7 @@ class Simple extends AbstractType
         }
         
         // Extract customization from options1 (cart item)
-        $customization1 = isset($options1['additional']) 
+        $customization1 = array_key_exists('additional', $options1) && is_array($options1['additional'])
             ? ($options1['additional']['customization'] ?? null)
             : ($options1['customization'] ?? null);
         
