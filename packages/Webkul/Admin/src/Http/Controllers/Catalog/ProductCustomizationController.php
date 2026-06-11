@@ -117,8 +117,10 @@ class ProductCustomizationController extends Controller
                 $encoded = image_manager()->read($file)->encodeByExtension('webp');
                 $path = 'product/'.$productId.'/'.Str::random(40).'.webp';
                 Storage::disk('public')->put($path, (string) $encoded);
+                \Log::info('uploadImage: image encoded and saved', ['path' => $path]);
             } else {
                 $path = $file->store('product/'.$productId, 'public');
+                \Log::info('uploadImage: file stored', ['path' => $path]);
             }
 
             // 获取当前最大 position
