@@ -887,26 +887,13 @@ abstract class AbstractType
      */
     public function compareOptions($options1, $options2)
     {
-        // DEBUG: Log entry
-        \Log::info('compareOptions START', [
-            'options1_type' => gettype($options1),
-            'options1_value' => $options1,
-            'options2_type' => gettype($options2),
-            'options2_value' => $options2,
-        ]);
-        
-        // options1 = cart item additional (may be empty or have customization)
-        // options2 = new product additional (has customization)
-        
         // Handle null cases
         if ($options2 === null) {
-            \Log::info('compareOptions: options2 is null');
             return $options1 === null || empty($options1);
         }
         
         // Check if options2 is array
         if (!is_array($options2)) {
-            \Log::info('compareOptions: options2 is not array', ['type' => gettype($options2)]);
             return false;
         }
         
@@ -927,23 +914,13 @@ abstract class AbstractType
             }
         }
         
-        // DEBUG LOG
-        \Log::info('compareOptions', [
-            'options1' => $options1,
-            'options2' => $options2,
-            'customization1' => $customization1,
-            'customization2' => $customization2,
-        ]);
-        
         // If new product has customization, it should never merge with any existing cart item
         if ($customization2 !== null) {
-            \Log::info('compareOptions: new product has customization, not merging');
             return false;
         }
         
         // If existing cart item has customization but new product doesn't, don't merge
         if ($customization1 !== null) {
-            \Log::info('compareOptions: cart item has customization, new product does not, not merging');
             return false;
         }
         
@@ -954,10 +931,6 @@ abstract class AbstractType
         
         // If we can't determine product_id from options2, check via product instance
         if ($productId2 === null || $this->product->id != $productId2) {
-            \Log::info('compareOptions: product_id mismatch or missing', [
-                'product_id2' => $productId2,
-                'this_product_id' => $this->product->id,
-            ]);
             return false;
         }
         
@@ -979,7 +952,6 @@ abstract class AbstractType
             return false;
         }
 
-        \Log::info('compareOptions: no customization, product matches, allowing merge');
         return true;
     }
 

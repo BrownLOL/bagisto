@@ -384,19 +384,10 @@ class Simple extends AbstractType
      */
     public function getAdditionalOptions($data)
     {
-        // DEBUG LOG
-        \Log::info('getAdditionalOptions input', [
-            'has_additional' => isset($data['additional']),
-            'additional_keys' => isset($data['additional']) && is_array($data['additional']) ? array_keys($data['additional']) : null,
-        ]);
-        
         // Only keep 'additional' field if it exists (for customization)
         // This prevents additional from being polluted with product_id, quantity, etc.
         if (isset($data['additional'])) {
             $additional = $data['additional'];
-            
-            // DEBUG LOG
-            \Log::info('getAdditionalOptions returning additional', ['additional' => $additional]);
 
             // Add attributes if customizable_options exist
             if (! empty($data['formatted_customizable_options'])) {

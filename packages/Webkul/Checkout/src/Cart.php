@@ -420,42 +420,12 @@ class Cart
     {
         $items = $this->cart->all_items;
 
-        \Log::info('Cart::getItemByProduct', [
-            'data_keys' => array_keys($data),
-            'data_additional' => $data['additional'] ?? null,
-            'parentData_keys' => $parentData ? array_keys($parentData) : null,
-            'cart_items_count' => $items->count(),
-            'parentData_product_id' => $parentData['product_id'] ?? null,
-        ]);
-
         foreach ($items as $item) {
-            \Log::info('Cart::getItemByProduct comparing', [
-                'item_id' => $item->id,
-                'item_product_id' => $item->product_id,
-                'item_additional' => $item->additional,
-                'data_type' => gettype($data),
-                'data_is_array' => is_array($data),
-                'data_keys' => is_array($data) ? array_keys($data) : null,
-                'data_has_additional' => is_array($data) ? array_key_exists('additional', $data) : false,
-                'data_additional' => is_array($data) ? ($data['additional'] ?? 'KEY_NOT_EXISTS') : null,
-            ]);
-
             $options2 = is_array($data) ? ($data['additional'] ?? null) : null;
             
-            try {
-                $compareResult = $item->getTypeInstance()->compareOptions($item->additional, $options2);
-                \Log::info('Cart::getItemByProduct compareResult', ['result' => $compareResult]);
-            } catch (\Throwable $e) {
-                \Log::error('Cart::getItemByProduct compareOptions error', [
-                    'error' => $e->getMessage(),
-                    'trace' => $e->getTraceAsString(),
-                ]);
-                throw $e;
-            }
+            $compareResult = $item->getTypeInstance()->compareOptions($item->additional, $options2);
 
             if ($compareResult) {
-                \Log::info('Cart::getItemByProduct match found');
-
                 if (
                     ! isset($data['additional']['parent_id'])
                     && ! $item->parent_id
@@ -469,7 +439,6 @@ class Cart
             }
         }
 
-        \Log::info('Cart::getItemByProduct no match, returning null');
         return null;
     }
 
