@@ -619,20 +619,56 @@ function loadSavedCustomization() {
             elements.forEach(function(elem, idx) {
                 console.log('[DEBUG loadSavedCustomization] Element', idx, ':', elem.type, 'at', elem.x + '%,', elem.y + '%');
                 
+                // Directly create DOM element instead of calling addUploadedImage/addTextToCanvas
+                // because selectProductImage already creates them from currentCanvas.elements
+                var areaData = window.currentAreaData;
+                var printAreaId = 'print-area-' + (areaData && (areaData.id || areaData.print_area_id) ? (areaData.id || areaData.print_area_id) : 'default');
+                var printArea = document.getElementById(printAreaId);
+                if (!printArea) return;
+                
+                var wrapper = document.createElement('div');
+                wrapper.className = 'canvas-elem';
+                var rotation = elem.rotation || 0;
+                var scaleX = elem.scaleX || 1;
+                var scaleY = elem.scaleY || 1;
+                wrapper.style.cssText = 'position:absolute;left:' + elem.x + '%;top:' + elem.y + '%;width:' + (elem.width || elem.w || 80) + '%;height:' + (elem.height || elem.h || 80) + '%;cursor:move;transform-origin:center center;transform:rotate(' + rotation + 'deg) scaleX(' + scaleX + ') scaleY(' + scaleY + ');';
+                
+                var elemData = {
+                    dom: wrapper,
+                    type: elem.type,
+                    content: elem.content,
+                    x: elem.x,
+                    y: elem.y,
+                    width: elem.width || elem.w,
+                    height: elem.height || elem.h,
+                    rotation: rotation,
+                    scaleX: scaleX,
+                    scaleY: scaleY,
+                    styles: elem.styles || {},
+                    id: Date.now() + idx
+                };
+                
                 if (elem.type === 'text') {
-                    addTextToCanvas(elem.content, elem.styles && elem.styles.fontSize, elem.styles && elem.styles.color, elem.styles && elem.styles.fontFamily, {
-                        x: elem.x,
-                        y: elem.y,
-                        width: elem.width,
-                        height: elem.height,
-                        rotation: elem.rotation || 0,
-                        scaleX: elem.scaleX || 1,
-                        scaleY: elem.scaleY || 1,
-                        styles: elem.styles || {}
-                    });
+                    var textSpan = document.createElement('span');
+                    textSpan.textContent = elem.content;
+                    textSpan.style.cssText = 'width:100%;height:100%;display:flex;align-items:center;justify-content:center;overflow:hidden;';
+                    if (elem.styles) {
+                        textSpan.style.fontSize = elem.styles.fontSize || '24px';
+                        textSpan.style.color = elem.styles.color || '#000';
+                        textSpan.style.fontFamily = elem.styles.fontFamily || 'Arial';
+                    }
+                    wrapper.appendChild(textSpan);
                 } else if (elem.type === 'image') {
-                    addUploadedImage(elem.content, elem.x, elem.y, elem.width, elem.height, elem.rotation || 0, elem.scaleX || 1, elem.scaleY || 1);
+                    var img = document.createElement('img');
+                    img.src = elem.content;
+                    img.style.cssText = 'width:100%;height:100%;object-fit:fill;pointer-events:none;';
+                    wrapper.appendChild(img);
                 }
+                
+                wrapper._elemData = elemData;
+                setupElemEvents(wrapper, elemData);
+                printArea.appendChild(wrapper);
+                // Don't push to currentCanvas.elements - selectProductImage already did that
             });
             
             console.log('[DEBUG loadSavedCustomization] Restored', elements.length, 'elements');
