@@ -616,8 +616,18 @@ function loadSavedCustomization() {
         
         // Wait for content to be ready, then restore elements
         setTimeout(function() {
+            // Get canvas dimensions for debugging
+            var wrapper = document.querySelector('.canvas-wrapper');
+            var printArea = document.querySelector('.print-area-inner');
+            var wrapperRect = wrapper ? wrapper.getBoundingClientRect() : null;
+            var printAreaRect = printArea ? printArea.getBoundingClientRect() : null;
+            
+            console.log('[DEBUG loadSavedCustomization] Canvas dims - wrapper:', wrapperRect ? wrapperRect.width + 'x' + wrapperRect.height : 'null', 
+                        'printArea:', printAreaRect ? printAreaRect.width + 'x' + printAreaRect.height : 'null');
+            console.log('[DEBUG loadSavedCustomization] areaData:', JSON.stringify(window.currentAreaData));
+            
             elements.forEach(function(elem, idx) {
-                console.log('[DEBUG loadSavedCustomization] Element', idx, ':', elem.type);
+                console.log('[DEBUG loadSavedCustomization] Element', idx, ':', elem.type, 'at', elem.x + '%,', elem.y + '%');
                 
                 if (elem.type === 'text') {
                     addTextToCanvas(elem.content, elem.styles && elem.styles.fontSize, elem.styles && elem.styles.color, elem.styles && elem.styles.fontFamily, {
