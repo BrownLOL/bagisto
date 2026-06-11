@@ -511,6 +511,8 @@ function saveCustomizationWithPreview(previewImage, elements) {
             record_key: currentRecordKey,
             // DON'T store preview_image - it's too large for localStorage (1MB+)
             // Preview will be generated on-the-fly when needed
+            // Store background image URL for preview generation
+            background_url: window.currentAreaData?.image_url || null,
             elements: elements
         };
         

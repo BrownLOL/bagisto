@@ -804,8 +804,12 @@
                         const productId = "{{ $product->id }}";
                         let productImageUrl = '';
                         
-                        // Try to get from window.productImages
-                        if (window.productImages && window.productImages.length > 0) {
+                        // Priority 1: Get from saved design data (background_url stored with elements)
+                        if (firstPA.background_url) {
+                            productImageUrl = firstPA.background_url;
+                        }
+                        // Priority 2: Try window.productImages
+                        else if (window.productImages && window.productImages.length > 0) {
                             productImageUrl = window.productImages[0].url || window.productImages[0].image_url;
                         }
                         
@@ -815,6 +819,7 @@
                         }
                         
                         console.log('generateAndUploadPreview: Starting with product image:', productImageUrl.substring(0, 80));
+                        console.log('generateAndUploadPreview: Using background_url:', firstPA.background_url ? 'YES' : 'NO (fallback to window.productImages)');
                         
                         try {
                             // Load background image
