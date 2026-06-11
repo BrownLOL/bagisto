@@ -124,6 +124,9 @@ class ProductController extends Controller
 
         Event::dispatch('catalog.product.create.after', $product);
 
+        // Update print areas: change product_id from 0 to actual product id, and fix image_url paths
+        $this->updatePrintAreasForNewProduct($product);
+
         session()->flash('success', trans('admin::app.catalog.products.create-success'));
 
         return new JsonResponse([
@@ -421,5 +424,47 @@ class ProductController extends Controller
         ]);
 
         return Storage::download($productAttribute['text_value']);
+    }
+
+    /**
+     * Update print areas for a newly created product.
+     * Changes product_id from 0 to the actual product id, fixes image_url paths,
+     * and moves product images from product/0/ to product/{id}/.
+     *
+     * @param  \Webkul\Product\Models\Product  $product
+     * @return void
+     */
+    protected function updatePrintAreasForNewProduct($product)
+    {
+        // 1. Move product images from product/0/ to product/{id}/
+        $oldPath = 'product/0';
+        $newPath = 'product/' . $product->id;
+
+        $files = Storage::disk('public')->files($oldPath);
+
+        foreach ($files as $file) {
+            $filename = basename($file);
+            Storage::disk('public')->move($file, $newPath . '/' . $filename);
+        }
+
+        // 2. Find print areas with product_id = 0 (temporary placeholder)
+        $printAreas = \Webkul\Product\Models\ProductImagePrintArea::where('product_id', 0)->get();
+
+        if ($printAreas->isEmpty()) {
+            return;
+        }
+
+        // 3. Update print areas: change product_id and fix image_url paths
+        foreach ($printAreas as $printArea) {
+            $oldUrl = '/storage/product/0/';
+            $newUrl = '/storage/product/' . $product->id . '/';
+
+            $newImageUrl = str_replace($oldUrl, $newUrl, $printArea->image_url);
+
+            $printArea->update([
+                'product_id' => $product->id,
+                'image_url' => $newImageUrl,
+            ]);
+        }
     }
 }
