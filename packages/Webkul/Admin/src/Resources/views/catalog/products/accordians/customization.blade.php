@@ -9,18 +9,13 @@
         ];
     })->toArray();
 
-    // 每条 PrintArea 记录作为独立记录返回
-    $printAreas = \Webkul\Product\Models\ProductImagePrintArea::whereHas('productImage', function($q) use ($product) {
-        $q->where('product_id', $product->id);
-    })->where('is_active', true)->with('productImage')->get();
+    // 直接通过 product_id 查询 print_areas，使用存储的 image_url
+    $printAreas = \Webkul\Product\Models\ProductImagePrintArea::where('product_id', $product->id)->where('is_active', true)->get();
 
     $imagesWithAreas = $printAreas->map(function($area) {
-        $image = $area->productImage;
         return [
             'id' => 'record_' . $area->id,
-            'image_id' => $image->id,
-            'url' => url('storage/' . $image->path),
-            'path' => $image->path,
+            'image_url' => $area->image_url,
             'areas' => [[
                 'id' => $area->id,
                 'x' => $area->x,
@@ -75,7 +70,7 @@
                     >
                         <!-- Image -->
                         <img
-                            :src="imageData.url"
+                            :src="imageData.image_url || imageData.url"
                             :alt="'Image ' + index"
                             class="h-[120px] w-[120px] object-cover"
                         >
@@ -320,10 +315,9 @@
 
                 openEditDialog(imageData, index) {
                     this.isEditMode = true;
-                    this.editingKey = index; // 保存当前编辑的记录索引
+                    this.editingKey = index;
                     this.originalImageId = imageData.id;
-                    this.dialogSelectedImageId = imageData.image_id || imageData.id;
-                    this.dialogSelectedImageUrl = imageData.url;
+                    this.dialogSelectedImageUrl = imageData.image_url || imageData.url;
                     this.tempAreas = JSON.parse(JSON.stringify(imageData.areas));
                     this.imageLoaded = true;
                     this.$refs.printAreaModal.open();
@@ -345,16 +339,13 @@
                     const record = this.imagesWithAreas[index];
                     if (!record) return;
 
-                    // 获取真实的 image_id（可能在新记录中是 image_id 字段）
-                    const imageId = record.image_id || record.id;
-
                     if (!confirm('Delete this print area record?')) {
                         return;
                     }
 
                     // 如果是已有的数据库记录，调用后端删除
-                    if (!String(imageId).startsWith('new_')) {
-                        this.$axios.delete(`/admin/catalog/products/print-areas/image/${imageId}`)
+                    if (record.id && !String(record.id).startsWith('new_')) {
+                        this.$axios.delete(`/admin/catalog/products/print-areas/${record.id}`)
                             .catch(error => {
                                 console.error('Error deleting areas:', error);
                             });
@@ -424,15 +415,11 @@
                 },
 
                 async saveAreas() {
-                    if (this.tempAreas.length === 0 || !this.dialogSelectedImageId || this.saving) return;
+                    if (this.tempAreas.length === 0 || !this.dialogSelectedImageUrl || this.saving) return;
 
                     this.saving = true;
 
                     try {
-                        // Check if it's a new image (temporary ID) - ensure string type
-                        const imageId = String(this.dialogSelectedImageId);
-                        const isNewImage = imageId.startsWith('image_');
-
                         // Build request data
                         const requestData = {
                             product_id: this.productId,
@@ -465,25 +452,18 @@
                                 }
                             } else {
                                 // Add 模式：追加新记录（用时间戳作为唯一 ID）
-                                const imageId = parseInt(requestData.image_id);
-                                const imageInfo = this.allImages.find(img => parseInt(img.id) === imageId || img.id === imageId);
-
-                                if (imageInfo) {
-                                    const newRecord = {
-                                        id: 'new_' + Date.now(), // 唯一 ID
-                                        image_id: imageId,
-                                        url: imageInfo.url,
-                                        path: imageInfo.path,
-                                        areas: requestData.areas.map((area, idx) => ({
-                                            id: Date.now() + idx,
-                                            x: area.x,
-                                            y: area.y,
-                                            width: area.width,
-                                            height: area.height
-                                        }))
-                                    };
-                                    this.imagesWithAreas.push(newRecord);
-                                }
+                                const newRecord = {
+                                    id: 'new_' + Date.now(), // 唯一 ID
+                                    image_url: requestData.image_url,
+                                    areas: requestData.areas.map((area, idx) => ({
+                                        id: Date.now() + idx,
+                                        x: area.x,
+                                        y: area.y,
+                                        width: area.width,
+                                        height: area.height
+                                    }))
+                                };
+                                this.imagesWithAreas.push(newRecord);
                             }
 
                             this.closeDialog();
