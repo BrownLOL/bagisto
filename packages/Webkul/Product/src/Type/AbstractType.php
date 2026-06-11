@@ -890,15 +890,27 @@ abstract class AbstractType
         // options1 = cart item additional (may be empty or have customization)
         // options2 = new product additional (has customization)
         
+        // Handle null cases
+        if ($options2 === null) {
+            return $options1 === null || empty($options1);
+        }
+        
         // Extract customization from both formats
         // Format 1: direct {"customization":..., "design_uuid":...}
         // Format 2: wrapped {"additional": {"customization":..., "design_uuid":...}}
         $customization1 = isset($options1['additional']) 
             ? ($options1['additional']['customization'] ?? null) 
             : ($options1['customization'] ?? null);
-        $customization2 = isset($options2['additional']) 
-            ? ($options2['additional']['customization'] ?? null) 
-            : ($options2['customization'] ?? null);
+        
+        // Safely extract customization2, handle null options2
+        $customization2 = null;
+        if (is_array($options2)) {
+            if (isset($options2['additional']) && is_array($options2['additional'])) {
+                $customization2 = $options2['additional']['customization'] ?? null;
+            } else {
+                $customization2 = $options2['customization'] ?? null;
+            }
+        }
         
         // DEBUG LOG
         \Log::info('compareOptions', [
