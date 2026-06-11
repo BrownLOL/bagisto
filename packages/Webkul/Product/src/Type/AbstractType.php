@@ -887,12 +887,27 @@ abstract class AbstractType
      */
     public function compareOptions($options1, $options2)
     {
+        // DEBUG: Log entry
+        \Log::info('compareOptions START', [
+            'options1_type' => gettype($options1),
+            'options1_value' => $options1,
+            'options2_type' => gettype($options2),
+            'options2_value' => $options2,
+        ]);
+        
         // options1 = cart item additional (may be empty or have customization)
         // options2 = new product additional (has customization)
         
         // Handle null cases
         if ($options2 === null) {
+            \Log::info('compareOptions: options2 is null');
             return $options1 === null || empty($options1);
+        }
+        
+        // Check if options2 is array
+        if (!is_array($options2)) {
+            \Log::info('compareOptions: options2 is not array', ['type' => gettype($options2)]);
+            return false;
         }
         
         // Extract customization from both formats
