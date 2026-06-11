@@ -830,20 +830,20 @@
                         const productId = "{{ $product->id }}";
                         let productImageUrl = '';
                         
-                        // Priority 1: Get from saved design data (background_url stored with elements)
-                        if (firstPA.background_url) {
-                            productImageUrl = firstPA.background_url;
-                            console.log('[DEBUG generateAndUploadPreview] Using Priority 1: background_url');
+                        // Priority 1: Use product base image URL (defined in Blade template) - this should be the correct URL
+                        if (window.productBaseImageUrl) {
+                            productImageUrl = window.productBaseImageUrl;
+                            console.log('[DEBUG generateAndUploadPreview] Using Priority 1: window.productBaseImageUrl');
                         }
-                        // Priority 2: Try window.productImages
+                        // Priority 2: Get from saved design data (background_url stored with elements)
+                        else if (firstPA.background_url) {
+                            productImageUrl = firstPA.background_url;
+                            console.log('[DEBUG generateAndUploadPreview] Using Priority 2: background_url');
+                        }
+                        // Priority 3: Try window.productImages
                         else if (window.productImages && window.productImages.length > 0) {
                             productImageUrl = window.productImages[0].url || window.productImages[0].image_url;
-                            console.log('[DEBUG generateAndUploadPreview] Using Priority 2: window.productImages');
-                        }
-                        // Priority 3: Use product base image URL (defined in Blade template)
-                        else if (window.productBaseImageUrl) {
-                            productImageUrl = window.productBaseImageUrl;
-                            console.log('[DEBUG generateAndUploadPreview] Using Priority 3: window.productBaseImageUrl');
+                            console.log('[DEBUG generateAndUploadPreview] Using Priority 3: window.productImages');
                         }
                         
                         console.log('[DEBUG generateAndUploadPreview] productImageUrl:', productImageUrl ? productImageUrl.substring(0, 120) : 'EMPTY');
@@ -856,11 +856,16 @@
                         
                         if (!productImageUrl) {
                             console.warn('[DEBUG generateAndUploadPreview] No product image URL found');
-                            return null;
+                            // Fallback to window.productBaseImageUrl
+                            productImageUrl = window.productBaseImageUrl;
+                            console.log('generateAndUploadPreview: Using fallback window.productBaseImageUrl:', productImageUrl ? 'YES' : 'NO');
+                            if (!productImageUrl) {
+                                return null;
+                            }
                         }
                         
                         console.log('generateAndUploadPreview: Starting with product image:', productImageUrl.substring(0, 120));
-                        console.log('generateAndUploadPreview: Using background_url:', firstPA.background_url ? 'YES' : 'NO (fallback to window.productImages)');
+                        console.log('generateAndUploadPreview: Using background_url:', firstPA.background_url ? 'YES' : 'NO');
                         
                         try {
                             // Load background image
@@ -870,6 +875,11 @@
                             // Check if image loaded correctly (width/height > 0)
                             if (bgImg.width === 0 || bgImg.height === 0) {
                                 console.error('[DEBUG generateAndUploadPreview] ERROR: Background image failed to load (size is 0x0)');
+                                // Fallback to window.productBaseImageUrl
+                                if (window.productBaseImageUrl && productImageUrl !== window.productBaseImageUrl) {
+                                    console.log('[DEBUG generateAndUploadPreview] Trying fallback to window.productBaseImageUrl');
+                                    return this.generateAndUploadPreview(designUUID); // This will recursively call with fallback URL
+                                }
                                 return null;
                             }
                             
