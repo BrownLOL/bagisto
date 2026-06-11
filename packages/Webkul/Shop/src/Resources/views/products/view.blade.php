@@ -846,20 +846,32 @@
                             console.log('[DEBUG generateAndUploadPreview] Using Priority 3: window.productBaseImageUrl');
                         }
                         
-                        console.log('[DEBUG generateAndUploadPreview] productImageUrl:', productImageUrl ? productImageUrl.substring(0, 80) : 'EMPTY');
+                        console.log('[DEBUG generateAndUploadPreview] productImageUrl:', productImageUrl ? productImageUrl.substring(0, 120) : 'EMPTY');
+                        
+                        // Strip .webp extension if present - this might be incorrectly added
+                        if (productImageUrl && productImageUrl.endsWith('.webp')) {
+                            productImageUrl = productImageUrl.replace(/\.webp$/, '');
+                            console.log('[DEBUG generateAndUploadPreview] Stripped .webp, new URL:', productImageUrl.substring(0, 120));
+                        }
                         
                         if (!productImageUrl) {
                             console.warn('[DEBUG generateAndUploadPreview] No product image URL found');
                             return null;
                         }
                         
-                        console.log('generateAndUploadPreview: Starting with product image:', productImageUrl.substring(0, 80));
+                        console.log('generateAndUploadPreview: Starting with product image:', productImageUrl.substring(0, 120));
                         console.log('generateAndUploadPreview: Using background_url:', firstPA.background_url ? 'YES' : 'NO (fallback to window.productImages)');
                         
                         try {
                             // Load background image
                             const bgImg = await this.loadImage(productImageUrl);
                             console.log('generateAndUploadPreview: bgImg loaded, size:', bgImg.width, 'x', bgImg.height);
+                            
+                            // Check if image loaded correctly (width/height > 0)
+                            if (bgImg.width === 0 || bgImg.height === 0) {
+                                console.error('[DEBUG generateAndUploadPreview] ERROR: Background image failed to load (size is 0x0)');
+                                return null;
+                            }
                             
                             // Create canvas
                             const canvas = document.createElement('canvas');
