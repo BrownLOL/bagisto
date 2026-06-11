@@ -130,6 +130,7 @@ class ProductCustomizationController extends Controller
             $savedImage = $this->productImageRepository->create([
                 'product_id' => $productId,
                 'path'       => $path,
+                'type'       => 'images',  // 关键：设置 type 为 'images'
                 'position'   => $maxPosition + 1,
             ]);
 
