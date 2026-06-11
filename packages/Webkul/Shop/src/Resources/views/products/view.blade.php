@@ -790,20 +790,41 @@
 
                 methods: {
                     async generateAndUploadPreview(designUUID) {
+                        console.log('[DEBUG generateAndUploadPreview] START');
+                        
                         // Get design data from localStorage
                         const designDataKey = 'design_' + designUUID;
-                        const designData = localStorage.getItem(designDataKey);
+                        console.log('[DEBUG generateAndUploadPreview] Key:', designDataKey);
                         
-                        if (!designData) return null;
+                        const designData = localStorage.getItem(designDataKey);
+                        console.log('[DEBUG generateAndUploadPreview] localStorage data exists:', !!designData);
+                        
+                        if (!designData) {
+                            console.warn('[DEBUG generateAndUploadPreview] No design data found');
+                            return null;
+                        }
                         
                         const storedData = JSON.parse(designData);
-                        const printAreas = storedData.print_areas || [];
+                        console.log('[DEBUG generateAndUploadPreview] storedData keys:', Object.keys(storedData));
                         
-                        if (!printAreas.length) return null;
+                        const printAreas = storedData.print_areas || [];
+                        console.log('[DEBUG generateAndUploadPreview] printAreas count:', printAreas.length);
+                        
+                        if (!printAreas.length) {
+                            console.warn('[DEBUG generateAndUploadPreview] No print areas');
+                            return null;
+                        }
                         
                         // Get the first print area
                         const firstPA = printAreas[0];
-                        if (!firstPA.elements || !firstPA.elements.length) return null;
+                        console.log('[DEBUG generateAndUploadPreview] firstPA keys:', Object.keys(firstPA));
+                        console.log('[DEBUG generateAndUploadPreview] firstPA.background_url:', firstPA.background_url);
+                        console.log('[DEBUG generateAndUploadPreview] elements count:', firstPA.elements?.length || 0);
+                        
+                        if (!firstPA.elements || !firstPA.elements.length) {
+                            console.warn('[DEBUG generateAndUploadPreview] No elements');
+                            return null;
+                        }
                         
                         // Get the product image URL from window
                         const productId = "{{ $product->id }}";
@@ -812,18 +833,23 @@
                         // Priority 1: Get from saved design data (background_url stored with elements)
                         if (firstPA.background_url) {
                             productImageUrl = firstPA.background_url;
+                            console.log('[DEBUG generateAndUploadPreview] Using Priority 1: background_url');
                         }
                         // Priority 2: Try window.productImages
                         else if (window.productImages && window.productImages.length > 0) {
                             productImageUrl = window.productImages[0].url || window.productImages[0].image_url;
+                            console.log('[DEBUG generateAndUploadPreview] Using Priority 2: window.productImages');
                         }
                         // Priority 3: Use product base image URL (defined in Blade template)
                         else if (window.productBaseImageUrl) {
                             productImageUrl = window.productBaseImageUrl;
+                            console.log('[DEBUG generateAndUploadPreview] Using Priority 3: window.productBaseImageUrl');
                         }
                         
+                        console.log('[DEBUG generateAndUploadPreview] productImageUrl:', productImageUrl ? productImageUrl.substring(0, 80) : 'EMPTY');
+                        
                         if (!productImageUrl) {
-                            console.warn('generateAndUploadPreview: No product image URL found');
+                            console.warn('[DEBUG generateAndUploadPreview] No product image URL found');
                             return null;
                         }
                         
