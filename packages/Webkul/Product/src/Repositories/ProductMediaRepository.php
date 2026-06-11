@@ -54,6 +54,11 @@ class ProductMediaRepository extends Repository
         if (! empty($data[$uploadFileType]['files'])) {
             foreach ($data[$uploadFileType]['files'] as $indexOrModelId => $file) {
                 if ($file instanceof UploadedFile) {
+                    // Skip if this is an already uploaded image (from API)
+                    if (! empty($uploadedIds) && in_array($indexOrModelId, $uploadedIds)) {
+                        continue;
+                    }
+
                     if (Str::contains($file->getMimeType(), 'image')) {
                         $encoded = image_manager()->read($file)->encodeByExtension('webp');
 
