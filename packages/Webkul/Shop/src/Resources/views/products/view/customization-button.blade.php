@@ -776,6 +776,11 @@ function updatePreview() {
         elem.style.border = 'none';
     });
     
+    // Remove background from print areas in preview
+    clone.querySelectorAll('[class*="print-area"]').forEach(function(elem) {
+        elem.style.background = 'transparent';
+    });
+    
     clone.querySelectorAll('.canvas-elem').forEach(function(elem) {
         elem.style.pointerEvents = 'none';
     });
