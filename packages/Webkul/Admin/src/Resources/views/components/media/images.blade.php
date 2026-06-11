@@ -539,42 +539,40 @@
                             uploading: true
                         });
                         
-                        // Upload to server and get real URL if product_id exists
-                        const productId = window.productId;
-                        if (productId && productId > 0) {
-                            const formData = new FormData();
-                            formData.append('product_id', productId);
-                            formData.append('file', file);
-                            
-                            this.$axios.post("{{ route('admin.catalog.products.images.upload') }}", formData, {
-                                headers: { 'Content-Type': 'multipart/form-data' }
-                            }).then(response => {
-                                if (response.data.success) {
-                                    const imageObj = this.images.find(img => img.id === tempId);
-                                    if (imageObj) {
-                                        imageObj.id = response.data.image_id;
-                                        imageObj.url = response.data.image_url;
-                                        imageObj.uploading = false;
-                                    }
-                                }
-                            }).catch(error => {
-                                console.error('Image upload failed:', error);
+                        // Always upload to server to get real image URL
+                        const productId = window.productId || 0;
+                        const formData = new FormData();
+                        formData.append('product_id', productId);
+                        formData.append('file', file);
+                        
+                        this.$axios.post("{{ route('admin.catalog.products.images.upload') }}", formData, {
+                            headers: { 'Content-Type': 'multipart/form-data' }
+                        }).then(response => {
+                            if (response.data.success) {
                                 const imageObj = this.images.find(img => img.id === tempId);
                                 if (imageObj) {
+                                    imageObj.id = response.data.image_id;
+                                    imageObj.url = response.data.image_url;
                                     imageObj.uploading = false;
+                                    
+                                    // Update window.productImages for customization component
+                                    if (this.name && this.name.startsWith('images')) {
+                                        window.productImages = this.images.map((img, idx) => ({
+                                            id: img.id || 'new_' + idx,
+                                            url: img.url || '',
+                                            path: img.path || img.url
+                                        }));
+                                    }
                                 }
-                            });
-                        }
+                            }
+                        }).catch(error => {
+                            console.error('Image upload failed:', error);
+                            const imageObj = this.images.find(img => img.id === tempId);
+                            if (imageObj) {
+                                imageObj.uploading = false;
+                            }
+                        });
                     });
-
-                    // Update window.productImages for customization component
-                    if (this.name && this.name.startsWith('images')) {
-                        window.productImages = this.images.map((img, idx) => ({
-                            id: img.id || 'new_' + idx,
-                            url: img.url || (img.file ? URL.createObjectURL(img.file) : ''),
-                            file: img.file
-                        }));
-                    }
                 },
 
                 remove(image) {
