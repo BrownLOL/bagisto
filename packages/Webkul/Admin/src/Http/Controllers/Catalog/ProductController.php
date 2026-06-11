@@ -436,21 +436,28 @@ class ProductController extends Controller
      */
     protected function updatePrintAreasForNewProduct($product)
     {
+        \Log::info('=== updatePrintAreasForNewProduct START ===');
+        \Log::info('Product ID: ' . $product->id);
+
         // 1. Move product images from product/0/ to product/{id}/
         $oldPath = 'product/0';
         $newPath = 'product/' . $product->id;
 
         $files = Storage::disk('public')->files($oldPath);
+        \Log::info('Files in product/0/: ' . json_encode($files));
 
         foreach ($files as $file) {
             $filename = basename($file);
-            Storage::disk('public')->move($file, $newPath . '/' . $filename);
+            $moved = Storage::disk('public')->move($file, $newPath . '/' . $filename);
+            \Log::info("Moved: $file -> $newPath/$filename, result: " . ($moved ? 'true' : 'false'));
         }
 
         // 2. Find print areas with product_id = 0 (temporary placeholder)
         $printAreas = \Webkul\Product\Models\ProductImagePrintArea::where('product_id', 0)->get();
+        \Log::info('Print areas with product_id=0: ' . $printAreas->count());
 
         if ($printAreas->isEmpty()) {
+            \Log::info('No print areas to update');
             return;
         }
 
@@ -461,10 +468,14 @@ class ProductController extends Controller
 
             $newImageUrl = str_replace($oldUrl, $newUrl, $printArea->image_url);
 
+            \Log::info("Updating print area {$printArea->id}: {$printArea->image_url} -> {$newImageUrl}");
+
             $printArea->update([
                 'product_id' => $product->id,
                 'image_url' => $newImageUrl,
             ]);
         }
+
+        \Log::info('=== updatePrintAreasForNewProduct END ===');
     }
 }
