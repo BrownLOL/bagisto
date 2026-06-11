@@ -34,6 +34,12 @@ return new class extends Migration
             WHERE pa.image_url IS NULL
         SQL);
 
+        // 删除 product_image_id 列和外键约束
+        Schema::table('product_image_print_areas', function (Blueprint $table) {
+            $table->dropForeign(['product_image_id']);
+            $table->dropColumn('product_image_id');
+        });
+
         // 将 product_id 改为非空（回填后应该都有值）
         Schema::table('product_image_print_areas', function (Blueprint $table) {
             $table->unsignedInteger('product_id')->nullable(false)->change();

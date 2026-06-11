@@ -22,15 +22,14 @@ class ProductCustomizationController extends Controller
     }
 
     /**
-     * Save print areas for a product image.
+     * Save print areas for a product.
      */
     public function savePrintAreas(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'product_id'  => 'required|integer|exists:products,id',
-            'image_id'    => 'required|integer|exists:product_images,id',
-            'areas'       => 'required|array',
+            'product_id'   => 'required|integer|exists:products,id',
             'image_url'   => 'required|string',
+            'areas'       => 'required|array',
             'areas.*.name' => 'nullable|string|max:255',
             'areas.*.x'    => 'required|numeric|min:0|max:100',
             'areas.*.y'    => 'required|numeric|min:0|max:100',
@@ -39,11 +38,10 @@ class ProductCustomizationController extends Controller
         ]);
 
         try {
-            $this->printAreaRepository->saveForImage(
-                $validated['image_id'],
+            $this->printAreaRepository->saveForProduct(
+                $validated['product_id'],
                 $validated['areas'],
-                $validated['image_url'],
-                $validated['product_id']
+                $validated['image_url']
             );
 
             return response()->json([
@@ -79,12 +77,12 @@ class ProductCustomizationController extends Controller
     }
 
     /**
-     * Delete all print areas for an image.
+     * Delete all print areas for a product.
      */
-    public function deleteAreasByImage(int $imageId): JsonResponse
+    public function deleteAreasByProduct(int $productId): JsonResponse
     {
         try {
-            $this->printAreaRepository->deleteByImageId($imageId);
+            $this->printAreaRepository->deleteByProductId($productId);
 
             return response()->json([
                 'success' => true,

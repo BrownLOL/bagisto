@@ -17,57 +17,43 @@ class ProductImagePrintAreaRepository extends Repository
     }
 
     /**
-     * Get print areas by product image ID.
-     */
-    public function getByImageId(int $imageId): Collection
-    {
-        return $this->model
-            ->where('product_image_id', $imageId)
-            ->where('is_active', true)
-            ->get();
-    }
-
-    /**
-     * Get all print areas for a product.
+     * Get print areas by product ID.
      */
     public function getByProductId(int $productId): Collection
     {
         return $this->model
-            ->whereHas('productImage', function ($query) use ($productId) {
-                $query->where('product_id', $productId);
-            })
+            ->where('product_id', $productId)
             ->where('is_active', true)
             ->get();
     }
 
     /**
-     * Save print areas for an image (append mode).
+     * Save print areas for a product (append mode).
      */
-    public function saveForImage(int $imageId, array $areas, ?string $imageUrl = null, ?int $productId = null): void
+    public function saveForProduct(int $productId, array $areas, ?string $imageUrl = null): void
     {
         // Create new areas (keep existing ones)
         foreach ($areas as $area) {
             if (isset($area['x'], $area['y'], $area['width'], $area['height'])) {
                 $this->create([
-                    'product_image_id' => $imageId,
-                    'product_id'      => $productId,
-                    'name'            => $area['name'] ?? 'Print Area',
-                    'x'               => $area['x'],
-                    'y'               => $area['y'],
-                    'width'           => $area['width'],
-                    'height'          => $area['height'],
-                    'is_active'       => true,
-                    'image_url'       => $imageUrl,
+                    'product_id' => $productId,
+                    'name'      => $area['name'] ?? 'Print Area',
+                    'x'         => $area['x'],
+                    'y'         => $area['y'],
+                    'width'     => $area['width'],
+                    'height'    => $area['height'],
+                    'is_active' => true,
+                    'image_url' => $imageUrl,
                 ]);
             }
         }
     }
 
     /**
-     * Delete all areas for an image.
+     * Delete all areas for a product.
      */
-    public function deleteByImageId(int $imageId): void
+    public function deleteByProductId(int $productId): void
     {
-        $this->model->where('product_image_id', $imageId)->delete();
+        $this->model->where('product_id', $productId)->delete();
     }
 }

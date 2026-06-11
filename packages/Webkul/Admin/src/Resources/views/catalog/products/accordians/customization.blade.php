@@ -436,7 +436,6 @@
                         // Build request data
                         const requestData = {
                             product_id: this.productId,
-                            image_id: imageId,
                             image_url: this.dialogSelectedImageUrl,
                             areas: this.tempAreas.map((area, index) => ({
                                 name: 'Area ' + (index + 1),
@@ -446,29 +445,6 @@
                                 height: area.height
                             }))
                         };
-
-                        // For new images, we need to upload the file first
-                        if (isNewImage && window.productImages) {
-                            const newImage = window.productImages.find(img => img.id === imageId);
-                            if (newImage && newImage.file) {
-                                // Upload image first via FormData
-                                const formData = new FormData();
-                                formData.append('file', newImage.file);
-                                formData.append('product_id', this.productId);
-
-                                const uploadResponse = await this.$axios.post(
-                                    "{{ route('admin.catalog.products.images.upload') }}",
-                                    formData,
-                                    { headers: { 'Content-Type': 'multipart/form-data' } }
-                                );
-
-                                if (uploadResponse.data.success) {
-                                    requestData.image_id = uploadResponse.data.image_id;
-                                } else {
-                                    throw new Error(uploadResponse.data.message || 'Image upload failed');
-                                }
-                            }
-                        }
 
                         const response = await this.$axios.post("{{ route('admin.catalog.products.print-areas.save') }}", requestData);
 

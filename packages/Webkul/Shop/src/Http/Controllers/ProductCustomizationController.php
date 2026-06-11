@@ -145,11 +145,9 @@ class ProductCustomizationController extends Controller
         foreach ($printAreas as $area) {
             $areaData = $area->toAreaArray();
             
-            // Use stored image_url if available, otherwise fallback to product image URL
+            // Use stored image_url if available
             if (! empty($area->image_url)) {
                 $areaData['image_url'] = $area->image_url;
-            } elseif ($area->productImage) {
-                $areaData['image_url'] = $area->productImage->url;
             }
             
             $areas[] = $areaData;
@@ -162,21 +160,21 @@ class ProductCustomizationController extends Controller
     }
 
     /**
-     * Save print areas for a product image.
+     * Save print areas for a product.
      */
     public function savePrintAreas(Request $request): JsonResponse
     {
         $request->validate([
-            'image_id' => 'required|integer',
-            'areas'    => 'required|array',
+            'product_id' => 'required|integer|exists:products,id',
+            'areas'     => 'required|array',
             'image_url' => 'required|string',
         ]);
 
-        $imageId = $request->input('image_id');
+        $productId = $request->input('product_id');
         $areas = $request->input('areas', []);
         $imageUrl = $request->input('image_url');
 
-        $this->printAreaRepository->saveForImage($imageId, $areas, $imageUrl);
+        $this->printAreaRepository->saveForProduct($productId, $areas, $imageUrl);
 
         return response()->json([
             'success' => true,

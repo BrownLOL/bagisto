@@ -21,7 +21,6 @@ class ProductImagePrintArea extends Model implements ProductImagePrintAreaContra
      */
     protected $fillable = [
         'product_id',
-        'product_image_id',
         'image_url',
         'name',
         'x',
@@ -43,11 +42,11 @@ class ProductImagePrintArea extends Model implements ProductImagePrintAreaContra
     ];
 
     /**
-     * Get the product image that owns the print area.
+     * Get the product that owns the print area.
      */
-    public function productImage(): BelongsTo
+    public function product(): BelongsTo
     {
-        return $this->belongsTo(ProductImageProxy::modelClass(), 'product_image_id');
+        return $this->belongsTo(ProductProxy::modelClass(), 'product_id');
     }
 
     /**
