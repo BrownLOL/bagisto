@@ -365,19 +365,26 @@
                 onDialogImageChange() {
                     this.tempAreas = [];
                     
+                    console.log('onDialogImageChange called, dialogSelectedImageId:', this.dialogSelectedImageId);
+                    console.log('window.productImages:', window.productImages);
+                    
                     // First try to get URL from window.productImages (newly uploaded images)
                     if (window.productImages) {
                         const img = window.productImages.find(img => img.id == this.dialogSelectedImageId);
+                        console.log('Found in window.productImages:', img);
                         if (img && img.url && !img.url.startsWith('blob:') && !img.url.startsWith('data:')) {
                             this.dialogSelectedImageUrl = img.url;
+                            console.log('Using URL from window.productImages:', img.url);
                             return;
                         }
                     }
                     
                     // Then try from allImages (existing images)
                     const image = this.allImages.find(img => img.id == this.dialogSelectedImageId);
+                    console.log('Found in allImages:', image);
                     if (image && image.url) {
                         this.dialogSelectedImageUrl = image.url;
+                        console.log('Using URL from allImages:', image.url);
                         return;
                     }
                     
