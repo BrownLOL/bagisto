@@ -254,7 +254,21 @@ export default {
             this.showPreviewModal = true;
         },
 
-        confirmDesign() {
+        async confirmDesign() {
+            // 如果还没有生成预览图，先生成
+            if (!this.previewImage) {
+                await this.generatePreviewImage();
+            }
+
+            // 保存预览图到 localStorage，以便后续添加到购物车时使用
+            const designData = {
+                elements: this.elements,
+                printAreas: this.printAreas,
+                previewImage: this.previewImage,
+                timestamp: Date.now(),
+            };
+            localStorage.setItem(`customization_${this.productId}`, JSON.stringify(designData));
+
             // 触发确认事件，传递设计数据
             this.$emit('confirm', {
                 elements: this.elements,
@@ -262,6 +276,61 @@ export default {
                 previewImage: this.previewImage,
             });
             this.closeModal();
+        },
+
+        async generatePreviewImage() {
+            return new Promise(async (resolve) => {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                const img = new Image();
+                img.crossOrigin = 'anonymous';
+
+                await new Promise((res) => {
+                    img.onload = res;
+                    img.src = this.currentImage;
+                });
+
+                canvas.width = img.width;
+                canvas.height = img.height;
+                ctx.drawImage(img, 0, 0);
+
+                // 绘制元素
+                for (const el of this.elements) {
+                    const x = (el.x / 100) * canvas.width;
+                    const y = (el.y / 100) * canvas.height;
+
+                    if (el.type === 'text') {
+                        ctx.save();
+                        ctx.translate(x, y);
+                        ctx.rotate((el.rotation * Math.PI) / 180);
+                        ctx.font = '24px Arial';
+                        ctx.fillStyle = '#000';
+                        ctx.fillText(el.text, 0, 0);
+                        ctx.restore();
+                    } else if (el.type === 'image') {
+                        const elImg = new Image();
+                        elImg.crossOrigin = 'anonymous';
+                        await new Promise((res) => {
+                            elImg.onload = res;
+                            elImg.src = el.content;
+                        });
+                        ctx.save();
+                        ctx.translate(x, y);
+                        ctx.rotate((el.rotation * Math.PI) / 180);
+                        ctx.drawImage(
+                            elImg,
+                            -elImg.width * el.scaleX / 2,
+                            -elImg.height * el.scaleY / 2,
+                            elImg.width * el.scaleX,
+                            elImg.height * el.scaleY
+                        );
+                        ctx.restore();
+                    }
+                }
+
+                this.previewImage = canvas.toDataURL('image/png');
+                resolve();
+            });
         },
 
         closeModal() {

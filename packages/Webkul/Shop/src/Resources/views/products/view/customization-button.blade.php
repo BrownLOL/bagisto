@@ -271,19 +271,32 @@ function saveCustomization() {
         }
     });
     
-    // Get product image from canvas
-    var canvas = document.getElementById('design-canvas-inner');
+    // Get preview image from localStorage (saved by ProductCustomization.vue)
+    var productId = window.customizationProductId;
     var previewImage = '';
-    if (canvas) {
-        var imgs = canvas.querySelectorAll('img');
-        if (imgs.length > 0) {
-            previewImage = imgs[0].src; // First img is the product bg
+    try {
+        var savedDesign = localStorage.getItem('customization_' + productId);
+        if (savedDesign) {
+            var designData = JSON.parse(savedDesign);
+            previewImage = designData.previewImage || '';
+        }
+    } catch (e) {
+        console.error('Error loading saved design:', e);
+    }
+    
+    // If no preview image from localStorage, try to get from canvas
+    if (!previewImage) {
+        var canvas = document.getElementById('design-canvas-inner');
+        if (canvas) {
+            var imgs = canvas.querySelectorAll('img');
+            if (imgs.length > 0) {
+                previewImage = imgs[0].src; // First img is the product bg
+            }
         }
     }
     
     // Prepare customization data for current print area
     var uuid = getDesignUUID(); // Ensure we have a UUID
-    var productId = window.customizationProductId;
     
     // Get current print area record key
     var currentRecordKey = currentCanvas.currentImageKey || 'default';
