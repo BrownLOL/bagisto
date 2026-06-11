@@ -37,6 +37,7 @@ return new class extends Migration
         // 将 product_id 改为非空（回填后应该都有值）
         Schema::table('product_image_print_areas', function (Blueprint $table) {
             $table->unsignedInteger('product_id')->nullable(false)->change();
+            $table->index('product_id', 'idx_product_id');
         });
     }
 
