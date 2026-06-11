@@ -37,6 +37,7 @@ class CartItemResource extends JsonResource
             'options' => $this->formatAdditionalAttributes(),
             'can_change_qty' => $this->product ? $this->product->getTypeInstance()->showQuantityBox() : false,
             'design_uuid' => $this->resource->additional['design_uuid'] ?? null,
+            'additional' => $this->resource->additional,
         ];
     }
 
