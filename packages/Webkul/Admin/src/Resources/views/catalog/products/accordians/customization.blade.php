@@ -437,6 +437,7 @@
                         const requestData = {
                             product_id: this.productId,
                             image_id: imageId,
+                            image_url: this.dialogSelectedImageUrl,
                             areas: this.tempAreas.map((area, index) => ({
                                 name: 'Area ' + (index + 1),
                                 x: area.x,
@@ -484,6 +485,7 @@
                                         width: area.width,
                                         height: area.height
                                     }));
+                                    this.imagesWithAreas[index].image_url = this.dialogSelectedImageUrl;
                                 }
                             } else {
                                 // Add 模式：追加新记录（用时间戳作为唯一 ID）

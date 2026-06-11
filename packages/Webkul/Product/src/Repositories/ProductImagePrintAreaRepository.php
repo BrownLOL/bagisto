@@ -43,7 +43,7 @@ class ProductImagePrintAreaRepository extends Repository
     /**
      * Save print areas for an image (append mode).
      */
-    public function saveForImage(int $imageId, array $areas): void
+    public function saveForImage(int $imageId, array $areas, ?string $imageUrl = null): void
     {
         // Create new areas (keep existing ones)
         foreach ($areas as $area) {
@@ -56,6 +56,7 @@ class ProductImagePrintAreaRepository extends Repository
                     'width'            => $area['width'],
                     'height'           => $area['height'],
                     'is_active'        => true,
+                    'image_url'        => $imageUrl, // Store image URL directly
                 ]);
             }
         }

@@ -30,6 +30,7 @@ class ProductCustomizationController extends Controller
             'product_id'  => 'required|integer|exists:products,id',
             'image_id'    => 'required|integer|exists:product_images,id',
             'areas'       => 'required|array',
+            'image_url'   => 'required|string',
             'areas.*.name' => 'nullable|string|max:255',
             'areas.*.x'    => 'required|numeric|min:0|max:100',
             'areas.*.y'    => 'required|numeric|min:0|max:100',
@@ -40,7 +41,8 @@ class ProductCustomizationController extends Controller
         try {
             $this->printAreaRepository->saveForImage(
                 $validated['image_id'],
-                $validated['areas']
+                $validated['areas'],
+                $validated['image_url']
             );
 
             return response()->json([

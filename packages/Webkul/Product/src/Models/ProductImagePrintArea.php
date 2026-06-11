@@ -21,6 +21,7 @@ class ProductImagePrintArea extends Model implements ProductImagePrintAreaContra
      */
     protected $fillable = [
         'product_image_id',
+        'image_url',
         'name',
         'x',
         'y',
@@ -60,6 +61,7 @@ class ProductImagePrintArea extends Model implements ProductImagePrintAreaContra
             'y'                => (float) $this->y,
             'width'            => (float) $this->width,
             'height'           => (float) $this->height,
+            'image_url'        => $this->image_url,
         ];
     }
 }

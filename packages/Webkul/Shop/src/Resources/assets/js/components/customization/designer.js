@@ -467,6 +467,7 @@ async function saveDesign() {
     const designData = {
         product_id: state.productId,
         print_area_id: state.printArea?.id,
+        image_url: state.printArea?.image_url || '',
         elements: state.elements.map(e => ({
             type: e.type,
             content: e.content,

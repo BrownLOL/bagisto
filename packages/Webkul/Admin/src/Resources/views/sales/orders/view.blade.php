@@ -225,16 +225,8 @@
                                                             @php
                                                                 $elements = json_encode($printArea['elements'] ?? []);
                                                                 
-                                                                // Get product image URL from order item's product
-                                                                $backgroundUrl = '';
-                                                                $product = $item->product;
-                                                                if ($product && $product->images->count() > 0) {
-                                                                    // Get first image (sorted by position)
-                                                                    $firstImage = $product->images->sortBy('position')->first();
-                                                                    if ($firstImage) {
-                                                                        $backgroundUrl = Storage::url($firstImage->path);
-                                                                    }
-                                                                }
+                                                                // Get image URL directly from print_area data
+                                                                $backgroundUrl = $printArea['image_url'] ?? '';
                                                             @endphp
                                                             <div 
                                                                 id="customization-preview-{{ $loop->parent->index }}-{{ $index }}"

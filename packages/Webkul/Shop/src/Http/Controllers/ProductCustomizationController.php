@@ -39,8 +39,10 @@ class ProductCustomizationController extends Controller
             
             foreach ($printAreas as $area) {
                 $areaData = $area->toAreaArray();
-                if ($area->productImage) {
-                    // Use Storage facade to get correct URL
+                // Use stored image_url if available, otherwise fallback to product image path
+                if (! empty($area->image_url)) {
+                    $areaData['image_url'] = $area->image_url;
+                } elseif ($area->productImage) {
                     $areaData['image_url'] = Storage::url($area->productImage->path);
                 }
                 $areas[] = $areaData;
@@ -143,10 +145,11 @@ class ProductCustomizationController extends Controller
         foreach ($printAreas as $area) {
             $areaData = $area->toAreaArray();
             
-            // Add image URL
-            $productImage = $area->productImage;
-            if ($productImage) {
-                $areaData['image_url'] = $productImage->url;
+            // Use stored image_url if available, otherwise fallback to product image URL
+            if (! empty($area->image_url)) {
+                $areaData['image_url'] = $area->image_url;
+            } elseif ($area->productImage) {
+                $areaData['image_url'] = $area->productImage->url;
             }
             
             $areas[] = $areaData;
@@ -166,12 +169,14 @@ class ProductCustomizationController extends Controller
         $request->validate([
             'image_id' => 'required|integer',
             'areas'    => 'required|array',
+            'image_url' => 'required|string',
         ]);
 
         $imageId = $request->input('image_id');
         $areas = $request->input('areas', []);
+        $imageUrl = $request->input('image_url');
 
-        $this->printAreaRepository->saveForImage($imageId, $areas);
+        $this->printAreaRepository->saveForImage($imageId, $areas, $imageUrl);
 
         return response()->json([
             'success' => true,
