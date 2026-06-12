@@ -532,58 +532,26 @@
 
                     imageInput.files.forEach((file, index) => {
                         const tempId = 'new_' + Date.now() + '_' + index;
+                        
                         this.images.push({
                             id: tempId,
                             url: '',
                             file: file,
-                            uploading: true
+                            uploading: false
                         });
+
+                        // Read file for preview
+                        const reader = new FileReader();
                         
-                        // Always upload to server to get real image URL
-                        const productId = window.productId || 0;
-                        const formData = new FormData();
-                        formData.append('product_id', productId);
-                        formData.append('file', file);
-                        
-                        this.$axios.post("{{ route('admin.catalog.products.images.upload') }}", formData, {
-                            headers: { 'Content-Type': 'multipart/form-data' }
-                        }).then(response => {
-                            if (response.data.success) {
-                                const imageObj = this.images.find(img => img.id === tempId);
-                                console.log('Upload success, this.name:', this.name);
-                                console.log('Updating window.productImages');
-                                if (imageObj) {
-                                    imageObj.id = response.data.image_id;
-                                    imageObj.url = response.data.image_url;
-                                    imageObj.path = response.data.image_path;
-                                    imageObj.uploading = false;
-                                    
-                                    // Update hidden input for form submission
-                                    const hiddenInput = document.getElementById('uploaded_image_ids');
-                                    if (hiddenInput) {
-                                        const existingIds = hiddenInput.value ? hiddenInput.value.split(',') : [];
-                                        if (!existingIds.includes(String(response.data.image_id))) {
-                                            existingIds.push(response.data.image_id);
-                                            hiddenInput.value = existingIds.join(',');
-                                        }
-                                    }
-                                    
-                                    // Update window.productImages for customization component
-                                    window.productImages = this.images.map((img, idx) => ({
-                                        id: img.id || 'new_' + idx,
-                                        url: img.url || '',
-                                        path: img.path || img.url
-                                    }));
-                                    console.log('window.productImages updated:', window.productImages);
-                                }
-                            }
-                        }).catch(error => {
-                            console.error('Image upload failed:', error);
+                        reader.onload = (e) => {
                             const imageObj = this.images.find(img => img.id === tempId);
+                            
                             if (imageObj) {
-                                imageObj.uploading = false;
+                                imageObj.url = e.target.result;
                             }
-                        });
+                        };
+                        
+                        reader.readAsDataURL(file);
                     });
                 },
 

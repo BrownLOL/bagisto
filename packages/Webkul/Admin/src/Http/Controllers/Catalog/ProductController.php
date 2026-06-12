@@ -124,8 +124,8 @@ class ProductController extends Controller
 
         Event::dispatch('catalog.product.create.after', $product);
 
-        // Update print areas: change product_id from 0 to actual product id, and fix image_url paths
-        $this->updatePrintAreasForNewProduct($product);
+        // Handle print areas: upload images and save areas to database
+        $this->handlePrintAreas($product);
 
         session()->flash('success', trans('admin::app.catalog.products.create-success'));
 
@@ -193,6 +193,9 @@ class ProductController extends Controller
         $product = $this->productRepository->update($request->all(), $id);
 
         Event::dispatch('catalog.product.update.after', $product);
+
+        // Handle print areas: upload images and save areas to database
+        $this->handlePrintAreas($product);
 
         session()->flash('success', trans('admin::app.catalog.products.update-success'));
 
@@ -427,66 +430,85 @@ class ProductController extends Controller
     }
 
     /**
-     * Update print areas for a newly created product.
-     * Changes product_id from 0 to the actual product id, fixes image_url paths,
-     * and moves product images from product/0/ to product/{id}/.
+     * Handle print areas: delete existing, upload images, save new areas.
      *
      * @param  \Webkul\Product\Models\Product  $product
      * @return void
      */
-    protected function updatePrintAreasForNewProduct($product)
+    protected function handlePrintAreas($product)
     {
-        // Debug: return JSON response for testing
-        $debug = [
-            'product_id' => $product->id,
-            'method_called' => 'updatePrintAreasForNewProduct',
-        ];
-
-        // 1. Move product images from product/0/ to product/{id}/
-        $oldPath = 'product/0';
-        $newPath = 'product/' . $product->id;
-
-        $files = Storage::disk('public')->files($oldPath);
-        $debug['files_in_product_0'] = $files;
-
-        foreach ($files as $file) {
-            $filename = basename($file);
-            $moved = Storage::disk('public')->move($file, $newPath . '/' . $filename);
-            $debug["moved_$filename"] = $moved;
+        // Get customization areas from form
+        $customizationAreas = request()->input('customization_areas', '');
+        
+        if (empty($customizationAreas)) {
+            return;
         }
-
-        // 2. Find print areas with product_id = 0 (temporary placeholder)
-        $printAreas = \Webkul\Product\Models\ProductImagePrintArea::where('product_id', 0)->get();
-        $debug['print_areas_count'] = $printAreas->count();
-        $debug['print_areas'] = $printAreas->toArray();
-
-        if ($printAreas->isEmpty()) {
-            // Try to see what product_ids exist
-            $allIds = \Webkul\Product\Models\ProductImagePrintArea::select('product_id')->distinct()->get();
-            $debug['all_product_ids'] = $allIds->pluck('product_id')->toArray();
+        
+        $areasData = json_decode($customizationAreas, true);
+        
+        if (empty($areasData)) {
+            return;
+        }
+        
+        // 1. Delete existing print areas for this product
+        \Webkul\Product\Models\ProductImagePrintArea::where('product_id', $product->id)->delete();
+        
+        // 2. Upload images and save print areas
+        foreach ($areasData as $record) {
+            if (empty($record['areas'])) {
+                continue;
+            }
             
-            // Return debug as JSON
-            return response()->json(['debug' => $debug, 'success' => false, 'message' => 'No print areas with product_id=0']);
+            $imageUrl = $record['image_url'] ?? '';
+            $imageId = $record['image_id'] ?? null;
+            
+            // If it's a blob URL, we need to upload it
+            if (strpos($imageUrl, 'blob:') === 0) {
+                $imageUrl = $this->uploadBlobImage($imageUrl, $product->id);
+            }
+            
+            // Save each area
+            foreach ($record['areas'] as $area) {
+                \Webkul\Product\Models\ProductImagePrintArea::create([
+                    'product_id' => $product->id,
+                    'image_url' => $imageUrl,
+                    'name' => $area['name'] ?? 'Area',
+                    'x' => $area['x'] ?? 0,
+                    'y' => $area['y'] ?? 0,
+                    'width' => $area['width'] ?? 20,
+                    'height' => $area['height'] ?? 20,
+                    'is_active' => true,
+                ]);
+            }
         }
-
-        // 3. Update print areas: change product_id and fix image_url paths
-        foreach ($printAreas as $printArea) {
-            $oldUrl = '/storage/product/0/';
-            $newUrl = '/storage/product/' . $product->id . '/';
-            $newImageUrl = str_replace($oldUrl, $newUrl, $printArea->image_url);
-
-            $printArea->update([
-                'product_id' => $product->id,
-                'image_url' => $newImageUrl,
-            ]);
-
-            $debug['updated'][] = [
-                'id' => $printArea->id,
-                'old' => $printArea->getOriginal('image_url'),
-                'new' => $newImageUrl,
-            ];
+    }
+    
+    /**
+     * Upload a blob URL image to storage.
+     *
+     * @param  string  $blobUrl
+     * @param  int  $productId
+     * @return string
+     */
+    protected function uploadBlobImage($blobUrl, $productId)
+    {
+        try {
+            // Get blob data from request
+            $imageData = request()->file('customization_blob_' . md5($blobUrl));
+            
+            if ($imageData) {
+                $filename = $imageData->storeAs(
+                    'product/' . $productId,
+                    uniqid() . '.' . $imageData->getClientOriginalExtension(),
+                    'public'
+                );
+                
+                return '/storage/' . $filename;
+            }
+        } catch (\Exception $e) {
+            \Log::error('Failed to upload blob image: ' . $e->getMessage());
         }
-
-        return response()->json(['debug' => $debug, 'success' => true]);
+        
+        return $blobUrl;
     }
 }

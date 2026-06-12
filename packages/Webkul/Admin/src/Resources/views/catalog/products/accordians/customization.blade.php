@@ -244,12 +244,28 @@
                     </div>
                 </x-slot:footer>
             </x-admin::modal>
+        
+        <!-- Hidden input to store customization areas for form submission -->
+        <input
+            type="hidden"
+            name="customization_areas"
+            id="customization_areas_input"
+            :value="JSON.stringify(imagesWithAreas)"
+        />
         </div>
     </script>
 
     <script type="module">
-        // Set window.productId for images.blade.php component
-        window.productId = {{ $product->id ?? 0 }};
+        // Simple hash function for blob keys
+        function simpleHash(str) {
+            let hash = 0;
+            for (let i = 0; i < str.length; i++) {
+                const char = str.charCodeAt(i);
+                hash = ((hash << 5) - hash) + char;
+                hash = hash & hash;
+            }
+            return Math.abs(hash).toString(36);
+        }
         
         app.component('v-product-customization', {
             template: '#v-product-customization-template',
@@ -271,6 +287,7 @@
                     drawStartX: 0,
                     drawStartY: 0,
                     saving: false,
+                    blobFiles: {}, // Store blob files for later upload
                 }
             },
 
@@ -297,13 +314,54 @@
 
             methods: {
                 openAddDialog() {
-                    // Sync with newly uploaded images from media.images component
-                    if (window.productImages) {
-                        this.allImages = window.productImages.map(img => ({
-                            id: img.id,
-                            url: img.url,
-                            path: img.path || img.url
-                        }));
+                    // Get images from DOM media component in real-time
+                    this.allImages = [];
+                    
+                    // Try to get images from Vue component
+                    const mediaComponent = document.querySelector('[data-v-media-images]');
+                    if (mediaComponent && mediaComponent.__vueParentComponent) {
+                        const instance = mediaComponent.__vueParentComponent.ctx;
+                        if (instance && instance.images) {
+                            instance.images.forEach(img => {
+                                if (img.file) {
+                                    // New uploaded file, store blob for later upload
+                                    const blobKey = 'blob_' + simpleHash(URL.createObjectURL(img.file));
+                                    this.blobFiles[blobKey] = img.file;
+                                    
+                                    const reader = new FileReader();
+                                    reader.onload = (e) => {
+                                        this.allImages.push({
+                                            id: blobKey,
+                                            url: e.target.result,
+                                            path: blobKey
+                                        });
+                                    };
+                                    reader.readAsDataURL(img.file);
+                                } else if (img.url) {
+                                    // Existing image
+                                    this.allImages.push({
+                                        id: img.id,
+                                        url: img.url,
+                                        path: img.path || img.url
+                                    });
+                                }
+                            });
+                        }
+                    }
+                    
+                    // Fallback: get from dataImages div
+                    if (this.allImages.length === 0) {
+                        const dataImagesDiv = document.querySelector('.dataImages');
+                        if (dataImagesDiv) {
+                            const imgElements = dataImagesDiv.querySelectorAll('img');
+                            imgElements.forEach((img, index) => {
+                                this.allImages.push({
+                                    id: 'dom_img_' + index,
+                                    url: img.src,
+                                    path: img.src
+                                });
+                            });
+                        }
                     }
 
                     this.isEditMode = false;
@@ -365,26 +423,10 @@
                 onDialogImageChange() {
                     this.tempAreas = [];
                     
-                    console.log('onDialogImageChange called, dialogSelectedImageId:', this.dialogSelectedImageId);
-                    console.log('window.productImages:', window.productImages);
-                    
-                    // First try to get URL from window.productImages (newly uploaded images)
-                    if (window.productImages) {
-                        const img = window.productImages.find(img => img.id == this.dialogSelectedImageId);
-                        console.log('Found in window.productImages:', img);
-                        if (img && img.url && !img.url.startsWith('blob:') && !img.url.startsWith('data:')) {
-                            this.dialogSelectedImageUrl = img.url;
-                            console.log('Using URL from window.productImages:', img.url);
-                            return;
-                        }
-                    }
-                    
-                    // Then try from allImages (existing images)
+                    // Get URL from allImages (populated from DOM in openAddDialog)
                     const image = this.allImages.find(img => img.id == this.dialogSelectedImageId);
-                    console.log('Found in allImages:', image);
                     if (image && image.url) {
                         this.dialogSelectedImageUrl = image.url;
-                        console.log('Using URL from allImages:', image.url);
                         return;
                     }
                     
@@ -395,10 +437,8 @@
                         if (imageContainer) {
                             const img = imageContainer.querySelector('img');
                             if (img && img.src) {
-                                if (!img.src.startsWith('blob:') && !img.src.startsWith('data:')) {
-                                    this.dialogSelectedImageUrl = img.src;
-                                    return;
-                                }
+                                this.dialogSelectedImageUrl = img.src;
+                                return;
                             }
                         }
                     }
@@ -459,37 +499,19 @@
                     this.tempAreas.splice(index, 1);
                 },
 
-                async saveAreas() {
+                saveAreas() {
                     if (this.tempAreas.length === 0 || !this.dialogSelectedImageUrl || this.saving) return;
 
                     this.saving = true;
 
                     try {
                         let imageUrl = this.dialogSelectedImageUrl;
+                        let imageId = this.dialogSelectedImageId;
 
-                        // 如果是 blob URL，先上传图片获取真实 URL
-                        if (imageUrl && imageUrl.startsWith('blob:')) {
-                            const formData = new FormData();
-                            const blob = await fetch(imageUrl).then(r => r.blob());
-                            formData.append('file', blob, 'image.png');
-                            formData.append('product_id', this.productId);
-
-                            const uploadResponse = await this.$axios.post(
-                                "{{ route('admin.catalog.products.images.upload') }}",
-                                formData,
-                                { headers: { 'Content-Type': 'multipart/form-data' } }
-                            );
-
-                            if (uploadResponse.data.success) {
-                                imageUrl = uploadResponse.data.image_url;
-                            } else {
-                                throw new Error(uploadResponse.data.message || 'Image upload failed');
-                            }
-                        }
-
-                        // Build request data
-                        const requestData = {
-                            product_id: this.productId,
+                        // Create record with blob URL for now (will be uploaded when saving product)
+                        const record = {
+                            temp_id: 'new_' + Date.now(),
+                            image_id: imageId,
                             image_url: imageUrl,
                             areas: this.tempAreas.map((area, index) => ({
                                 name: 'Area ' + (index + 1),
@@ -500,43 +522,35 @@
                             }))
                         };
 
-                        const response = await this.$axios.post("{{ route('admin.catalog.products.print-areas.save') }}", requestData);
-
-                        if (response.data.success) {
-                            if (this.isEditMode && this.originalImageId) {
-                                // Edit 模式：更新已有记录
-                                const editKey = this.editingKey;
-                                const index = this.imagesWithAreas.findIndex((_, idx) => idx === editKey);
-                                if (index !== -1) {
-                                    this.imagesWithAreas[index].areas = requestData.areas.map((area, idx) => ({
-                                        id: Date.now() + idx,
-                                        x: area.x,
-                                        y: area.y,
-                                        width: area.width,
-                                        height: area.height
-                                    }));
-                                    this.imagesWithAreas[index].image_url = imageUrl;
-                                }
-                            } else {
-                                // Add 模式：追加新记录（用时间戳作为唯一 ID）
-                                const newRecord = {
-                                    id: 'new_' + Date.now(), // 唯一 ID
-                                    image_url: imageUrl,
-                                    areas: requestData.areas.map((area, idx) => ({
-                                        id: Date.now() + idx,
-                                        x: area.x,
-                                        y: area.y,
-                                        width: area.width,
-                                        height: area.height
-                                    }))
-                                };
-                                this.imagesWithAreas.push(newRecord);
-                            }
-
-                            this.closeDialog();
-                        } else {
-                            alert('Error: ' + response.data.message);
+                        // If blob URL, store the file for later upload
+                        let blobFile = null;
+                        if (imageUrl.startsWith('blob:')) {
+                            const blobKey = 'blob_' + simpleHash(imageUrl);
+                            blobFile = this.blobFiles[blobKey] || null;
+                            
+                            record.blob_key = blobKey;
                         }
+                        
+                        // Store blob file reference
+                        if (blobFile) {
+                            this.blobFiles[record.blob_key] = blobFile;
+                        }
+                        
+                        if (this.isEditMode && this.originalImageId) {
+                            // Edit mode: update existing record
+                            const editKey = this.editingKey;
+                            const index = this.imagesWithAreas.findIndex((_, idx) => idx === editKey);
+                            if (index !== -1) {
+                                this.imagesWithAreas[index].image_url = imageUrl;
+                                this.imagesWithAreas[index].image_id = imageId;
+                                this.imagesWithAreas[index].areas = record.areas;
+                            }
+                        } else {
+                            // Add mode: add new record
+                            this.imagesWithAreas.push(record);
+                        }
+
+                        this.closeDialog();
                     } catch (error) {
                         alert('Error saving areas: ' + error.message);
                     } finally {
