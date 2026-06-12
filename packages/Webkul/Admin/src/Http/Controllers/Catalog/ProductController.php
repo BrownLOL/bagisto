@@ -500,14 +500,6 @@ class ProductController extends Controller
                     
                     $decodedData = base64_decode($base64Data);
                     
-                    \Log::info('handlePrintAreas decode_debug', [
-                        'mime' => $mime,
-                        'ext' => $ext,
-                        'base64_length' => strlen($base64Data),
-                        'decoded_length' => $decodedData ? strlen($decodedData) : 0,
-                        'decoded_first_8_hex' => $decodedData ? substr(bin2hex($decodedData), 0, 16) : 'decode_failed',
-                    ]);
-                    
                     if ($decodedData) {
                         $filename = uniqid() . '_' . time() . $ext;
                         $path = 'product/' . $product->id . '/' . $filename;
