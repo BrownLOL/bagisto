@@ -480,7 +480,6 @@ class ProductController extends Controller
                 'image_url_type' => strpos($imageUrl, 'data:') === 0 ? 'base64' : 'url',
                 'image_base64' => isset($record['image_base64']) ? 'present' : 'missing',
                 'image_base64_length' => isset($record['image_base64']) ? strlen($record['image_base64']) : 0,
-                'areas_json_length' => strlen($areasJson),
             ]);
             
             // If it's a data URL (base64), decode and upload it
