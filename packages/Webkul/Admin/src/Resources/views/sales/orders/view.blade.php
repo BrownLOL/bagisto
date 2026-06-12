@@ -1185,6 +1185,12 @@
                     const data = JSON.parse(el.dataset.customization);
                     const itemIndex = el.dataset.itemIndex;
                     const printAreaIndex = el.dataset.printAreaIndex;
+                    console.log('[DEBUG] renderCustomizationPreview params:', {
+                        itemIndex,
+                        printAreaIndex,
+                        backgroundUrl: data.background_url || data.image_url || null,
+                        elementsCount: (data.elements || []).length
+                    });
                     renderCustomizationPreview(
                         itemIndex,
                         printAreaIndex,
