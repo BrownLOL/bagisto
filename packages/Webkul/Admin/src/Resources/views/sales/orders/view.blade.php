@@ -1141,14 +1141,29 @@
 
                 const dataUrl = canvas.toDataURL('image/png');
                 console.log('[DEBUG] Canvas dataURL length:', dataUrl.length);
-                container.innerHTML = `
-                    <div class="relative group cursor-pointer" onclick="showDesignPreview('${dataUrl}')">
-                        <img src="${dataUrl}" class="h-16 w-16 rounded border border-gray-300 object-cover" alt="Design ${printAreaIndex + 1}" />
-                        <span class="absolute -bottom-1 -right-1 rounded-full bg-darkPink px-1.5 text-xs text-white">
-                            ${printAreaIndex + 1}
-                        </span>
-                    </div>
-                `;
+
+                // Create preview container with click handler
+                const previewDiv = document.createElement('div');
+                previewDiv.className = 'relative group cursor-pointer';
+
+                const img = document.createElement('img');
+                img.src = dataUrl;
+                img.className = 'h-16 w-16 rounded border border-gray-300 object-cover';
+                img.alt = 'Design ' + (printAreaIndex + 1);
+
+                const badge = document.createElement('span');
+                badge.className = 'absolute -bottom-1 -right-1 rounded-full bg-darkPink px-1.5 text-xs text-white';
+                badge.textContent = printAreaIndex + 1;
+
+                previewDiv.appendChild(img);
+                previewDiv.appendChild(badge);
+
+                // Add click handler to show full preview
+                previewDiv.addEventListener('click', () => showDesignPreview(dataUrl));
+
+                // Clear container and add preview
+                container.innerHTML = '';
+                container.appendChild(previewDiv);
             });
         }
 
