@@ -306,9 +306,17 @@
 
             computed: {
                 availableImages() {
-                    // Show all images, including those with existing areas
-                    // This allows re-adding areas to the same image
-                    return this.allImages;
+                    // 从 window.customizationData 获取实时图片列表
+                    if (window.customizationData && window.customizationData.images.length > 0) {
+                        // 过滤掉已被删除的图片
+                        const usedUrls = window.customizationData.usedUrls || [];
+                        return window.customizationData.images.filter(img => !usedUrls.includes(img.url) || this.areas.some(area => area.imageUrl === img.url));
+                    }
+                    
+                    // 回退到 allImages（数据库中的图片）
+                    return this.allImages.filter(img => 
+                        !this.removedAreas.some(ra => ra.imageUrl === img.url)
+                    );
                 }
             },
 
@@ -423,24 +431,20 @@
                 onDialogImageChange() {
                     this.tempAreas = [];
                     
-                    // Get URL from allImages (populated from DOM in openAddDialog)
+                    // 首先从 window.customizationData.images 获取（实时上传的图片）
+                    if (window.customizationData && window.customizationData.images.length > 0) {
+                        const image = window.customizationData.images.find(img => img.id == this.dialogSelectedImageId);
+                        if (image && image.url) {
+                            this.dialogSelectedImageUrl = image.url;
+                            return;
+                        }
+                    }
+                    
+                    // 回退到 allImages（数据库中的图片）
                     const image = this.allImages.find(img => img.id == this.dialogSelectedImageId);
                     if (image && image.url) {
                         this.dialogSelectedImageUrl = image.url;
                         return;
-                    }
-                    
-                    // Last resort: try DOM
-                    const selectedRadio = document.querySelector(`input[name="images[]"][value="${this.dialogSelectedImageId}"]`);
-                    if (selectedRadio) {
-                        const imageContainer = selectedRadio.closest('.image-item');
-                        if (imageContainer) {
-                            const img = imageContainer.querySelector('img');
-                            if (img && img.src) {
-                                this.dialogSelectedImageUrl = img.src;
-                                return;
-                            }
-                        }
                     }
                     
                     this.dialogSelectedImageUrl = '';
@@ -536,6 +540,16 @@
                             this.blobFiles[record.blob_key] = blobFile;
                         }
                         
+                        // 标记图片已被使用，防止被删除
+                        if (window.customizationData) {
+                            if (!window.customizationData.usedUrls) {
+                                window.customizationData.usedUrls = [];
+                            }
+                            if (!window.customizationData.usedUrls.includes(imageUrl)) {
+                                window.customizationData.usedUrls.push(imageUrl);
+                            }
+                        }
+
                         if (this.isEditMode && this.originalImageId) {
                             // Edit mode: update existing record
                             const editKey = this.editingKey;

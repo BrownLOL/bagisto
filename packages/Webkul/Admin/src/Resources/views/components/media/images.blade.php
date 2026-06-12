@@ -442,6 +442,12 @@
             },
 
             data() {
+                // 初始化 customization 图片共享数据
+                window.customizationData = window.customizationData || {
+                    images: [],
+                    usedUrls: []  // 已被 print areas 使用的图片 URL
+                };
+
                 return {
                     images: [],
 
@@ -548,6 +554,15 @@
                             
                             if (imageObj) {
                                 imageObj.url = e.target.result;
+                                
+                                // 同步到 customization 图片列表
+                                if (window.customizationData) {
+                                    window.customizationData.images.push({
+                                        id: tempId,
+                                        url: e.target.result,
+                                        file: file
+                                    });
+                                }
                             }
                         };
                         
@@ -558,7 +573,26 @@
                 remove(image) {
                     let index = this.images.indexOf(image);
 
-                    this.images.splice(index, 1);
+                    // 检查图片是否被 print areas 使用
+                    if (window.customizationData) {
+                        const isUsedInAreas = window.customizationData.usedUrls.includes(image.url);
+                        
+                        if (isUsedInAreas) {
+                            // 被使用：只从可选列表移除，但保留在 usedUrls 中
+                            this.images.splice(index, 1);
+                        } else {
+                            // 未使用：完全移除
+                            this.images.splice(index, 1);
+                            
+                            // 从 customization 图片列表中移除
+                            const custIndex = window.customizationData.images.findIndex(img => img.url === image.url);
+                            if (custIndex > -1) {
+                                window.customizationData.images.splice(custIndex, 1);
+                            }
+                        }
+                    } else {
+                        this.images.splice(index, 1);
+                    }
                 },
 
                 generate(params, { setErrors }) {
