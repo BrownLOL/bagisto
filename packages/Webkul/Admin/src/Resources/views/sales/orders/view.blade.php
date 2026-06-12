@@ -1129,7 +1129,9 @@
             });
 
             // After all images loaded, set canvas as preview image
+            console.log('[DEBUG] Total promises to wait:', loadPromises.length);
             Promise.all(loadPromises).then(() => {
+                console.log('[DEBUG] All promises resolved, finalizing canvas');
                 // Draw placeholder background if no background was loaded
                 if (!hasBackground) {
                     // Draw a light gray background as placeholder
@@ -1138,6 +1140,7 @@
                 }
 
                 const dataUrl = canvas.toDataURL('image/png');
+                console.log('[DEBUG] Canvas dataURL length:', dataUrl.length);
                 container.innerHTML = `
                     <div class="relative group cursor-pointer" onclick="showDesignPreview('${dataUrl}')">
                         <img src="${dataUrl}" class="h-16 w-16 rounded border border-gray-300 object-cover" alt="Design ${printAreaIndex + 1}" />
