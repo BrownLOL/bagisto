@@ -521,7 +521,18 @@ class ProductController extends Controller
                 $imageData = base64_decode($base64Data);
                 
                 if ($imageData) {
-                    $filename = uniqid() . '_' . time() . '.webp';
+                    // Determine file extension from MIME type
+                    $extension = 'webp'; // default
+                    if (preg_match('/data:image\/(\w+);/', $blobUrl, $matches)) {
+                        $mimeExt = strtolower($matches[1]);
+                        // Convert jpeg to jpg for consistency
+                        if ($mimeExt === 'jpeg') {
+                            $mimeExt = 'jpg';
+                        }
+                        $extension = $mimeExt;
+                    }
+                    
+                    $filename = uniqid() . '_' . time() . '.' . $extension;
                     $path = 'product/' . $productId . '/' . $filename;
                     
                     Storage::disk('public')->put($path, $imageData);
