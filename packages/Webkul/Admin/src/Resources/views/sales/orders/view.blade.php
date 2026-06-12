@@ -1099,6 +1099,7 @@
                         const img = new Image();
                         img.crossOrigin = 'anonymous';
                         img.onload = () => {
+                            console.log('[DEBUG] Image loaded:', elem.content);
                             const x = (elem.x / 100) * canvas.width;
                             const y = (elem.y / 100) * canvas.height;
                             const width = ((elem.width || 100) / 100) * canvas.width;
@@ -1114,9 +1115,13 @@
                             } else {
                                 ctx.drawImage(img, x, y, width, height);
                             }
+                            console.log('[DEBUG] Image drawn at:', x, y, width, height);
                             resolve();
                         };
-                        img.onerror = () => resolve();
+                        img.onerror = () => {
+                            console.log('[DEBUG] Image FAILED to load:', elem.content);
+                            resolve();
+                        };
                         img.src = elem.content;
                     });
                     loadPromises.push(imgPromise);
