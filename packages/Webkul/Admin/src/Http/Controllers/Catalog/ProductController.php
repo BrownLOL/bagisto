@@ -474,16 +474,37 @@ class ProductController extends Controller
             $imageUrl = $record['image_url'] ?? '';
             $imageId = $record['image_id'] ?? null;
             
+            // Debug log
+            \Illuminate\Support\Facades\Log::info('handlePrintAreas record', [
+                'image_url' => $imageUrl,
+                'image_url_type' => strpos($imageUrl, 'data:') === 0 ? 'base64' : 'url',
+                'image_base64' => isset($record['image_base64']) ? 'present' : 'missing',
+                'image_base64_length' => isset($record['image_base64']) ? strlen($record['image_base64']) : 0,
+            ]);
+            
             // If it's a data URL (base64), decode and upload it
             if (strpos($imageUrl, 'data:') === 0) {
                 $base64Data = $record['image_base64'] ?? null;
+                \Illuminate\Support\Facades\Log::info('handlePrintAreas base64', [
+                    'base64_data' => $base64Data ? substr($base64Data, 0, 100) : null,
+                ]);
                 if ($base64Data) {
                     $imageData = base64_decode($base64Data);
                     if ($imageData) {
-                        $filename = uniqid() . '_' . time() . '.webp';
+                        $mime = 'image/png';
+                        if (preg_match('/^data:image\/(\w+);base64,/', $base64Data, $matches)) {
+                            $mime = 'image/' . $matches[1];
+                        }
+                        $ext = $mime === 'image/png' ? '.png' : ($mime === 'image/jpeg' ? '.jpg' : '.webp');
+                        $filename = uniqid() . '_' . time() . $ext;
                         $path = 'product/' . $product->id . '/' . $filename;
                         Storage::disk('public')->put($path, $imageData);
                         $imageUrl = '/storage/' . $path;
+                        \Illuminate\Support\Facades\Log::info('handlePrintAreas uploaded', [
+                            'mime' => $mime,
+                            'ext' => $ext,
+                            'path' => $path,
+                        ]);
                     }
                 }
             }

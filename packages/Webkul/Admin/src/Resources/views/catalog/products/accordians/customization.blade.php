@@ -513,6 +513,13 @@
                         let imageId = this.dialogSelectedImageId;
 
                         // Create record
+                        // Debug log
+                        console.log('DEBUG saveAreas:', {
+                            imageUrl: imageUrl,
+                            imageUrlType: imageUrl.startsWith('data:') ? 'base64' : 'url',
+                            imageUrlLength: imageUrl.length
+                        });
+                        
                         const record = {
                             temp_id: 'new_' + Date.now(),
                             image_id: imageId,
