@@ -1044,7 +1044,9 @@
             }
 
             // Load and draw each element
+            console.log('[DEBUG] Rendering elements:', elements);
             elements.forEach((elem) => {
+                console.log('[DEBUG] Element:', elem.type, elem.content, elem);
                 if (elem.type === 'text' && elem.content) {
                     // Render text as image (to avoid browser font limitations)
                     const textPromise = new Promise((resolve) => {
