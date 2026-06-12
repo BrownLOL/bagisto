@@ -101,7 +101,7 @@ class ProductCustomizationController extends Controller
      */
     public function uploadImage(Request $request): JsonResponse
     {
-        \Log::info('uploadImage called', $request->all());
+        \Log::info('uploadImage called', ['product_id' => $request->input('product_id')]);
         
         $validated = $request->validate([
             'product_id' => 'required|integer|exists:products,id',
