@@ -485,9 +485,6 @@ class ProductController extends Controller
             // If it's a data URL (base64), decode and upload it
             if (strpos($imageUrl, 'data:') === 0) {
                 $base64Data = $record['image_base64'] ?? null;
-                \Illuminate\Support\Facades\Log::info('handlePrintAreas base64', [
-                    'base64_data' => $base64Data ? substr($base64Data, 0, 100) : null,
-                ]);
                 if ($base64Data) {
                     $imageData = base64_decode($base64Data);
                     if ($imageData) {
