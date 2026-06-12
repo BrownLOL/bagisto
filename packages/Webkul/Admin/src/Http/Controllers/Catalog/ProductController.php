@@ -462,9 +462,22 @@ class ProductController extends Controller
             $imageUrl = $record['image_url'] ?? '';
             $imageId = $record['image_id'] ?? null;
             
-            // If it's a blob URL, we need to upload it
-            if (strpos($imageUrl, 'blob:') === 0) {
-                $imageUrl = $this->uploadBlobImage($imageUrl, $product->id);
+            // If it's a data URL (base64), decode and upload it
+            if (strpos($imageUrl, 'data:') === 0) {
+                // Extract base64 data from request using a key
+                $base64Key = $record['base64_key'] ?? null;
+                if ($base64Key) {
+                    $base64Data = request()->input('customization_base64_' . $base64Key);
+                    if ($base64Data) {
+                        $imageData = base64_decode($base64Data);
+                        if ($imageData) {
+                            $filename = uniqid() . '_' . time() . '.webp';
+                            $path = 'product/' . $product->id . '/' . $filename;
+                            Storage::disk('public')->put($path, $imageData);
+                            $imageUrl = '/storage/' . $path;
+                        }
+                    }
+                }
             }
             
             // Save each area
@@ -484,7 +497,7 @@ class ProductController extends Controller
     }
     
     /**
-     * Upload a blob URL image to storage.
+     * Upload a blob URL or data URL image to storage.
      *
      * @param  string  $blobUrl
      * @param  int  $productId
@@ -493,17 +506,35 @@ class ProductController extends Controller
     protected function uploadBlobImage($blobUrl, $productId)
     {
         try {
-            // Get blob data from request
-            $imageData = request()->file('customization_blob_' . md5($blobUrl));
-            
-            if ($imageData) {
-                $filename = $imageData->storeAs(
-                    'product/' . $productId,
-                    uniqid() . '.' . $imageData->getClientOriginalExtension(),
-                    'public'
-                );
+            // Handle data:image URL (base64)
+            if (strpos($blobUrl, 'data:') === 0) {
+                $parts = explode(',', $blobUrl);
+                $base64Data = $parts[1] ?? '';
+                $imageData = base64_decode($base64Data);
                 
-                return '/storage/' . $filename;
+                if ($imageData) {
+                    $filename = uniqid() . '_' . time() . '.webp';
+                    $path = 'product/' . $productId . '/' . $filename;
+                    
+                    Storage::disk('public')->put($path, $imageData);
+                    
+                    return '/storage/' . $path;
+                }
+            }
+            
+            // Handle blob: URL - try to get from request
+            if (strpos($blobUrl, 'blob:') === 0) {
+                $imageData = request()->file('customization_blob_' . md5($blobUrl));
+                
+                if ($imageData) {
+                    $filename = $imageData->storeAs(
+                        'product/' . $productId,
+                        uniqid() . '.' . $imageData->getClientOriginalExtension(),
+                        'public'
+                    );
+                    
+                    return '/storage/' . $filename;
+                }
             }
         } catch (\Exception $e) {
             \Log::error('Failed to upload blob image: ' . $e->getMessage());

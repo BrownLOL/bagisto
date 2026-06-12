@@ -252,6 +252,12 @@
             id="customization_areas_input"
             :value="JSON.stringify(imagesWithAreas)"
         />
+        <input
+            type="hidden"
+            name="customization_base64_data"
+            id="customization_base64_data_input"
+            :value="JSON.stringify(pendingBase64Data)"
+        />
         </div>
     </script>
 
@@ -288,6 +294,7 @@
                     drawStartY: 0,
                     saving: false,
                     blobFiles: {}, // Store blob files for later upload
+                    pendingBase64Data: {}, // Store base64 data for images not yet saved
                 }
             },
 
@@ -512,7 +519,7 @@
                         let imageUrl = this.dialogSelectedImageUrl;
                         let imageId = this.dialogSelectedImageId;
 
-                        // Create record with blob URL for now (will be uploaded when saving product)
+                        // Create record
                         const record = {
                             temp_id: 'new_' + Date.now(),
                             image_id: imageId,
@@ -526,18 +533,13 @@
                             }))
                         };
 
-                        // If blob URL, store the file for later upload
-                        let blobFile = null;
-                        if (imageUrl.startsWith('blob:')) {
-                            const blobKey = 'blob_' + simpleHash(imageUrl);
-                            blobFile = this.blobFiles[blobKey] || null;
-                            
-                            record.blob_key = blobKey;
-                        }
-                        
-                        // Store blob file reference
-                        if (blobFile) {
-                            this.blobFiles[record.blob_key] = blobFile;
+                        // Handle data URL (base64) - prepare for form submission
+                        if (imageUrl.startsWith('data:')) {
+                            const base64Key = 'base64_' + simpleHash(imageUrl);
+                            record.base64_key = base64Key;
+                            // Extract and store base64 data for form submission
+                            const base64Data = imageUrl.split(',')[1] || '';
+                            this.pendingBase64Data[base64Key] = base64Data;
                         }
                         
                         // 标记图片已被使用，防止被删除
