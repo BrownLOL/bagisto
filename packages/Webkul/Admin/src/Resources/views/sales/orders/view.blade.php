@@ -1142,10 +1142,14 @@
                 const dataUrl = canvas.toDataURL('image/png');
                 console.log('[DEBUG] Canvas dataURL length:', dataUrl.length);
 
+                // Create preview container
+                const previewDiv = document.createElement('div');
+                previewDiv.className = 'relative group cursor-pointer';
+                const canvasKey = 'customization-canvas-' + itemIndex + '-' + printAreaIndex;
+
                 // Store canvas reference for click handler
-                previewDiv.dataset.canvasId = 'customization-canvas-' + itemIndex + '-' + printAreaIndex;
                 window.customizationCanvases = window.customizationCanvases || {};
-                window.customizationCanvases[previewDiv.dataset.canvasId] = canvas;
+                window.customizationCanvases[canvasKey] = canvas;
 
                 const img = document.createElement('img');
                 img.src = dataUrl;
@@ -1161,9 +1165,9 @@
 
                 // Add click handler - get dataUrl from stored canvas reference
                 previewDiv.addEventListener('click', function() {
-                    const canvas = window.customizationCanvases && window.customizationCanvases[this.dataset.canvasId];
-                    if (canvas) {
-                        showDesignPreview(canvas.toDataURL('image/png'));
+                    const storedCanvas = window.customizationCanvases && window.customizationCanvases[canvasKey];
+                    if (storedCanvas) {
+                        showDesignPreview(storedCanvas.toDataURL('image/png'));
                     }
                 });
 
