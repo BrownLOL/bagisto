@@ -488,22 +488,31 @@ class ProductController extends Controller
             if (strpos($imageUrl, 'data:') === 0) {
                 $base64Data = $record['image_base64'] ?? null;
                 if ($base64Data) {
-                    $imageData = base64_decode($base64Data);
-                    if ($imageData) {
-                        $mime = 'image/png';
-                        if (preg_match('/^data:image\/(\w+);base64,/', $base64Data, $matches)) {
-                            $mime = 'image/' . $matches[1];
-                        }
+                    // Extract MIME type from base64 data
+                    $mime = 'image/png';
+                    $ext = '.png';
+                    if (preg_match('/^data:image\/(\w+);base64,/', $base64Data, $matches)) {
+                        $mime = 'image/' . $matches[1];
                         $ext = $mime === 'image/png' ? '.png' : ($mime === 'image/jpeg' ? '.jpg' : '.webp');
+                        // Remove the prefix before decoding
+                        $base64Data = substr($base64Data, strpos($base64Data, ',') + 1);
+                    }
+                    
+                    $decodedData = base64_decode($base64Data);
+                    
+                    \Log::info('handlePrintAreas decode_debug', [
+                        'mime' => $mime,
+                        'ext' => $ext,
+                        'base64_length' => strlen($base64Data),
+                        'decoded_length' => $decodedData ? strlen($decodedData) : 0,
+                        'decoded_first_8_hex' => $decodedData ? substr(bin2hex($decodedData), 0, 16) : 'decode_failed',
+                    ]);
+                    
+                    if ($decodedData) {
                         $filename = uniqid() . '_' . time() . $ext;
                         $path = 'product/' . $product->id . '/' . $filename;
-                        Storage::disk('public')->put($path, $imageData);
+                        Storage::disk('public')->put($path, $decodedData);
                         $imageUrl = '/storage/' . $path;
-                        \Illuminate\Support\Facades\Log::info('handlePrintAreas uploaded', [
-                            'mime' => $mime,
-                            'ext' => $ext,
-                            'path' => $path,
-                        ]);
                     }
                 }
             }
