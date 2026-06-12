@@ -509,8 +509,7 @@ function saveCustomizationWithPreview(previewImage, elements) {
         var recordData = {
             print_area_id: parseInt(printAreaId),
             record_key: currentRecordKey,
-            // DON'T store preview_image - it's too large for localStorage (1MB+)
-            // Preview will be generated on-the-fly when needed
+            image_url: window.currentAreaData?.image_url || window.currentAreaData?.url || '',
             elements: elements
         };
         

@@ -1153,7 +1153,7 @@
                     renderCustomizationPreview(
                         itemIndex,
                         printAreaIndex,
-                        data.background_url || null,
+                        data.background_url || data.image_url || null,
                         data.elements || []
                     );
                 } catch (e) {
