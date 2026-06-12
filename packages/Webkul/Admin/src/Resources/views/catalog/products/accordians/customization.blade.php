@@ -252,12 +252,6 @@
             id="customization_areas_input"
             :value="JSON.stringify(imagesWithAreas)"
         />
-        <input
-            type="hidden"
-            name="customization_base64_data"
-            id="customization_base64_data_input"
-            :value="JSON.stringify(pendingBase64Data)"
-        />
         </div>
     </script>
 
@@ -294,7 +288,6 @@
                     drawStartY: 0,
                     saving: false,
                     blobFiles: {}, // Store blob files for later upload
-                    pendingBase64Data: {}, // Store base64 data for images not yet saved
                 }
             },
 
@@ -524,6 +517,8 @@
                             temp_id: 'new_' + Date.now(),
                             image_id: imageId,
                             image_url: imageUrl,
+                            // 直接存储 base64 数据供后端上传
+                            image_base64: imageUrl.startsWith('data:') ? imageUrl : null,
                             areas: this.tempAreas.map((area, index) => ({
                                 name: 'Area ' + (index + 1),
                                 x: area.x,
@@ -532,15 +527,6 @@
                                 height: area.height
                             }))
                         };
-
-                        // Handle data URL (base64) - prepare for form submission
-                        if (imageUrl.startsWith('data:')) {
-                            const base64Key = 'base64_' + simpleHash(imageUrl);
-                            record.base64_key = base64Key;
-                            // Extract and store base64 data for form submission
-                            const base64Data = imageUrl.split(',')[1] || '';
-                            this.pendingBase64Data[base64Key] = base64Data;
-                        }
                         
                         // 标记图片已被使用，防止被删除
                         if (window.customizationData) {

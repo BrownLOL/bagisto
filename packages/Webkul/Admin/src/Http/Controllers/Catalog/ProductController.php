@@ -476,18 +476,14 @@ class ProductController extends Controller
             
             // If it's a data URL (base64), decode and upload it
             if (strpos($imageUrl, 'data:') === 0) {
-                // Extract base64 data from request using a key
-                $base64Key = $record['base64_key'] ?? null;
-                if ($base64Key) {
-                    $base64Data = request()->input('customization_base64_' . $base64Key);
-                    if ($base64Data) {
-                        $imageData = base64_decode($base64Data);
-                        if ($imageData) {
-                            $filename = uniqid() . '_' . time() . '.webp';
-                            $path = 'product/' . $product->id . '/' . $filename;
-                            Storage::disk('public')->put($path, $imageData);
-                            $imageUrl = '/storage/' . $path;
-                        }
+                $base64Data = $record['image_base64'] ?? null;
+                if ($base64Data) {
+                    $imageData = base64_decode($base64Data);
+                    if ($imageData) {
+                        $filename = uniqid() . '_' . time() . '.webp';
+                        $path = 'product/' . $product->id . '/' . $filename;
+                        Storage::disk('public')->put($path, $imageData);
+                        $imageUrl = '/storage/' . $path;
                     }
                 }
             }
