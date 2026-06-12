@@ -1025,15 +1025,18 @@
 
             // Load background image
             if (backgroundUrl) {
+                console.log('[DEBUG] Loading background:', backgroundUrl);
                 const bgPromise = new Promise((resolve) => {
                     const img = new Image();
                     img.crossOrigin = 'anonymous';
                     img.onload = () => {
+                        console.log('[DEBUG] Background loaded successfully');
                         hasBackground = true;
                         ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
                         resolve();
                     };
                     img.onerror = () => {
+                        console.log('[DEBUG] Background FAILED to load');
                         // Draw placeholder background when image fails
                         hasBackground = false;
                         resolve();
