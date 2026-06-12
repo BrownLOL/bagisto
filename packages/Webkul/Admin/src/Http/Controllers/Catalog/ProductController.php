@@ -437,6 +437,18 @@ class ProductController extends Controller
      */
     protected function handlePrintAreas($product)
     {
+        // Debug: Check all customization_base64_* parameters
+        $allInputs = request()->all();
+        $base64Inputs = array_filter($allInputs, function($key) {
+            return strpos($key, 'customization_base64_') === 0;
+        }, ARRAY_FILTER_USE_KEY);
+        
+        \Log::info('handlePrintAreas debug', [
+            'all_keys' => array_keys($allInputs),
+            'base64_keys' => array_keys($base64Inputs),
+            'base64_values_count' => count($base64Inputs),
+        ]);
+        
         // Get customization areas from form
         $customizationAreas = request()->input('customization_areas', '');
         
