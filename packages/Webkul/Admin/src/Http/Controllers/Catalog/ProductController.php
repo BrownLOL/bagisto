@@ -539,17 +539,14 @@ class ProductController extends Controller
             if (strpos($blobUrl, 'data:') === 0) {
                 $parts = explode(',', $blobUrl);
                 $base64Data = $parts[1] ?? '';
-                $base64Length = strlen($base64Data);
                 $imageData = base64_decode($base64Data);
-                $imageDataLength = strlen($imageData);
                 
-                Log::info('handlePrintAreas decode', [
-                    'base64_length' => $base64Length,
-                    'decode_result_length' => $imageDataLength,
-                    'first_bytes' => substr(bin2hex($imageData), 0, 16),
-                ]);
-                
-                if ($imageData && $imageDataLength > 0) {
+                if ($imageData && strlen($imageData) > 0) {
+                    Log::info('handlePrintAreas decode', [
+                        'b64_len' => strlen($base64Data),
+                        'decoded_len' => strlen($imageData),
+                        'first_8bytes_hex' => substr(bin2hex($imageData), 0, 16),
+                    ]);
                     // Determine file extension from MIME type
                     $extension = 'webp'; // default
                     if (preg_match('/data:image\/(\w+);/', $blobUrl, $matches)) {
