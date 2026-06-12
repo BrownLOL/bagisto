@@ -474,10 +474,12 @@ class ProductController extends Controller
             $imageUrl = $record['image_url'] ?? '';
             $imageId = $record['image_id'] ?? null;
             
-            // Debug log
+            // Debug log - only print type and length, not full base64
+            $imageUrlType = strpos($imageUrl, 'data:') === 0 ? 'base64' : 'url';
+            $imageUrlLength = strlen($imageUrl);
             \Illuminate\Support\Facades\Log::info('handlePrintAreas record', [
-                'image_url' => $imageUrl,
-                'image_url_type' => strpos($imageUrl, 'data:') === 0 ? 'base64' : 'url',
+                'image_url_type' => $imageUrlType,
+                'image_url_length' => $imageUrlLength,
                 'image_base64' => isset($record['image_base64']) ? 'present' : 'missing',
                 'image_base64_length' => isset($record['image_base64']) ? strlen($record['image_base64']) : 0,
             ]);
