@@ -1142,9 +1142,10 @@
                 const dataUrl = canvas.toDataURL('image/png');
                 console.log('[DEBUG] Canvas dataURL length:', dataUrl.length);
 
-                // Create preview container with click handler
-                const previewDiv = document.createElement('div');
-                previewDiv.className = 'relative group cursor-pointer';
+                // Store canvas reference for click handler
+                previewDiv.dataset.canvasId = 'customization-canvas-' + itemIndex + '-' + printAreaIndex;
+                window.customizationCanvases = window.customizationCanvases || {};
+                window.customizationCanvases[previewDiv.dataset.canvasId] = canvas;
 
                 const img = document.createElement('img');
                 img.src = dataUrl;
@@ -1158,8 +1159,13 @@
                 previewDiv.appendChild(img);
                 previewDiv.appendChild(badge);
 
-                // Add click handler to show full preview
-                previewDiv.addEventListener('click', () => showDesignPreview(dataUrl));
+                // Add click handler - get dataUrl from stored canvas reference
+                previewDiv.addEventListener('click', function() {
+                    const canvas = window.customizationCanvases && window.customizationCanvases[this.dataset.canvasId];
+                    if (canvas) {
+                        showDesignPreview(canvas.toDataURL('image/png'));
+                    }
+                });
 
                 // Clear container and add preview
                 container.innerHTML = '';
