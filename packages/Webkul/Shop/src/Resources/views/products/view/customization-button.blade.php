@@ -853,7 +853,7 @@ function selectElem(elemData) {
     document.querySelectorAll('.elem-control').forEach(function(c) { c.remove(); });
     
     var wrapper = elemData.dom;
-    var dialog = document.querySelector('.customize-dialog');
+    var dialog = document.getElementById('customization-dialog');
     var control = document.createElement('div');
     control.className = 'elem-control';
     
@@ -898,7 +898,7 @@ function selectElem(elemData) {
 function updateControl(elemData) {
     var control = document.querySelector('.elem-control');
     var elem = document.querySelector('.canvas-elem[data-id="' + elemData.id + '"]');
-    var dialog = document.querySelector('.customize-dialog');
+    var dialog = document.getElementById('customization-dialog');
     
     if (control && elem && dialog) {
         var elemRect = elem.getBoundingClientRect();
