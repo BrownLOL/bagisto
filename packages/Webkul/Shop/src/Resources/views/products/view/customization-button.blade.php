@@ -1115,18 +1115,16 @@ function setupElemEvents(wrapper, elemData) {
     
     document.addEventListener('mousemove', function(e) {
         if (!currentCanvas.selectedElement || currentCanvas.selectedElement !== elemData) {
-            // console.log('[DEBUG mousemove] not selected');
             return;
         }
         var pa = wrapper.parentElement;
         
-        // If parentElement is null or not print area, find it
-        if (!pa || !pa.classList.contains('print-area-inner')) {
-            pa = document.querySelector('.print-area-inner');
+        // If parentElement is null or not a print area, find it
+        if (!pa || (!pa.classList.contains('print-area-inner') && !pa.id.startsWith('print-area-'))) {
+            pa = document.querySelector('.print-area-inner, [id^="print-area-"]');
         }
         
         if (!pa) {
-            console.log('[DEBUG mousemove] pa is null, wrapper:', wrapper, 'wrapper.parentElement:', wrapper?.parentElement, 'wrapper.className:', wrapper?.className);
             return;
         }
         
