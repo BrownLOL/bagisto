@@ -757,7 +757,7 @@ function selectProductImage(imgUrl, areaData) {
         var printAreaId = 'print-area-' + (areaData.id || areaData.print_area_id || 'default');
         var printArea = document.createElement('div');
         printArea.id = printAreaId;
-        printArea.style.cssText = 'position:absolute;left:' + areaData.x + '%;top:' + areaData.y + '%;width:' + areaData.width + '%;height:' + areaData.height + '%;border:2px dashed red;background:rgba(255,255,255,0.3);overflow:visible;';
+        printArea.style.cssText = 'position:absolute;left:' + areaData.x + '%;top:' + areaData.y + '%;width:' + areaData.width + '%;height:' + areaData.height + '%;border:2px dashed red;background:rgba(255,255,255,0.3);overflow:hidden;';
         canvas.appendChild(printArea);
         
         // DON'T create elements here - loadSavedCustomization will do it after checking localStorage
@@ -860,7 +860,7 @@ function selectElem(elemData) {
     var elemH = elemData.h || elemData.height || 80;
     control.style.cssText = 'position:absolute;left:' + elemData.x + '%;top:' + elemData.y + '%;width:' + elemW + '%;height:' + elemH + '%;border:2px solid #3b82f6;transform:rotate(' + (elemData.rotation || 0) + 'deg);pointer-events:none;';
     // 添加到 print area（wrapper.parentNode），与元素同一个容器
-    wrapper.parentNode.appendChild(control);
+    dialog.appendChild(control);
     
     var rotH = document.createElement('div');
     rotH.style.cssText = 'position:absolute;top:-30px;left:50%;transform:translateX(-50%);width:14px;height:14px;background:#3b82f6;border-radius:50%;cursor:grab;pointer-events:auto;';
@@ -889,14 +889,18 @@ function selectElem(elemData) {
 
 function updateControl(elemData) {
     var control = document.querySelector('.elem-control');
-    if (control) {
-        // 兼容 w/h 和 width/height 两种字段名
-        var elemW = elemData.w || elemData.width || 80;
-        var elemH = elemData.h || elemData.height || 80;
-        control.style.left = elemData.x + '%';
-        control.style.top = elemData.y + '%';
-        control.style.width = elemW + '%';
-        control.style.height = elemH + '%';
+    var elem = document.querySelector('.canvas-elem[data-id="' + elemData.id + '"]');
+    var dialog = document.querySelector('.customize-dialog');
+    
+    if (control && elem && dialog) {
+        var elemRect = elem.getBoundingClientRect();
+        var dialogRect = dialog.getBoundingClientRect();
+        
+        // 使用像素坐标，相对于 dialog
+        control.style.left = (elemRect.left - dialogRect.left) + 'px';
+        control.style.top = (elemRect.top - dialogRect.top) + 'px';
+        control.style.width = elemRect.width + 'px';
+        control.style.height = elemRect.height + 'px';
         control.style.transform = 'rotate(' + (elemData.rotation || 0) + 'deg)';
     }
 }
