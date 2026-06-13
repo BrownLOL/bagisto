@@ -760,9 +760,25 @@ function selectProductImage(imgUrl, areaData) {
         printArea.style.cssText = 'position:absolute;left:' + areaData.x + '%;top:' + areaData.y + '%;width:' + areaData.width + '%;height:' + areaData.height + '%;border:2px dashed red;background:rgba(255,255,255,0.3);overflow:hidden;';
         canvas.appendChild(printArea);
         
-        // DON'T create elements here - loadSavedCustomization will do it after checking localStorage
-        // This prevents duplicate elements when reloading a saved design
-        console.log('[DEBUG selectProductImage] Skip element creation, loadSavedCustomization will handle it');
+        // Re-create element DOMs from currentCanvas.elements
+        if (currentCanvas.elements.length > 0) {
+            console.log('[DEBUG selectProductImage] Re-creating ' + currentCanvas.elements.length + ' elements');
+            currentCanvas.elements.forEach(function(elemData, index) {
+                // Get or recreate the element wrapper
+                var wrapper = document.getElementById('elem-' + elemData.id);
+                if (!wrapper && elemData.dom) {
+                    // Clone the existing DOM if available
+                    wrapper = elemData.dom.cloneNode(true);
+                    wrapper.id = 'elem-' + elemData.id;
+                    wrapper.dataset.id = elemData.id;
+                    printArea.appendChild(wrapper);
+                    elemData.dom = wrapper;
+                } else if (wrapper) {
+                    printArea.appendChild(wrapper);
+                    elemData.dom = wrapper;
+                }
+            });
+        }
     }
     
     updateLayersList();
