@@ -1168,9 +1168,13 @@
 
                 // Add click handler - get dataUrl from stored canvas reference
                 previewDiv.addEventListener('click', function() {
+                    console.log('[DEBUG] Click handler triggered, canvasKey:', canvasKey);
                     const storedCanvas = window.customizationCanvases && window.customizationCanvases[canvasKey];
+                    console.log('[DEBUG] storedCanvas:', storedCanvas);
                     if (storedCanvas) {
-                        showDesignPreview(storedCanvas.toDataURL('image/png'));
+                        const dataUrl = storedCanvas.toDataURL('image/png');
+                        console.log('[DEBUG] Click dataUrl length:', dataUrl.length);
+                        showDesignPreview(dataUrl);
                     }
                 });
 
