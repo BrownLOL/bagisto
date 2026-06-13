@@ -1110,6 +1110,13 @@ function setupElemEvents(wrapper, elemData) {
         if (!currentCanvas.selectedElement || currentCanvas.selectedElement !== elemData) return;
         var pa = wrapper.parentElement;
         
+        // If parentElement is null or not print area, find it
+        if (!pa || !pa.classList.contains('print-area-inner')) {
+            pa = document.querySelector('.print-area-inner');
+        }
+        
+        if (!pa) return;
+        
         if (isDrag) {
             var dx = e.clientX - startX;
             var dy = e.clientY - startY;
