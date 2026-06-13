@@ -252,8 +252,10 @@ function saveCustomization() {
     
     var elements = [];
     var elemDivs = printArea.querySelectorAll('.canvas-elem');
-    elemDivs.forEach(function(div) {
+    console.log('[DEBUG] Found', elemDivs.length, 'elements in print area');
+    elemDivs.forEach(function(div, index) {
         var elemData = div._elemData;
+        console.log('[DEBUG] Element', index, 'style:', { left: div.style.left, top: div.style.top, width: div.style.width, height: div.style.height });
         if (elemData) {
             var elem = {
                 type: elemData.type,
@@ -270,6 +272,8 @@ function saveCustomization() {
             elements.push(elem);
         }
     });
+    
+    console.log('[DEBUG] Parsed elements:', JSON.stringify(elements, null, 2));
     
     // Generate composed preview image with all layers using canvas
     var productId = window.customizationProductId;
