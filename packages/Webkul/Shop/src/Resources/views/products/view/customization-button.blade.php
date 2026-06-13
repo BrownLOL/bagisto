@@ -469,11 +469,44 @@ function saveCustomization() {
     })();
 }
 
-function saveCustomizationWithPreview(previewImage, elements) {
+// 上传预览图到服务器（返回 URL）
+async function uploadPreviewImage(previewImage) {
+    if (!previewImage || !previewImage.startsWith('data:')) {
+        return previewImage; // 已经是 URL，直接返回
+    }
+    
+    try {
+        const response = await fetch('/api/customization/upload-preview', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || ''
+            },
+            body: JSON.stringify({ image: previewImage })
+        });
+        
+        const result = await response.json();
+        if (result.success) {
+            console.log('[DEBUG] Preview image uploaded:', result.url);
+            return result.url;
+        }
+    } catch (error) {
+        console.error('[DEBUG] Preview upload failed:', error);
+    }
+    
+    return previewImage; // 上传失败，返回原始 base64
+}
+
+// 保存设计（异步，上传预览图后保存）
+async function saveCustomizationWithPreview(previewImage, elements) {
     var productId = window.customizationProductId;
     
     console.log('[DEBUG saveCustomizationWithPreview] Starting with previewImage length:', previewImage ? previewImage.length : 0);
     console.log('[DEBUG saveCustomizationWithPreview] elements count:', elements.length);
+    
+    // 先上传预览图获取 URL
+    var previewImageUrl = await uploadPreviewImage(previewImage);
+    console.log('[DEBUG saveCustomizationWithPreview] previewImageUrl:', previewImageUrl);
     
     // Prepare customization data for current print area
     var uuid = getDesignUUID(); // Ensure we have a UUID
@@ -510,7 +543,7 @@ function saveCustomizationWithPreview(previewImage, elements) {
             print_area_id: parseInt(printAreaId),
             record_key: currentRecordKey,
             image_url: window.currentAreaData?.image_url || window.currentAreaData?.url || '',
-            preview_image: previewImage, // 保存预览图 dataUrl
+            preview_image: previewImageUrl, // 保存预览图 URL（上传后）
             elements: elements
         };
         
@@ -522,33 +555,17 @@ function saveCustomizationWithPreview(previewImage, elements) {
             printAreas.push(recordData);
         }
         
-        // Store full design data with print_areas array (without preview_image to save localStorage space)
-        var printAreasWithoutPreview = printAreas.map(function(pa) {
-            var { preview_image, ...rest } = pa; // eslint-disable-line no-unused-vars
-            return rest;
-        });
-        
-        // 用于添加到购物车（包含 preview_image）
-        var designDataToSave = {
-            product_id: productId,
-            print_areas: printAreas, // 使用包含 preview_image 的完整数据
-            updated_at: new Date().toISOString()
-        };
-        
-        console.log('[DEBUG saveCustomizationWithPreview] Saving designData with print_areas count:', printAreas.length);
-        console.log('[DEBUG saveCustomizationWithPreview] First print_area has preview_image:', !!printAreas[0]?.preview_image);
-        console.log('[DEBUG saveCustomizationWithPreview] preview_image length:', printAreas[0]?.preview_image?.length || 0);
-        
-        // 保存到 localStorage（不包含 preview_image，节省空间）
+        // 保存完整数据到 localStorage（包含 preview_image URL）
         var designDataForStorage = {
             product_id: productId,
-            print_areas: printAreasWithoutPreview,
+            print_areas: printAreas,
             updated_at: new Date().toISOString()
         };
         
         localStorage.setItem(designKey, JSON.stringify(designDataForStorage));
         
         console.log('[DEBUG saveCustomizationWithPreview] Saved to localStorage, key:', designKey);
+        console.log('[DEBUG saveCustomizationWithPreview] preview_image URL length:', printAreas[0]?.preview_image?.length || 0);
         
         // Ensure UUID is in the list
         var uuidsKey = 'design_uuids_' + productId;
