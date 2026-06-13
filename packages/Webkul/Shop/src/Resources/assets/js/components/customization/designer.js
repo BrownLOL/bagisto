@@ -477,77 +477,131 @@ function generatePreviewImage() {
         tempCanvas.height = canvas.height;
         const tempCtx = tempCanvas.getContext('2d');
         
-        // Draw background image if available
-        const bgImg = document.getElementById('canvas-product-image');
-        if (bgImg && bgImg.src) {
-            tempCtx.drawImage(bgImg, 0, 0, tempCanvas.width, tempCanvas.height);
-        } else {
-            tempCtx.fillStyle = '#f3f4f6';
-            tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
-        }
-        
-        // Draw all elements
-        const drawPromises = state.elements.map(element => {
-            return new Promise((res) => {
-                const x = (element.x / 100) * tempCanvas.width;
-                const y = (element.y / 100) * tempCanvas.height;
-                const w = ((element.width || 100) / 100) * tempCanvas.width;
-                const h = ((element.height || 100) / 100) * tempCanvas.height;
-                
-                if (element.type === 'image') {
-                    const imgEl = new Image();
-                    imgEl.crossOrigin = 'anonymous';
-                    imgEl.onload = () => {
-                        if (element.rotation) {
-                            tempCtx.save();
-                            tempCtx.translate(x + w/2, y + h/2);
-                            tempCtx.rotate(element.rotation * Math.PI / 180);
-                            tempCtx.drawImage(imgEl, -w/2, -h/2, w, h);
-                            tempCtx.restore();
-                        } else {
-                            tempCtx.drawImage(imgEl, x, y, w, h);
-                        }
-                        res();
-                    };
-                    imgEl.onerror = () => res();
-                    imgEl.src = element.content;
-                } else if (element.type === 'text') {
-                    const fontSize = (element.fontSize || 24) * (tempCanvas.width / 400);
-                    const fontFamily = element.fontFamily || 'Arial';
-                    const color = element.color || '#000000';
-                    
-                    tempCtx.font = `${fontSize}px ${fontFamily}`;
-                    tempCtx.fillStyle = color;
-                    tempCtx.textBaseline = 'top';
-                    
-                    const words = element.content.split(' ');
-                    let line = '';
-                    let lineY = y;
-                    const maxWidth = w;
-                    
-                    words.forEach(word => {
-                        const testLine = line + word + ' ';
-                        const metrics = tempCtx.measureText(testLine);
-                        if (metrics.width > maxWidth && line !== '') {
-                            tempCtx.fillText(line, x, lineY);
-                            line = word + ' ';
-                            lineY += fontSize * 1.2;
-                        } else {
-                            line = testLine;
-                        }
-                    });
-                    tempCtx.fillText(line, x, lineY);
-                    res();
-                } else {
-                    res();
+        // Helper function to wait for image to load
+        const loadImage = (src) => {
+            return new Promise((imgResolve, imgReject) => {
+                if (!src) {
+                    imgResolve(null);
+                    return;
                 }
+                const img = new Image();
+                img.crossOrigin = 'anonymous';
+                img.onload = () => imgResolve(img);
+                img.onerror = () => imgResolve(null);
+                img.src = src;
             });
-        });
+        };
         
-        Promise.all(drawPromises).then(() => {
-            resolve(tempCanvas.toDataURL('image/png'));
-        }).catch(() => {
-            resolve('');
+        // Draw background image first (wait for it to load)
+        const bgPromise = loadImage(state.printArea?.image_url || state.productImage?.image_url || state.productImage);
+        
+        bgPromise.then((bgImg) => {
+            if (bgImg) {
+                tempCtx.drawImage(bgImg, 0, 0, tempCanvas.width, tempCanvas.height);
+            } else {
+                tempCtx.fillStyle = '#f3f4f6';
+                tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+            }
+            
+            // Draw all elements
+            const drawPromises = state.elements.map(element => {
+                return new Promise((res) => {
+                    const x = (element.x / 100) * tempCanvas.width;
+                    const y = (element.y / 100) * tempCanvas.height;
+                    const w = ((element.width || 100) / 100) * tempCanvas.width;
+                    const h = ((element.height || 100) / 100) * tempCanvas.height;
+                    
+                    if (element.type === 'image') {
+                        const imgEl = new Image();
+                        imgEl.crossOrigin = 'anonymous';
+                        imgEl.onload = () => {
+                            if (element.rotation) {
+                                tempCtx.save();
+                                tempCtx.translate(x + w/2, y + h/2);
+                                tempCtx.rotate(element.rotation * Math.PI / 180);
+                                tempCtx.drawImage(imgEl, -w/2, -h/2, w, h);
+                                tempCtx.restore();
+                            } else {
+                                tempCtx.drawImage(imgEl, x, y, w, h);
+                            }
+                            res();
+                        };
+                        imgEl.onerror = () => res();
+                        imgEl.src = element.content;
+                    } else if (element.type === 'text') {
+                        const fontSize = (element.fontSize || 24) * (tempCanvas.width / 400);
+                        const fontFamily = element.fontFamily || 'Arial';
+                        const color = element.color || '#000000';
+                        
+                        tempCtx.font = `${fontSize}px ${fontFamily}`;
+                        tempCtx.fillStyle = color;
+                        tempCtx.textBaseline = 'top';
+                        
+                        const words = element.content.split(' ');
+                        let line = '';
+                        let lineY = y;
+                        const maxWidth = w;
+                        
+                        words.forEach(word => {
+                            const testLine = line + word + ' ';
+                            const metrics = tempCtx.measureText(testLine);
+                            if (metrics.width > maxWidth && line !== '') {
+                                tempCtx.fillText(line, x, lineY);
+                                line = word + ' ';
+                                lineY += fontSize * 1.2;
+                            } else {
+                                line = testLine;
+                            }
+                        });
+                        tempCtx.fillText(line, x, lineY);
+                        res();
+                    } else {
+                        res();
+                    }
+                });
+            });
+            
+            Promise.all(drawPromises).then(() => {
+                // Check if canvas is tainted (cross-origin issue)
+                try {
+                    const dataUrl = tempCanvas.toDataURL('image/png');
+                    resolve(dataUrl);
+                } catch (e) {
+                    console.error('Canvas is tainted, cannot export:', e);
+                    // Fallback: return without background
+                    tempCtx.fillStyle = '#f3f4f6';
+                    tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+                    
+                    // Redraw elements only
+                    const elementPromises = state.elements.map(element => {
+                        return new Promise((res) => {
+                            if (element.type === 'image') {
+                                const imgEl = new Image();
+                                imgEl.onload = () => {
+                                    const x = (element.x / 100) * tempCanvas.width;
+                                    const y = (element.y / 100) * tempCanvas.height;
+                                    const w = ((element.width || 100) / 100) * tempCanvas.width;
+                                    const h = ((element.height || 100) / 100) * tempCanvas.height;
+                                    tempCtx.drawImage(imgEl, x, y, w, h);
+                                    res();
+                                };
+                                imgEl.onerror = () => res();
+                                imgEl.src = element.content;
+                            } else {
+                                res();
+                            }
+                        });
+                    });
+                    
+                    Promise.all(elementPromises).then(() => {
+                        resolve(tempCanvas.toDataURL('image/png'));
+                    }).catch(() => {
+                        resolve('');
+                    });
+                }
+            }).catch(() => {
+                resolve('');
+            });
         });
     });
 }
