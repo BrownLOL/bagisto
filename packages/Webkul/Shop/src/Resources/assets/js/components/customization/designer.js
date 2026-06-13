@@ -462,6 +462,96 @@ function updatePreview() {
     });
 }
 
+// Generate preview image from all elements
+function generatePreviewImage() {
+    return new Promise((resolve) => {
+        const canvas = document.getElementById('design-canvas');
+        if (!canvas) {
+            resolve('');
+            return;
+        }
+        
+        // Create a temporary canvas for preview
+        const tempCanvas = document.createElement('canvas');
+        tempCanvas.width = canvas.width;
+        tempCanvas.height = canvas.height;
+        const tempCtx = tempCanvas.getContext('2d');
+        
+        // Draw background image if available
+        const bgImg = document.getElementById('canvas-product-image');
+        if (bgImg && bgImg.src) {
+            tempCtx.drawImage(bgImg, 0, 0, tempCanvas.width, tempCanvas.height);
+        } else {
+            tempCtx.fillStyle = '#f3f4f6';
+            tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+        }
+        
+        // Draw all elements
+        const drawPromises = state.elements.map(element => {
+            return new Promise((res) => {
+                const x = (element.x / 100) * tempCanvas.width;
+                const y = (element.y / 100) * tempCanvas.height;
+                const w = ((element.width || 100) / 100) * tempCanvas.width;
+                const h = ((element.height || 100) / 100) * tempCanvas.height;
+                
+                if (element.type === 'image') {
+                    const imgEl = new Image();
+                    imgEl.crossOrigin = 'anonymous';
+                    imgEl.onload = () => {
+                        if (element.rotation) {
+                            tempCtx.save();
+                            tempCtx.translate(x + w/2, y + h/2);
+                            tempCtx.rotate(element.rotation * Math.PI / 180);
+                            tempCtx.drawImage(imgEl, -w/2, -h/2, w, h);
+                            tempCtx.restore();
+                        } else {
+                            tempCtx.drawImage(imgEl, x, y, w, h);
+                        }
+                        res();
+                    };
+                    imgEl.onerror = () => res();
+                    imgEl.src = element.content;
+                } else if (element.type === 'text') {
+                    const fontSize = (element.fontSize || 24) * (tempCanvas.width / 400);
+                    const fontFamily = element.fontFamily || 'Arial';
+                    const color = element.color || '#000000';
+                    
+                    tempCtx.font = `${fontSize}px ${fontFamily}`;
+                    tempCtx.fillStyle = color;
+                    tempCtx.textBaseline = 'top';
+                    
+                    const words = element.content.split(' ');
+                    let line = '';
+                    let lineY = y;
+                    const maxWidth = w;
+                    
+                    words.forEach(word => {
+                        const testLine = line + word + ' ';
+                        const metrics = tempCtx.measureText(testLine);
+                        if (metrics.width > maxWidth && line !== '') {
+                            tempCtx.fillText(line, x, lineY);
+                            line = word + ' ';
+                            lineY += fontSize * 1.2;
+                        } else {
+                            line = testLine;
+                        }
+                    });
+                    tempCtx.fillText(line, x, lineY);
+                    res();
+                } else {
+                    res();
+                }
+            });
+        });
+        
+        Promise.all(drawPromises).then(() => {
+            resolve(tempCanvas.toDataURL('image/png'));
+        }).catch(() => {
+            resolve('');
+        });
+    });
+}
+
 // Save design
 async function saveDesign() {
     let imageUrl = state.printArea?.image_url || '';
@@ -490,10 +580,14 @@ async function saveDesign() {
         }
     }
 
+    // Generate preview image
+    const previewImage = await generatePreviewImage();
+
     const designData = {
         product_id: state.productId,
         print_area_id: state.printArea?.id,
         image_url: imageUrl,
+        preview_image: previewImage,
         elements: state.elements.map(e => ({
             type: e.type,
             content: e.content,
