@@ -255,7 +255,13 @@ function saveCustomization() {
     console.log('[DEBUG] Found', elemDivs.length, 'elements in print area');
     elemDivs.forEach(function(div, index) {
         var elemData = div._elemData;
-        console.log('[DEBUG] Element', index, 'style:', { left: div.style.left, top: div.style.top, width: div.style.width, height: div.style.height });
+        console.log('[DEBUG] Element', index, 'styles:', { 
+            left: div.style.left, 
+            top: div.style.top, 
+            width: div.style.width, 
+            height: div.style.height,
+            _elemData: elemData
+        });
         if (elemData) {
             var elem = {
                 type: elemData.type,
@@ -428,6 +434,14 @@ function saveCustomization() {
                             var scaleY = capturedElem.scaleY || 1;
                             var drawWidth = elImg.width * scaleX;
                             var drawHeight = elImg.height * scaleY;
+                            
+                            console.log('[DEBUG drawImage] Element:', {
+                                elemX: capturedElem.x, elemY: capturedElem.y,
+                                canvasX: x, canvasY: y,
+                                imgWidth: elImg.width, imgHeight: elImg.height,
+                                drawWidth: drawWidth, drawHeight: drawHeight,
+                                scaleX: scaleX, scaleY: scaleY
+                            });
                             
                             ctx.save();
                             ctx.translate(x, y);
