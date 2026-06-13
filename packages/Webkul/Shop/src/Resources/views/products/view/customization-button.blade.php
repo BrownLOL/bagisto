@@ -522,15 +522,20 @@ function saveCustomizationWithPreview(previewImage, elements) {
             printAreas.push(recordData);
         }
         
-        // Store full design data with print_areas array
+        // Store full design data with print_areas array (without preview_image to save localStorage space)
+        var printAreasWithoutPreview = printAreas.map(function(pa) {
+            var { preview_image, ...rest } = pa; // eslint-disable-line no-unused-vars
+            return rest;
+        });
+        
         var designDataToSave = {
             product_id: productId,
-            print_areas: printAreas,
+            print_areas: printAreasWithoutPreview,
             updated_at: new Date().toISOString()
         };
         
-        console.log('[DEBUG saveCustomizationWithPreview] Saving designData with print_areas count:', printAreas.length);
-        console.log('[DEBUG saveCustomizationWithPreview] First print_area elements count:', printAreas[0]?.elements?.length || 0);
+        console.log('[DEBUG saveCustomizationWithPreview] Saving designData with print_areas count:', printAreasWithoutPreview.length);
+        console.log('[DEBUG saveCustomizationWithPreview] First print_area elements count:', printAreasWithoutPreview[0]?.elements?.length || 0);
         console.log('[DEBUG saveCustomizationWithPreview] Storage size (without preview_image):', JSON.stringify(designDataToSave).length, 'bytes');
         
         localStorage.setItem(designKey, JSON.stringify(designDataToSave));
