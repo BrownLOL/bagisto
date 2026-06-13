@@ -103,17 +103,13 @@ class CartController extends APIController
     public function addCustomization()
     {
         $requestData = request()->all();
-        \Log::info('addCustomization received data', $requestData);
-        
-        // Debug: check if preview_image exists
-        if (isset($requestData['customization']['print_areas'])) {
-            foreach ($requestData['customization']['print_areas'] as $index => $pa) {
-                \Log::info("print_area[$index] preview_image", [
-                    'has_preview_image' => isset($pa['preview_image']),
-                    'preview_image' => $pa['preview_image'] ?? 'NOT SET'
-                ]);
-            }
-        }
+        \Log::info('addCustomization received data', [
+            'product_id' => $requestData['product_id'] ?? null,
+            'has_design_uuid' => isset($requestData['design_uuid']),
+            'has_preview_image' => isset($requestData['preview_image']),
+            'has_customization' => isset($requestData['customization']),
+            'preview_image_length' => isset($requestData['preview_image']) ? strlen($requestData['preview_image']) : 0,
+        ]);
 
         $this->validate(request(), [
             'product_id'    => 'required|integer|exists:products,id',
@@ -130,12 +126,35 @@ class CartController extends APIController
                 throw new \Exception(trans('shop::app.checkout.cart.inactive-add'));
             }
 
+            // 处理扁平格式或嵌套格式
+            $customization = request()->input('customization');
+            
+            // 如果没有 customization 字段，检查扁平格式
+            if (empty($customization) && (isset($requestData['preview_image']) || isset($requestData['elements']))) {
+                // 扁平格式转换为嵌套格式
+                $printArea = [
+                    'preview_image' => $requestData['preview_image'] ?? null,
+                    'image_url'    => $requestData['image_url'] ?? null,
+                    'print_area_id' => $requestData['print_area_id'] ?? null,
+                    'elements'      => $requestData['elements'] ?? [],
+                ];
+                
+                // 移除 null 值
+                $printArea = array_filter($printArea, function($value) {
+                    return $value !== null;
+                });
+                
+                $customization = [
+                    'print_areas' => [$printArea],
+                ];
+            }
+
             // Build clean data for Cart::addProduct
             $data = [
                 'product_id'  => request()->input('product_id'),
                 'quantity'    => request()->input('quantity', 1),
                 'additional'  => [
-                    'customization' => request()->input('customization'),
+                    'customization' => $customization,
                     'design_uuid'   => request()->input('design_uuid'),
                 ],
             ];
