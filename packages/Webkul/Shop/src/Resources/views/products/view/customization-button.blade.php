@@ -1076,6 +1076,7 @@ function setupElemEvents(wrapper, elemData) {
     var startX, startY, startX2, startY2, startW, startH, startAngle, startRot;
     
     wrapper.addEventListener('mousedown', function(e) {
+        console.log('[DEBUG mousedown] target:', e.target.className, 'dataset.action:', e.target.dataset.action);
         if (e.target.dataset.action) return;
         isDrag = true;
         startX = e.clientX;
@@ -1083,6 +1084,7 @@ function setupElemEvents(wrapper, elemData) {
         startX2 = elemData.x;
         startY2 = elemData.y;
         selectElem(elemData);
+        console.log('[DEBUG mousedown] isDrag:', isDrag, 'selectedElement:', currentCanvas.selectedElement === elemData);
         e.stopPropagation();
         e.preventDefault();
     });
@@ -1112,7 +1114,10 @@ function setupElemEvents(wrapper, elemData) {
     });
     
     document.addEventListener('mousemove', function(e) {
-        if (!currentCanvas.selectedElement || currentCanvas.selectedElement !== elemData) return;
+        if (!currentCanvas.selectedElement || currentCanvas.selectedElement !== elemData) {
+            // console.log('[DEBUG mousemove] not selected');
+            return;
+        }
         var pa = wrapper.parentElement;
         
         // If parentElement is null or not print area, find it
@@ -1120,7 +1125,12 @@ function setupElemEvents(wrapper, elemData) {
             pa = document.querySelector('.print-area-inner');
         }
         
-        if (!pa) return;
+        if (!pa) {
+            console.log('[DEBUG mousemove] pa is null');
+            return;
+        }
+        
+        console.log('[DEBUG mousemove] isDrag:', isDrag, 'dx:', e.clientX - startX, 'dy:', e.clientY - startY);
         
         if (isDrag) {
             var dx = e.clientX - startX;
