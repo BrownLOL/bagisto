@@ -235,7 +235,8 @@
                                                                 data-print-area-index="{{ $index }}"
                                                                 data-background-url="{{ $backgroundUrl }}"
                                                                 data-elements="{{ $elements }}"
-                                                                class="w-16 h-16 flex items-center justify-center bg-gray-100 rounded border border-gray-300"
+                                                                class="w-16 h-16 flex items-center justify-center bg-gray-100 rounded border border-gray-300 cursor-pointer select-none"
+                                                                onclick="openDesignFromAttr(this)"
                                                             >
                                                                 <span class="text-xs text-gray-500">Loading...</span>
                                                             </div>
@@ -999,218 +1000,186 @@
     </div>
 
     <script>
-        function showDesignPreview(src) {
-            console.log('[DEBUG] showDesignPreview called, src length:', src ? src.length : 'null');
-            console.log('[DEBUG] showDesignPreview modal:', document.getElementById('designPreviewModal'));
-            console.log('[DEBUG] showDesignPreview image:', document.getElementById('designPreviewImage'));
-            document.getElementById('designPreviewImage').src = src;
-            document.getElementById('designPreviewModal').style.display = 'block';
+    // 提前初始化全局画布容器
+    window.customizationCanvases = window.customizationCanvases || {};
+
+    function showDesignPreview(src) {
+        const modal = document.getElementById('designPreviewModal');
+        const img = document.getElementById('designPreviewImage');
+        if (modal && img) {
+            img.src = src;
+            modal.style.display = 'block';
+        }
+    }
+
+    function closeDesignPreview() {
+        const modal = document.getElementById('designPreviewModal');
+        if (modal) modal.style.display = 'none';
+    }
+
+    // 核心点击方法：从当前DOM取值并打开预览
+    function openDesignFromAttr(el) {
+        const itemIndex = el.dataset.itemIndex;
+        const printAreaIndex = el.dataset.printAreaIndex;
+        const canvasKey = `customization-canvas-${itemIndex}-${printAreaIndex}`;
+        const canvas = window.customizationCanvases[canvasKey];
+
+        if (!canvas) return;
+
+        // 直接导出图片
+        const dataUrl = canvas.toDataURL('image/png');
+        showDesignPreview(dataUrl);
+    }
+
+    // 渲染自定义预览画布
+    function renderCustomizationPreview(itemIndex, printAreaIndex, backgroundUrl, elements) {
+        const container = document.getElementById('customization-preview-' + itemIndex + '-' + printAreaIndex);
+        if (!container || !elements || elements.length === 0) return;
+
+        const canvas = document.createElement('canvas');
+        canvas.width = 400;
+        canvas.height = 400;
+        const ctx = canvas.getContext('2d');
+
+        const loadPromises = [];
+        let hasBackground = false;
+
+        // 加载背景图
+        if (backgroundUrl) {
+            const bgPromise = new Promise((resolve) => {
+                const img = new Image();
+                img.onload = () => {
+                    hasBackground = true;
+                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                    resolve();
+                };
+                img.onerror = () => {
+                    hasBackground = false;
+                    resolve();
+                };
+                img.src = backgroundUrl;
+            });
+            loadPromises.push(bgPromise);
         }
 
-        function closeDesignPreview() {
-            document.getElementById('designPreviewModal').style.display = 'none';
-        }
+        // 遍历元素
+        elements.forEach((elem) => {
+            if (elem.type === 'text' && elem.content) {
+                const textPromise = new Promise((resolve) => {
+                    const tempCanvas = document.createElement('canvas');
+                    tempCanvas.width = 400;
+                    tempCanvas.height = 100;
+                    const tempCtx = tempCanvas.getContext('2d');
 
-        // Render customization design preview dynamically
-        function renderCustomizationPreview(itemIndex, printAreaIndex, backgroundUrl, elements) {
-            const container = document.getElementById('customization-preview-' + itemIndex + '-' + printAreaIndex);
-            if (!container || !elements || elements.length === 0) return;
+                    const fontSize = elem.styles?.fontSize || 24;
+                    const fontFamily = elem.styles?.fontFamily || 'Arial';
+                    const fontColor = elem.styles?.color || '#000000';
+                    const fontWeight = elem.styles?.fontWeight || 'normal';
 
-            // Create a canvas to render the design
-            const canvas = document.createElement('canvas');
-            canvas.width = 400;
-            canvas.height = 400;
-            const ctx = canvas.getContext('2d');
+                    tempCtx.font = fontWeight + ' ' + fontSize + 'px ' + fontFamily;
+                    tempCtx.fillStyle = fontColor;
+                    tempCtx.textBaseline = 'top';
 
-            // Load and draw background
-            const loadPromises = [];
-            let hasBackground = false;
+                    const words = elem.content.split(' ');
+                    let line = '';
+                    let y = 0;
+                    const maxWidth = 380;
 
-            // Load background image
-            if (backgroundUrl) {
-                console.log('[DEBUG] Loading background:', backgroundUrl);
-                const bgPromise = new Promise((resolve) => {
-                    const img = new Image();
-                    img.crossOrigin = 'anonymous';
-                    img.onload = () => {
-                        console.log('[DEBUG] Background loaded successfully');
-                        hasBackground = true;
-                        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                        resolve();
-                    };
-                    img.onerror = () => {
-                        console.log('[DEBUG] Background FAILED to load');
-                        // Draw placeholder background when image fails
-                        hasBackground = false;
-                        resolve();
-                    };
-                    img.src = backgroundUrl;
+                    words.forEach((word) => {
+                        const testLine = line + word + ' ';
+                        const metrics = tempCtx.measureText(testLine);
+                        if (metrics.width > maxWidth && line !== '') {
+                            tempCtx.fillText(line, 0, y);
+                            line = word + ' ';
+                            y += fontSize * 1.2;
+                        } else {
+                            line = testLine;
+                        }
+                    });
+                    tempCtx.fillText(line, 0, y);
+
+                    const x = (elem.x / 100) * canvas.width;
+                    const yPos = (elem.y / 100) * canvas.height;
+                    ctx.drawImage(tempCanvas, x, yPos);
+                    resolve();
                 });
-                loadPromises.push(bgPromise);
+                loadPromises.push(textPromise);
+            } else if (elem.type === 'image' && elem.content) {
+                const imgPromise = new Promise((resolve) => {
+                    const img = new Image();
+                    img.onload = () => {
+                        const x = (elem.x / 100) * canvas.width;
+                        const y = (elem.y / 100) * canvas.height;
+                        const width = ((elem.width || 100) / 100) * canvas.width;
+                        const height = ((elem.height || 100) / 100) * canvas.height;
+
+                        if (elem.rotation) {
+                            ctx.save();
+                            ctx.translate(x + width/2, y + height/2);
+                            ctx.rotate(elem.rotation * Math.PI / 180);
+                            ctx.drawImage(img, -width/2, -height/2, width, height);
+                            ctx.restore();
+                        } else {
+                            ctx.drawImage(img, x, y, width, height);
+                        }
+                        resolve();
+                    };
+                    img.onerror = () => resolve();
+                    img.src = elem.content;
+                });
+                loadPromises.push(imgPromise);
+            }
+        });
+
+        Promise.all(loadPromises).then(() => {
+            if (!hasBackground) {
+                ctx.fillStyle = '#e5e7eb';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
             }
 
-            // Load and draw each element
-            console.log('[DEBUG] Rendering elements:', elements);
-            elements.forEach((elem) => {
-                console.log('[DEBUG] Element:', elem.type, elem.content, elem);
-                if (elem.type === 'text' && elem.content) {
-                    // Render text as image (to avoid browser font limitations)
-                    const textPromise = new Promise((resolve) => {
-                        const tempCanvas = document.createElement('canvas');
-                        tempCanvas.width = 400;
-                        tempCanvas.height = 100;
-                        const tempCtx = tempCanvas.getContext('2d');
+            const dataUrl = canvas.toDataURL('image/png');
+            const previewDiv = document.createElement('div');
+            previewDiv.className = 'relative group';
+            const canvasKey = `customization-canvas-${itemIndex}-${printAreaIndex}`;
 
-                        // Set font styles
-                        const fontSize = elem.styles?.fontSize || 24;
-                        const fontFamily = elem.styles?.fontFamily || 'Arial';
-                        const fontColor = elem.styles?.color || '#000000';
-                        const fontWeight = elem.styles?.fontWeight || 'normal';
+            // 存入全局
+            window.customizationCanvases[canvasKey] = canvas;
 
-                        tempCtx.font = fontWeight + ' ' + fontSize + 'px ' + fontFamily;
-                        tempCtx.fillStyle = fontColor;
-                        tempCtx.textBaseline = 'top';
+            const img = document.createElement('img');
+            img.src = dataUrl;
+            img.className = 'h-16 w-16 rounded border border-gray-300 object-cover';
+            img.alt = 'Design';
 
-                        // Word wrap
-                        const words = elem.content.split(' ');
-                        let line = '';
-                        let y = 0;
-                        const maxWidth = 380;
+            const badge = document.createElement('span');
+            badge.className = 'absolute -bottom-1 -right-1 rounded-full bg-darkPink px-1.5 text-xs text-white';
+            badge.textContent = printAreaIndex + 1;
 
-                        words.forEach((word) => {
-                            const testLine = line + word + ' ';
-                            const metrics = tempCtx.measureText(testLine);
-                            if (metrics.width > maxWidth && line !== '') {
-                                tempCtx.fillText(line, 0, y);
-                                line = word + ' ';
-                                y += fontSize * 1.2;
-                            } else {
-                                line = testLine;
-                            }
-                        });
-                        tempCtx.fillText(line, 0, y);
+            previewDiv.appendChild(img);
+            previewDiv.appendChild(badge);
 
-                        // Calculate position
-                        const x = (elem.x / 100) * canvas.width;
-                        const yPos = (elem.y / 100) * canvas.height;
-
-                        // Draw on main canvas
-                        ctx.drawImage(tempCanvas, x, yPos);
-                        resolve();
-                    });
-                    loadPromises.push(textPromise);
-                } else if (elem.type === 'image' && elem.content) {
-                    // Render image element
-                    const imgPromise = new Promise((resolve) => {
-                        const img = new Image();
-                        img.crossOrigin = 'anonymous';
-                        img.onload = () => {
-                            console.log('[DEBUG] Image loaded:', elem.content);
-                            const x = (elem.x / 100) * canvas.width;
-                            const y = (elem.y / 100) * canvas.height;
-                            const width = ((elem.width || 100) / 100) * canvas.width;
-                            const height = ((elem.height || 100) / 100) * canvas.height;
-
-                            // Apply rotation if needed
-                            if (elem.rotation) {
-                                ctx.save();
-                                ctx.translate(x + width/2, y + height/2);
-                                ctx.rotate(elem.rotation * Math.PI / 180);
-                                ctx.drawImage(img, -width/2, -height/2, width, height);
-                                ctx.restore();
-                            } else {
-                                ctx.drawImage(img, x, y, width, height);
-                            }
-                            console.log('[DEBUG] Image drawn at:', x, y, width, height);
-                            resolve();
-                        };
-                        img.onerror = () => {
-                            console.log('[DEBUG] Image FAILED to load:', elem.content);
-                            resolve();
-                        };
-                        img.src = elem.content;
-                    });
-                    loadPromises.push(imgPromise);
-                }
-            });
-
-            // After all images loaded, set canvas as preview image
-            console.log('[DEBUG] Total promises to wait:', loadPromises.length);
-            Promise.all(loadPromises).then(() => {
-                console.log('[DEBUG] All promises resolved, finalizing canvas');
-                // Draw placeholder background if no background was loaded
-                if (!hasBackground) {
-                    // Draw a light gray background as placeholder
-                    ctx.fillStyle = '#e5e7eb';
-                    ctx.fillRect(0, 0, canvas.width, canvas.height);
-                }
-
-                const dataUrl = canvas.toDataURL('image/png');
-                console.log('[DEBUG] Canvas dataURL length:', dataUrl.length);
-
-                // Create preview container
-                const previewDiv = document.createElement('div');
-                previewDiv.className = 'relative group cursor-pointer';
-                const canvasKey = 'customization-canvas-' + itemIndex + '-' + printAreaIndex;
-
-                // Store canvas reference for click handler
-                window.customizationCanvases = window.customizationCanvases || {};
-                window.customizationCanvases[canvasKey] = canvas;
-
-                const img = document.createElement('img');
-                img.src = dataUrl;
-                img.className = 'h-16 w-16 rounded border border-gray-300 object-cover';
-                img.alt = 'Design ' + (printAreaIndex + 1);
-
-                const badge = document.createElement('span');
-                badge.className = 'absolute -bottom-1 -right-1 rounded-full bg-darkPink px-1.5 text-xs text-white';
-                badge.textContent = printAreaIndex + 1;
-
-                previewDiv.appendChild(img);
-                previewDiv.appendChild(badge);
-
-                // Add click handler - get dataUrl from stored canvas reference
-                previewDiv.addEventListener('click', function() {
-                    console.log('[DEBUG] Click handler triggered, canvasKey:', canvasKey);
-                    const storedCanvas = window.customizationCanvases && window.customizationCanvases[canvasKey];
-                    console.log('[DEBUG] storedCanvas:', storedCanvas);
-                    if (storedCanvas) {
-                        const dataUrl = storedCanvas.toDataURL('image/png');
-                        console.log('[DEBUG] Click dataUrl length:', dataUrl.length);
-                        showDesignPreview(dataUrl);
-                    }
-                });
-
-                // Clear container and add preview
-                container.innerHTML = '';
-                container.appendChild(previewDiv);
-            });
-        }
-
-        // Initialize customization previews after page load
-        document.addEventListener('DOMContentLoaded', function() {
-            // Find all customization data and render previews
-            document.querySelectorAll('[data-customization]').forEach((el) => {
-                try {
-                    const data = JSON.parse(el.dataset.customization);
-                    const itemIndex = el.dataset.itemIndex;
-                    const printAreaIndex = el.dataset.printAreaIndex;
-                    console.log('[DEBUG] renderCustomizationPreview params:', {
-                        itemIndex,
-                        printAreaIndex,
-                        backgroundUrl: data.background_url || data.image_url || null,
-                        elementsCount: (data.elements || []).length
-                    });
-                    renderCustomizationPreview(
-                        itemIndex,
-                        printAreaIndex,
-                        data.background_url || data.image_url || null,
-                        data.elements || []
-                    );
-                } catch (e) {
-                    console.error('Error rendering customization preview:', e);
-                }
-            });
+            // 清空容器、替换内容
+            container.innerHTML = '';
+            container.appendChild(previewDiv);
         });
+    }
+
+    // 页面加载完成初始化
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('[data-customization]').forEach((el) => {
+            try {
+                const data = JSON.parse(el.dataset.customization);
+                const itemIndex = el.dataset.itemIndex;
+                const printAreaIndex = el.dataset.printAreaIndex;
+                renderCustomizationPreview(
+                    itemIndex,
+                    printAreaIndex,
+                    data.background_url || data.image_url || null,
+                    data.elements || []
+                );
+            } catch (e) {
+                console.error('渲染预览失败:', e);
+            }
+        });
+    });
     </script>
 </x-admin::layouts>
