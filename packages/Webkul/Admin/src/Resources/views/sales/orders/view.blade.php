@@ -1180,10 +1180,9 @@
 
     // 页面加载完成初始化
     document.addEventListener('DOMContentLoaded', function() {
-        const elements = document.querySelectorAll('[data-customization]');
-        console.log('[DEBUG] DOMContentLoaded, found', elements.length, 'customization elements');
-        elements.forEach((el, i) => {
-            console.log('[DEBUG] Element', i, 'dataset:', el.dataset);
+        const customizationElements = document.querySelectorAll('[data-customization]');
+        console.log('[DEBUG] DOMContentLoaded, found', customizationElements.length, 'customization elements');
+        customizationElements.forEach((el, i) => {
             try {
                 const data = JSON.parse(el.dataset.customization);
                 const itemIndex = el.dataset.itemIndex;
@@ -1192,7 +1191,7 @@
                 renderCustomizationPreview(
                     itemIndex,
                     printAreaIndex,
-                    data.background_url || data.image_url || null,
+                    data.image_url || null,
                     data.elements || []
                 );
             } catch (e) {
