@@ -900,9 +900,14 @@ function updateControl(elemData) {
     var elem = document.querySelector('.canvas-elem[data-id="' + elemData.id + '"]');
     var dialog = document.getElementById('customization-dialog');
     
+    console.log('[DEBUG updateControl] control:', !!control, 'elem:', !!elem, 'dialog:', !!dialog);
+    
     if (control && elem && dialog) {
         var elemRect = elem.getBoundingClientRect();
         var dialogRect = dialog.getBoundingClientRect();
+        
+        console.log('[DEBUG updateControl] elemRect:', elemRect);
+        console.log('[DEBUG updateControl] dialogRect:', dialogRect);
         
         // 使用像素坐标，相对于 dialog
         control.style.left = (elemRect.left - dialogRect.left) + 'px';
@@ -910,6 +915,13 @@ function updateControl(elemData) {
         control.style.width = elemRect.width + 'px';
         control.style.height = elemRect.height + 'px';
         control.style.transform = 'rotate(' + (elemData.rotation || 0) + 'deg)';
+        
+        console.log('[DEBUG updateControl] final style:', {
+            left: control.style.left,
+            top: control.style.top,
+            width: control.style.width,
+            height: control.style.height
+        });
     }
 }
 
