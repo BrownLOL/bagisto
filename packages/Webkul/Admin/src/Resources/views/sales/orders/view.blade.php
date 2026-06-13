@@ -1179,8 +1179,12 @@
             previewDiv.appendChild(badge);
 
             // 清空容器、替换内容
+            console.log('[DEBUG] Replacing container content');
             container.innerHTML = '';
+            console.log('[DEBUG] Container innerHTML after clear:', container.innerHTML);
             container.appendChild(previewDiv);
+            console.log('[DEBUG] Container children count:', container.children.length);
+            console.log('[DEBUG] img src (first 100 chars):', dataUrl.substring(0, 100));
         });
     }
 
