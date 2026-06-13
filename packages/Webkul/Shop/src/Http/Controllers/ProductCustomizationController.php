@@ -93,11 +93,12 @@ class ProductCustomizationController extends Controller
             ], 400);
         }
 
-        $url = Storage::url($filename);
+        // Use relative path to avoid CORS issues with localhost vs 127.0.0.1
+        $relativeUrl = '/storage/' . $filename;
 
         return response()->json([
             'success' => true,
-            'url'     => $url,
+            'url'     => $relativeUrl,
             'path'    => $filename,
         ]);
     }
@@ -228,11 +229,12 @@ class ProductCustomizationController extends Controller
         
         Storage::disk('public')->put($filename, $imageData);
 
-        $url = Storage::url($filename);
+        // Use relative path to avoid CORS issues
+        $relativeUrl = '/storage/' . $filename;
 
         return response()->json([
             'success' => true,
-            'url'     => $url,
+            'url'     => $relativeUrl,
             'path'    => $filename,
         ]);
     }

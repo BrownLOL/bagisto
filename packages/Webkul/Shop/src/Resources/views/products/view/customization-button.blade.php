@@ -319,13 +319,31 @@ function saveCustomization() {
             
             console.log('[DEBUG saveCustomization] Loading background image...');
             
+            // Helper function to check if URL is cross-origin
+            function isCrossOrigin(url) {
+                if (!url || url.startsWith('/') || url.startsWith('data:') || url.startsWith('blob:')) {
+                    return false;
+                }
+                try {
+                    var urlObj = new URL(url);
+                    return urlObj.origin !== window.location.origin;
+                } catch (e) {
+                    return false;
+                }
+            }
+            
             // Load background image to get dimensions
             var bgImg = new Image();
-            bgImg.crossOrigin = 'anonymous';
+            if (isCrossOrigin(bgImageUrl)) {
+                bgImg.crossOrigin = 'anonymous';
+            }
             
             await new Promise(function(resolve, reject) {
                 bgImg.onload = resolve;
-                bgImg.onerror = reject;
+                bgImg.onerror = function() {
+                    console.error('[DEBUG saveCustomization] Failed to load background image:', bgImageUrl);
+                    reject(new Error('Failed to load background image'));
+                };
                 bgImg.src = bgImageUrl;
             });
             
@@ -390,7 +408,9 @@ function saveCustomization() {
                 } else if (elem.type === 'image') {
                     // Draw uploaded image element
                     var elImg = new Image();
-                    elImg.crossOrigin = 'anonymous';
+                    if (isCrossOrigin(elem.content)) {
+                        elImg.crossOrigin = 'anonymous';
+                    }
                     
                     // Capture elem in closure
                     var capturedElem = elem;
@@ -431,36 +451,32 @@ function saveCustomization() {
             
             console.log('[DEBUG saveCustomization] All images drawn, generating data URL');
             
-            // Get composed preview image
-            previewImage = tempCanvas.toDataURL('image/png');
-            console.log('[DEBUG saveCustomization] SUCCESS: composed preview generated, length:', previewImage.length);
+            // Check if canvas is tainted (cross-origin issue)
+            let isTainted = false;
+            try {
+                const testPixel = tempCtx.getImageData(0, 0, 1, 1);
+            } catch (e) {
+                isTainted = true;
+                console.error('[DEBUG saveCustomization] Canvas is tainted (cross-origin images):', e.message);
+            }
+            
+            if (isTainted) {
+                console.error('[DEBUG saveCustomization] Cannot export tainted canvas - will use fallback');
+                // Fallback: try to use just the background image
+                previewImage = bgImageUrl;
+                console.log('[DEBUG saveCustomization] Using background image as fallback');
+            } else {
+                // Get composed preview image
+                previewImage = tempCanvas.toDataURL('image/png');
+                console.log('[DEBUG saveCustomization] SUCCESS: composed preview generated, length:', previewImage.length);
+            }
             
         } catch (e) {
             console.error('[DEBUG saveCustomization] ERROR: Failed to generate composed preview:', e.message || e);
             
-            // Fallback: use first uploaded image as preview if available
-            if (elements.length > 0) {
-                for (var i = 0; i < elements.length; i++) {
-                    if (elements[i].type === 'image' && elements[i].content) {
-                        previewImage = elements[i].content;
-                        console.log('[DEBUG saveCustomization] Using first image element as fallback preview');
-                        break;
-                    }
-                }
-            }
-            
-            // If still no preview, try to get from product-bg
-            if (!previewImage) {
-                var productBg = document.querySelector('.product-bg');
-                if (productBg) {
-                    var bgStyle = productBg.style.backgroundImage;
-                    var urlMatch = bgStyle.match(/url\(["']?([^"']+)["']?\)/);
-                    if (urlMatch && urlMatch[1]) {
-                        previewImage = urlMatch[1];
-                        console.log('[DEBUG saveCustomization] Using product-bg as fallback');
-                    }
-                }
-            }
+            // Fallback: use background image
+            previewImage = bgImageUrl;
+            console.log('[DEBUG saveCustomization] Using background image as fallback');
         }
         
         // Continue with saving after preview image is ready
