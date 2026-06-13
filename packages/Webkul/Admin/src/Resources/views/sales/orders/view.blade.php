@@ -1118,6 +1118,7 @@
                 const imgPromise = new Promise((resolve) => {
                     const img = new Image();
                     img.onload = () => {
+                        console.log('[DEBUG] Image loaded:', elem.content);
                         const x = (elem.x / 100) * canvas.width;
                         const y = (elem.y / 100) * canvas.height;
                         const width = ((elem.width || 100) / 100) * canvas.width;
@@ -1134,7 +1135,10 @@
                         }
                         resolve();
                     };
-                    img.onerror = () => resolve();
+                    img.onerror = () => {
+                        console.log('[DEBUG] Image FAILED:', elem.content);
+                        resolve();
+                    };
                     img.src = elem.content;
                 });
                 loadPromises.push(imgPromise);
