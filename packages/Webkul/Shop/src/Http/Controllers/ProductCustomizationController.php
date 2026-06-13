@@ -61,33 +61,18 @@ class ProductCustomizationController extends Controller
      */
     public function uploadPreview(Request $request): JsonResponse
     {
-        // Check if it's a file upload or base64 data
-        if ($request->hasFile('image')) {
-            // File upload
-            $request->validate([
-                'image' => 'required|image|max:5120',
-            ]);
-
-            $image = $request->file('image');
-            $filename = 'customization/previews/' . Str::random(20) . '.' . $image->getClientOriginalExtension();
-
-            Storage::disk('public')->put($filename, file_get_contents($image));
-        } else {
-            // Base64 data
-            $request->validate([
-                'image' => 'required|string',
-            ]);
-
-            $base64Data = $request->input('image');
-            
-            // Handle data URL format
-            if (str_contains($base64Data, ',')) {
-                $base64Data = explode(',', $base64Data)[1];
+        // Handle JSON body
+        $imageData = $request->input('image') ?? $request->json('image');
+        
+        if ($imageData) {
+            // Base64 data (from JSON body or form input)
+            if (str_contains($imageData, ',')) {
+                $imageData = explode(',', $imageData)[1];
             }
             
-            $imageData = base64_decode($base64Data);
+            $decodedData = base64_decode($imageData);
             
-            if (!$imageData) {
+            if (!$decodedData) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Invalid base64 image data.',
@@ -95,7 +80,17 @@ class ProductCustomizationController extends Controller
             }
 
             $filename = 'customization/previews/' . Str::random(20) . '.png';
-            Storage::disk('public')->put($filename, $imageData);
+            Storage::disk('public')->put($filename, $decodedData);
+        } elseif ($request->hasFile('image')) {
+            // File upload
+            $image = $request->file('image');
+            $filename = 'customization/previews/' . Str::random(20) . '.' . $image->getClientOriginalExtension();
+            Storage::disk('public')->put($filename, file_get_contents($image));
+        } else {
+            return response()->json([
+                'success' => false,
+                'message' => 'No image data provided.',
+            ], 400);
         }
 
         $url = Storage::url($filename);
