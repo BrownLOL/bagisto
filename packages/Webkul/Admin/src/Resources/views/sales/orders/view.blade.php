@@ -1072,7 +1072,7 @@
             loadPromises.push(bgPromise);
         }
 
-        // 遍历元素
+        // 遍历元素 - 使用原图坐标 (originalX/originalY) 定位
         elements.forEach((elem) => {
             if (elem.type === 'text' && elem.content) {
                 const textPromise = new Promise((resolve) => {
@@ -1108,8 +1108,9 @@
                     });
                     tempCtx.fillText(line, 0, y);
 
-                    const x = (elem.x / 100) * canvas.width;
-                    const yPos = (elem.y / 100) * canvas.height;
+                    // 使用原图坐标定位
+                    const x = ((elem.originalX || elem.x || 0) / 100) * canvas.width;
+                    const yPos = ((elem.originalY || elem.y || 0) / 100) * canvas.height;
                     ctx.drawImage(tempCanvas, x, yPos);
                     resolve();
                 });
@@ -1118,15 +1119,17 @@
                 const imgPromise = new Promise((resolve) => {
                     const img = new Image();
                     img.onload = () => {
-                        console.log('[DEBUG] Image loaded:', elem.content);
+                        console.log('[DEBUG] Image loaded:', elem.content?.substring(0, 50));
                         try {
-                            const x = (elem.x / 100) * canvas.width;
-                            const y = (elem.y / 100) * canvas.height;
-                            const width = ((elem.width || 100) / 100) * canvas.width;
-                            const height = ((elem.height || 100) / 100) * canvas.height;
-                            console.log('[DEBUG] Drawing image at x:', x, 'y:', y, 'w:', width, 'h:', height);
+                            // 使用原图坐标定位
+                            const x = ((elem.originalX || elem.x || 0) / 100) * canvas.width;
+                            const y = ((elem.originalY || elem.y || 0) / 100) * canvas.height;
+                            // 使用原图尺寸或默认尺寸
+                            const imgW = ((elem.originalWidth || elem.width || 50) / 100) * canvas.width;
+                            const imgH = ((elem.originalHeight || elem.height || 50) / 100) * canvas.height;
+                            console.log('[DEBUG] Drawing image at x:', x, 'y:', y, 'w:', imgW, 'h:', imgH);
 
-                            ctx.drawImage(img, x, y, width, height);
+                            ctx.drawImage(img, x, y, imgW, imgH);
                             console.log('[DEBUG] Image drawn successfully');
                         } catch(e) {
                             console.log('[DEBUG] Draw error:', e.message);
@@ -1134,10 +1137,13 @@
                         resolve();
                     };
                     img.onerror = () => {
-                        console.log('[DEBUG] Image FAILED:', elem.content);
+                        console.log('[DEBUG] Image FAILED:', elem.content?.substring(0, 50));
                         resolve();
                     };
-                    img.crossOrigin = 'anonymous';
+                    // base64 图片不需要 crossOrigin
+                    if (elem.content && !elem.content.startsWith('data:')) {
+                        img.crossOrigin = 'anonymous';
+                    }
                     img.src = elem.content;
                 });
                 loadPromises.push(imgPromise);
@@ -1178,7 +1184,7 @@
         });
     }
 
-    // 页面加载完成初始化 - 优先使用 preview_image
+    // 页面加载完成初始化 - 使用原图坐标重新绘制预览
     document.addEventListener('DOMContentLoaded', function() {
         const customizationElements = document.querySelectorAll('[data-customization]');
         console.log('[DEBUG] DOMContentLoaded, found', customizationElements.length, 'customization elements');
@@ -1187,44 +1193,12 @@
                 const data = JSON.parse(el.dataset.customization);
                 const itemIndex = el.dataset.itemIndex;
                 const printAreaIndex = el.dataset.printAreaIndex;
-                
-                // 优先使用 preview_image（预渲染的预览图）
-                if (data.preview_image) {
-                    console.log('[DEBUG] Using preview_image for quick render');
-                    
-                    // 处理 URL 路径拼接
-                    let previewSrc = data.preview_image;
-                    if (previewSrc && !previewSrc.startsWith('data:') && !previewSrc.startsWith('http')) {
-                        previewSrc = '/' + previewSrc;
-                    }
-                    
-                    const previewDiv = document.createElement('div');
-                    previewDiv.className = 'relative group';
-                    
-                    const img = document.createElement('img');
-                    img.src = previewSrc;
-                    img.className = 'h-16 w-16 rounded border border-gray-300 object-cover cursor-pointer';
-                    img.alt = 'Design';
-                    img.onerror = function() { 
-                        // 如果加载失败，显示占位图
-                        this.src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64"><rect fill="%23ddd" width="64" height="64"/><text x="50%" y="50%" text-anchor="middle" dy=".3em" fill="%23999">Error</text></svg>';
-                    };
-                    img.onclick = function() { showDesignPreview(previewSrc); };
-                    
-                    const badge = document.createElement('span');
-                    badge.className = 'absolute -bottom-1 -right-1 rounded-full bg-darkPink px-1.5 text-xs text-white';
-                    badge.textContent = printAreaIndex + 1;
-                    
-                    previewDiv.appendChild(img);
-                    previewDiv.appendChild(badge);
-                    el.innerHTML = '';
-                    el.appendChild(previewDiv);
-                    return;
-                }
-                
-                // 如果没有 preview_image，使用原有逻辑重新绘制
                 const backgroundUrl = data.image_url || data.background_url || null;
+                
                 console.log('[DEBUG] Element', i, 'dataset:', { itemIndex, printAreaIndex, backgroundUrl, elementsCount: data.elements?.length });
+                console.log('[DEBUG] First element sample:', data.elements?.[0]);
+                
+                // 使用原图坐标重新绘制预览
                 renderCustomizationPreview(
                     itemIndex,
                     printAreaIndex,
