@@ -757,7 +757,7 @@ function selectProductImage(imgUrl, areaData) {
         var printAreaId = 'print-area-' + (areaData.id || areaData.print_area_id || 'default');
         var printArea = document.createElement('div');
         printArea.id = printAreaId;
-        printArea.style.cssText = 'position:absolute;left:' + areaData.x + '%;top:' + areaData.y + '%;width:' + areaData.width + '%;height:' + areaData.height + '%;border:2px dashed red;background:rgba(255,255,255,0.3);overflow:hidden;';
+        printArea.style.cssText = 'position:absolute;left:' + areaData.x + '%;top:' + areaData.y + '%;width:' + areaData.width + '%;height:' + areaData.height + '%;border:2px dashed red;background:rgba(255,255,255,0.3);overflow:visible;';
         canvas.appendChild(printArea);
         
         // DON'T create elements here - loadSavedCustomization will do it after checking localStorage
