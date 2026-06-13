@@ -1000,6 +1000,9 @@
 
     <script>
         function showDesignPreview(src) {
+            console.log('[DEBUG] showDesignPreview called, src length:', src ? src.length : 'null');
+            console.log('[DEBUG] showDesignPreview modal:', document.getElementById('designPreviewModal'));
+            console.log('[DEBUG] showDesignPreview image:', document.getElementById('designPreviewImage'));
             document.getElementById('designPreviewImage').src = src;
             document.getElementById('designPreviewModal').style.display = 'block';
         }
