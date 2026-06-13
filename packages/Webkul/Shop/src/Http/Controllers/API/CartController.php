@@ -188,6 +188,52 @@ class CartController extends APIController
     }
 
     /**
+     * Upload customization preview image.
+     */
+    public function uploadPreview()
+    {
+        $this->validate(request(), [
+            'preview_image' => 'required|string',
+        ]);
+
+        $base64Data = request()->input('preview_image');
+
+        // 解析 base64 数据
+        if (preg_match('/^data:image\/(\w+);base64,(.+)$/', $base64Data, $matches)) {
+            $extension = $matches[1];
+            $imageData = base64_decode($matches[2]);
+        } else {
+            // 如果不是标准格式，直接尝试解码
+            $imageData = base64_decode($base64Data);
+            $extension = 'png';
+        }
+
+        if ($imageData === false) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Invalid base64 data',
+            ], 400);
+        }
+
+        // 生成唯一文件名
+        $filename = Str::random(20) . '_' . time() . '.' . $extension;
+        $path = 'customization/previews/' . $filename;
+
+        // 保存文件
+        Storage::put($path, $imageData, 'public');
+
+        // 返回访问 URL
+        $url = Storage::url($path);
+
+        \Log::info('uploadPreview success', ['url' => $url]);
+
+        return response()->json([
+            'success' => true,
+            'url' => $url,
+        ]);
+    }
+
+    /**
      * Removes the item from the cart if it exists.
      */
     public function destroy(): JsonResource

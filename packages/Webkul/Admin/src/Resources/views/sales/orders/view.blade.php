@@ -1191,14 +1191,25 @@
                 // 优先使用 preview_image（预渲染的预览图）
                 if (data.preview_image) {
                     console.log('[DEBUG] Using preview_image for quick render');
+                    
+                    // 处理 URL 路径拼接
+                    let previewSrc = data.preview_image;
+                    if (previewSrc && !previewSrc.startsWith('data:') && !previewSrc.startsWith('http')) {
+                        previewSrc = '/' + previewSrc;
+                    }
+                    
                     const previewDiv = document.createElement('div');
                     previewDiv.className = 'relative group';
                     
                     const img = document.createElement('img');
-                    img.src = data.preview_image;
+                    img.src = previewSrc;
                     img.className = 'h-16 w-16 rounded border border-gray-300 object-cover cursor-pointer';
                     img.alt = 'Design';
-                    img.onclick = function() { showDesignPreview(data.preview_image); };
+                    img.onerror = function() { 
+                        // 如果加载失败，显示占位图
+                        this.src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64"><rect fill="%23ddd" width="64" height="64"/><text x="50%" y="50%" text-anchor="middle" dy=".3em" fill="%23999">Error</text></svg>';
+                    };
+                    img.onclick = function() { showDesignPreview(previewSrc); };
                     
                     const badge = document.createElement('span');
                     badge.className = 'absolute -bottom-1 -right-1 rounded-full bg-darkPink px-1.5 text-xs text-white';

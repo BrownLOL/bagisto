@@ -580,14 +580,37 @@ async function saveDesign() {
         }
     }
 
-    // Generate preview image
+    // Generate preview image and upload to server
     const previewImage = await generatePreviewImage();
+    let previewImageUrl = previewImage;
+
+    // Upload preview image to server
+    try {
+        const uploadResponse = await fetch('/api/cart/upload-preview', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || ''
+            },
+            body: JSON.stringify({ preview_image: previewImage })
+        });
+
+        const uploadResult = await uploadResponse.json();
+        if (uploadResult.success) {
+            previewImageUrl = uploadResult.url;
+            console.log('[DEBUG] Preview image uploaded:', previewImageUrl);
+        } else {
+            console.warn('[DEBUG] Preview image upload failed, using base64');
+        }
+    } catch (error) {
+        console.error('[DEBUG] Error uploading preview image:', error);
+    }
 
     const designData = {
         product_id: state.productId,
         print_area_id: state.printArea?.id,
         image_url: imageUrl,
-        preview_image: previewImage,
+        preview_image: previewImageUrl,  // 使用 URL
         elements: state.elements.map(e => ({
             type: e.type,
             content: e.content,
@@ -604,7 +627,22 @@ async function saveDesign() {
             fontFamily: e.fontFamily
         }))
     };
-    
+
+    // Save to localStorage (without preview_image to save space)
+    const designDataForStorage = {
+        ...designData,
+        preview_image: previewImageUrl
+    };
+
+    try {
+        const designKey = 'design_' + state.designId;
+        localStorage.setItem(designKey, JSON.stringify(designDataForStorage));
+        localStorage.setItem('current_design_' + state.productId, state.designId);
+        console.log('[DEBUG] Design saved to localStorage');
+    } catch (e) {
+        console.warn('[DEBUG] localStorage full, continuing without saving');
+    }
+
     try {
         // Add to cart
         const response = await fetch('/api/cart/add-customization', {
