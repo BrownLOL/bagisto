@@ -304,11 +304,11 @@ function saveCustomization() {
             var elem = {
                 type: elemData.type,
                 content: elemData.content,
-                // 保留屏幕坐标（用于前台显示）
-                screenX: screenX,
-                screenY: screenY,
-                screenWidth: screenW,
-                screenHeight: screenH,
+                // 屏幕坐标（用于前台显示和选择框）
+                x: screenX,
+                y: screenY,
+                width: screenW,
+                height: screenH,
                 // 原图坐标（用于后台还原）
                 originalX: originalX,
                 originalY: originalY,
@@ -855,8 +855,12 @@ function selectElem(elemData) {
     var wrapper = elemData.dom;
     var control = document.createElement('div');
     control.className = 'elem-control';
-    control.style.cssText = 'position:absolute;left:' + elemData.x + '%;top:' + elemData.y + '%;width:' + elemData.w + '%;height:' + elemData.h + '%;border:2px solid #3b82f6;transform:rotate(' + elemData.rotation + 'deg);pointer-events:none;';
-    wrapper.parentNode.appendChild(control);
+    // 兼容 w/h 和 width/height 两种字段名
+    var elemW = elemData.w || elemData.width || 80;
+    var elemH = elemData.h || elemData.height || 80;
+    control.style.cssText = 'position:absolute;left:' + elemData.x + '%;top:' + elemData.y + '%;width:' + elemW + '%;height:' + elemH + '%;border:2px solid #3b82f6;transform:rotate(' + (elemData.rotation || 0) + 'deg);pointer-events:none;z-index:1000;';
+    // 添加到 print area 的父容器，这样超出 print area 的部分也能显示
+    wrapper.parentNode.parentNode.appendChild(control);
     
     var rotH = document.createElement('div');
     rotH.style.cssText = 'position:absolute;top:-30px;left:50%;transform:translateX(-50%);width:14px;height:14px;background:#3b82f6;border-radius:50%;cursor:grab;pointer-events:auto;';
@@ -886,11 +890,14 @@ function selectElem(elemData) {
 function updateControl(elemData) {
     var control = document.querySelector('.elem-control');
     if (control) {
+        // 兼容 w/h 和 width/height 两种字段名
+        var elemW = elemData.w || elemData.width || 80;
+        var elemH = elemData.h || elemData.height || 80;
         control.style.left = elemData.x + '%';
         control.style.top = elemData.y + '%';
-        control.style.width = elemData.w + '%';
-        control.style.height = elemData.h + '%';
-        control.style.transform = 'rotate(' + elemData.rotation + 'deg)';
+        control.style.width = elemW + '%';
+        control.style.height = elemH + '%';
+        control.style.transform = 'rotate(' + (elemData.rotation || 0) + 'deg)';
     }
 }
 
