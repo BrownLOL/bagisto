@@ -1034,7 +1034,17 @@
     // 渲染自定义预览画布
     function renderCustomizationPreview(itemIndex, printAreaIndex, backgroundUrl, elements) {
         const container = document.getElementById('customization-preview-' + itemIndex + '-' + printAreaIndex);
-        if (!container || !elements || elements.length === 0) return;
+        console.log('[DEBUG] renderCustomizationPreview:', {
+            itemIndex,
+            printAreaIndex,
+            backgroundUrl,
+            elementsCount: elements?.length,
+            elements: elements
+        });
+        if (!container || !elements || elements.length === 0) {
+            console.log('[DEBUG] Skipped: no container or elements');
+            return;
+        }
 
         const canvas = document.createElement('canvas');
         canvas.width = 400;
