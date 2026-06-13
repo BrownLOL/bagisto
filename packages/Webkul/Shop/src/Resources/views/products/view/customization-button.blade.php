@@ -858,9 +858,9 @@ function selectElem(elemData) {
     // 兼容 w/h 和 width/height 两种字段名
     var elemW = elemData.w || elemData.width || 80;
     var elemH = elemData.h || elemData.height || 80;
-    control.style.cssText = 'position:absolute;left:' + elemData.x + '%;top:' + elemData.y + '%;width:' + elemW + '%;height:' + elemH + '%;border:2px solid #3b82f6;transform:rotate(' + (elemData.rotation || 0) + 'deg);pointer-events:none;z-index:1000;';
-    // 添加到 print area 的父容器，这样超出 print area 的部分也能显示
-    wrapper.parentNode.parentNode.appendChild(control);
+    control.style.cssText = 'position:absolute;left:' + elemData.x + '%;top:' + elemData.y + '%;width:' + elemW + '%;height:' + elemH + '%;border:2px solid #3b82f6;transform:rotate(' + (elemData.rotation || 0) + 'deg);pointer-events:none;';
+    // 添加到 print area（wrapper.parentNode），与元素同一个容器
+    wrapper.parentNode.appendChild(control);
     
     var rotH = document.createElement('div');
     rotH.style.cssText = 'position:absolute;top:-30px;left:50%;transform:translateX(-50%);width:14px;height:14px;background:#3b82f6;border-radius:50%;cursor:grab;pointer-events:auto;';
