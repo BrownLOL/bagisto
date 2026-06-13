@@ -24,6 +24,7 @@
 @endpushOnce
 
 @pushOnce('scripts')
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script>
 function checkDesignStatus() {
     var statusIcon = document.getElementById('design-status-icon');
@@ -281,220 +282,40 @@ function saveCustomization() {
     
     console.log('[DEBUG] Parsed elements:', JSON.stringify(elements, null, 2));
     
-    // Generate composed preview image with all layers using canvas
+    // Generate composed preview image using html2canvas - captures design as-is
     var productId = window.customizationProductId;
     var previewImage = '';
     
     console.log('[DEBUG saveCustomization] Starting with elements count:', elements.length);
-    console.log('[DEBUG saveCustomization] window.currentAreaData:', window.currentAreaData);
     
     (async function() {
         try {
-            // Priority 1: Get original product image from currentAreaData (always the original, not the saved preview)
-            var bgImageUrl = '';
+            // Find the print area container in the design dialog
+            var printAreaId = window.currentAreaData?.id;
+            var printAreaContainer = document.getElementById('print-area-' + printAreaId);
             
-            if (window.currentAreaData) {
-                bgImageUrl = window.currentAreaData.image_url || window.currentAreaData.url || '';
-                console.log('[DEBUG saveCustomization] Got bgImageUrl from currentAreaData:', bgImageUrl ? bgImageUrl.substring(0, 80) : 'empty');
-            }
-            
-            // Priority 2: Try to get from product-bg background-image, but need to check if it's original or saved preview
-            if (!bgImageUrl) {
-                var productBg = document.querySelector('.product-bg');
-                if (productBg) {
-                    var bgStyle = productBg.style.backgroundImage;
-                    if (bgStyle && bgStyle !== 'none') {
-                        // Extract URL from background-image: url('...')
-                        var urlMatch = bgStyle.match(/url\(["']?([^"']+)["']?\)/);
-                        if (urlMatch && urlMatch[1]) {
-                            bgImageUrl = urlMatch[1];
-                            console.log('[DEBUG saveCustomization] Got bgImageUrl from product-bg:', bgImageUrl.substring(0, 80));
-                        }
-                    }
-                }
-            }
-            
-            // Priority 3: Get from product images list
-            if (!bgImageUrl && window.productImages && window.productImages.length > 0) {
-                bgImageUrl = window.productImages[0].url;
-                console.log('[DEBUG saveCustomization] Got bgImageUrl from productImages list:', bgImageUrl.substring(0, 80));
-            }
-            
-            if (!bgImageUrl) {
-                console.error('[DEBUG saveCustomization] No background image found!');
-                // Save without preview image
+            if (!printAreaContainer) {
+                console.error('[DEBUG saveCustomization] Print area container not found');
                 saveCustomizationWithPreview('', elements);
                 return;
             }
             
-            console.log('[DEBUG saveCustomization] Loading background image...');
+            console.log('[DEBUG saveCustomization] Using html2canvas to capture design');
             
-            // Helper function to check if URL is cross-origin
-            function isCrossOrigin(url) {
-                if (!url || url.startsWith('/') || url.startsWith('data:') || url.startsWith('blob:')) {
-                    return false;
-                }
-                try {
-                    var urlObj = new URL(url);
-                    return urlObj.origin !== window.location.origin;
-                } catch (e) {
-                    return false;
-                }
-            }
-            
-            // Load background image to get dimensions
-            var bgImg = new Image();
-            if (isCrossOrigin(bgImageUrl)) {
-                bgImg.crossOrigin = 'anonymous';
-            }
-            
-            await new Promise(function(resolve, reject) {
-                bgImg.onload = resolve;
-                bgImg.onerror = function() {
-                    console.error('[DEBUG saveCustomization] Failed to load background image:', bgImageUrl);
-                    reject(new Error('Failed to load background image'));
-                };
-                bgImg.src = bgImageUrl;
+            // Use html2canvas to capture the print area exactly as shown on screen
+            const canvas = await html2canvas(printAreaContainer, {
+                useCORS: true,
+                allowTaint: false,
+                scale: 1, // Keep original size
+                backgroundColor: null,
+                logging: false
             });
             
-            console.log('saveCustomization: bgImg loaded, size:', bgImg.width, 'x', bgImg.height);
-            
-            // Create temporary canvas
-            var tempCanvas = document.createElement('canvas');
-            tempCanvas.width = bgImg.width;
-            tempCanvas.height = bgImg.height;
-            var ctx = tempCanvas.getContext('2d');
-            
-            // Draw background image
-            ctx.drawImage(bgImg, 0, 0);
-            
-            // Get print area info for coordinate conversion
-            var areaData = window.currentAreaData || {};
-            var areaX = areaData.x ? parseFloat(areaData.x) : 0; // print area left percent
-            var areaY = areaData.y ? parseFloat(areaData.y) : 0; // print area top percent
-            var areaW = areaData.width ? parseFloat(areaData.width) : 100; // print area width percent
-            var areaH = areaData.height ? parseFloat(areaData.height) : 100; // print area height percent
-            
-            console.log('saveCustomization: areaData:', areaX, areaY, areaW, areaH);
-            
-            // Convert element position to canvas pixels
-            // Element position is relative to print area (in %)
-            // Need to convert to absolute position on background image (in pixels)
-            function getCanvasX(elemX) {
-                // elemX is in percentage relative to print area
-                // print area starts at areaX% on background image
-                var absolutePercent = areaX + (elemX / 100) * areaW;
-                return (absolutePercent / 100) * bgImg.width;
-            }
-            
-            function getCanvasY(elemY) {
-                var absolutePercent = areaY + (elemY / 100) * areaH;
-                return (absolutePercent / 100) * bgImg.height;
-            }
-            
-            // Draw each element (text or image)
-            var drawPromises = [];
-            
-            for (var i = 0; i < elements.length; i++) {
-                var elem = elements[i];
-                
-                if (elem.type === 'text') {
-                    // Draw text element - position is relative to print area
-                    var x = getCanvasX(elem.x);
-                    var y = getCanvasY(elem.y);
-                    var fontSize = elem.styles && elem.styles.fontSize ? elem.styles.fontSize : 24;
-                    var color = elem.styles && elem.styles.color ? elem.styles.color : '#000000';
-                    var fontFamily = elem.styles && elem.styles.fontFamily ? elem.styles.fontFamily : 'Arial';
-                    var rotation = elem.rotation || 0;
-                    
-                    ctx.save();
-                    ctx.translate(x, y);
-                    ctx.rotate(rotation * Math.PI / 180);
-                    ctx.font = fontSize + 'px ' + fontFamily;
-                    ctx.fillStyle = color;
-                    ctx.fillText(elem.content, 0, 0);
-                    ctx.restore();
-                    
-                } else if (elem.type === 'image') {
-                    // Draw uploaded image element
-                    var elImg = new Image();
-                    if (isCrossOrigin(elem.content)) {
-                        elImg.crossOrigin = 'anonymous';
-                    }
-                    
-                    // Capture elem in closure
-                    var capturedElem = elem;
-                    
-                    var drawPromise = new Promise(function(resolve) {
-                        elImg.onload = function() {
-                            var x = getCanvasX(capturedElem.x);
-                            var y = getCanvasY(capturedElem.y);
-                            var rotation = capturedElem.rotation || 0;
-                            var scaleX = capturedElem.scaleX || 1;
-                            var scaleY = capturedElem.scaleY || 1;
-                            var drawWidth = elImg.width * scaleX;
-                            var drawHeight = elImg.height * scaleY;
-                            
-                            console.log('[DEBUG drawImage] Element:', {
-                                elemX: capturedElem.x, elemY: capturedElem.y,
-                                canvasX: x, canvasY: y,
-                                imgWidth: elImg.width, imgHeight: elImg.height,
-                                drawWidth: drawWidth, drawHeight: drawHeight,
-                                scaleX: scaleX, scaleY: scaleY
-                            });
-                            
-                            ctx.save();
-                            ctx.translate(x, y);
-                            ctx.rotate(rotation * Math.PI / 180);
-                            ctx.drawImage(elImg, -drawWidth / 2, -drawHeight / 2, drawWidth, drawHeight);
-                            ctx.restore();
-                            
-                            resolve();
-                        };
-                        elImg.onerror = function() {
-                            console.log('[DEBUG saveCustomization] Failed to load image element:', capturedElem.content ? capturedElem.content.substring(0, 50) : 'no content');
-                            resolve(); // Continue even if image fails
-                        };
-                        elImg.src = capturedElem.content;
-                    });
-                    
-                    drawPromises.push(drawPromise);
-                }
-            }
-            
-            console.log('[DEBUG saveCustomization] Waiting for', drawPromises.length, 'image draws to complete');
-            
-            // Wait for all images to load and draw
-            await Promise.all(drawPromises);
-            
-            console.log('[DEBUG saveCustomization] All images drawn, generating data URL');
-            
-            // Check if canvas is tainted (cross-origin issue)
-            let isTainted = false;
-            try {
-                const testPixel = ctx.getImageData(0, 0, 1, 1);
-            } catch (e) {
-                isTainted = true;
-                console.error('[DEBUG saveCustomization] Canvas is tainted (cross-origin images):', e.message);
-            }
-            
-            if (isTainted) {
-                console.error('[DEBUG saveCustomization] Cannot export tainted canvas - will use fallback');
-                // Fallback: try to use just the background image
-                previewImage = bgImageUrl;
-                console.log('[DEBUG saveCustomization] Using background image as fallback');
-            } else {
-                // Get composed preview image
-                previewImage = tempCanvas.toDataURL('image/png');
-                console.log('[DEBUG saveCustomization] SUCCESS: composed preview generated, length:', previewImage.length);
-            }
+            previewImage = canvas.toDataURL('image/png');
+            console.log('[DEBUG saveCustomization] SUCCESS: html2canvas preview generated, length:', previewImage.length);
             
         } catch (e) {
-            console.error('[DEBUG saveCustomization] ERROR: Failed to generate composed preview:', e.message || e);
-            
-            // Fallback: use background image
-            previewImage = bgImageUrl;
-            console.log('[DEBUG saveCustomization] Using background image as fallback');
+            console.error('[DEBUG saveCustomization] html2canvas failed:', e.message || e);
         }
         
         // Continue with saving after preview image is ready
