@@ -303,10 +303,18 @@ function saveCustomization() {
             console.log('[DEBUG saveCustomization] Using html2canvas to capture design');
             
             // Use html2canvas to capture the print area exactly as shown on screen
+            // Calculate scale based on original print area vs display size for high quality
+            var areaData = window.currentAreaData || {};
+            var origWidth = areaData.width ? parseFloat(areaData.width) / 100 * (areaData.original_width || 2048) : 658;
+            var displayWidth = printAreaContainer.getBoundingClientRect().width;
+            var scale = Math.max(2, Math.ceil(origWidth / displayWidth));
+            
+            console.log('[DEBUG saveCustomization] html2canvas scale:', scale, '(orig:', origWidth, 'display:', displayWidth + ')');
+            
             const canvas = await html2canvas(printAreaContainer, {
                 useCORS: true,
                 allowTaint: false,
-                scale: 1, // Keep original size
+                scale: scale, // High resolution based on original image size
                 backgroundColor: null,
                 logging: false
             });
