@@ -20,6 +20,14 @@
     border-color: #3b82f6 !important;
     background-color: rgba(59, 130, 246, 0.1);
 }
+.elem-control {
+    position: absolute;
+    border: 2px solid #3b82f6;
+    background: rgba(59, 130, 246, 0.1);
+    pointer-events: none;
+    z-index: 1000;
+    transform-origin: center center;
+}
 </style>
 @endpushOnce
 
@@ -196,7 +204,9 @@ function openCustomizationDialog() {
     window.designUUID = getDesignUUID();
     console.log('[DEBUG openCustomizationDialog] Design UUID:', window.designUUID);
     
-    document.getElementById('customization-dialog').classList.remove('hidden');
+    var dialog = document.getElementById('customization-dialog');
+    dialog.classList.remove('hidden');
+    dialog.style.position = 'relative';  // For absolute positioning of control box
     document.body.style.overflow = 'hidden';
     currentCanvas.elements = [];
     currentCanvas.selectedElement = null;
