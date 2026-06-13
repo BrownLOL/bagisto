@@ -510,6 +510,7 @@ function saveCustomizationWithPreview(previewImage, elements) {
             print_area_id: parseInt(printAreaId),
             record_key: currentRecordKey,
             image_url: window.currentAreaData?.image_url || window.currentAreaData?.url || '',
+            preview_image: previewImage, // 保存预览图 dataUrl
             elements: elements
         };
         

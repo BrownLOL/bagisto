@@ -1178,7 +1178,7 @@
         });
     }
 
-    // 页面加载完成初始化
+    // 页面加载完成初始化 - 优先使用 preview_image
     document.addEventListener('DOMContentLoaded', function() {
         const customizationElements = document.querySelectorAll('[data-customization]');
         console.log('[DEBUG] DOMContentLoaded, found', customizationElements.length, 'customization elements');
@@ -1187,11 +1187,37 @@
                 const data = JSON.parse(el.dataset.customization);
                 const itemIndex = el.dataset.itemIndex;
                 const printAreaIndex = el.dataset.printAreaIndex;
-                console.log('[DEBUG] Calling renderCustomizationPreview with elements:', data.elements?.length);
+                
+                // 优先使用 preview_image（预渲染的预览图）
+                if (data.preview_image) {
+                    console.log('[DEBUG] Using preview_image for quick render');
+                    const previewDiv = document.createElement('div');
+                    previewDiv.className = 'relative group';
+                    
+                    const img = document.createElement('img');
+                    img.src = data.preview_image;
+                    img.className = 'h-16 w-16 rounded border border-gray-300 object-cover cursor-pointer';
+                    img.alt = 'Design';
+                    img.onclick = function() { showDesignPreview(data.preview_image); };
+                    
+                    const badge = document.createElement('span');
+                    badge.className = 'absolute -bottom-1 -right-1 rounded-full bg-darkPink px-1.5 text-xs text-white';
+                    badge.textContent = printAreaIndex + 1;
+                    
+                    previewDiv.appendChild(img);
+                    previewDiv.appendChild(badge);
+                    el.innerHTML = '';
+                    el.appendChild(previewDiv);
+                    return;
+                }
+                
+                // 如果没有 preview_image，使用原有逻辑重新绘制
+                const backgroundUrl = data.image_url || data.background_url || null;
+                console.log('[DEBUG] Element', i, 'dataset:', { itemIndex, printAreaIndex, backgroundUrl, elementsCount: data.elements?.length });
                 renderCustomizationPreview(
                     itemIndex,
                     printAreaIndex,
-                    data.image_url || null,
+                    backgroundUrl,
                     data.elements || []
                 );
             } catch (e) {
