@@ -1123,6 +1123,7 @@
                         const y = (elem.y / 100) * canvas.height;
                         const width = ((elem.width || 100) / 100) * canvas.width;
                         const height = ((elem.height || 100) / 100) * canvas.height;
+                        console.log('[DEBUG] Drawing image at x:', x, 'y:', y, 'w:', width, 'h:', height);
 
                         if (elem.rotation) {
                             ctx.save();
@@ -1139,6 +1140,7 @@
                         console.log('[DEBUG] Image FAILED:', elem.content);
                         resolve();
                     };
+                    img.crossOrigin = 'anonymous';
                     img.src = elem.content;
                 });
                 loadPromises.push(imgPromise);
