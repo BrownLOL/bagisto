@@ -454,7 +454,7 @@ function saveCustomization() {
             // Check if canvas is tainted (cross-origin issue)
             let isTainted = false;
             try {
-                const testPixel = tempCtx.getImageData(0, 0, 1, 1);
+                const testPixel = ctx.getImageData(0, 0, 1, 1);
             } catch (e) {
                 isTainted = true;
                 console.error('[DEBUG saveCustomization] Canvas is tainted (cross-origin images):', e.message);
