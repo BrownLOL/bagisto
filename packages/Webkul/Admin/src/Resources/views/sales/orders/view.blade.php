@@ -1146,12 +1146,14 @@
         });
 
         Promise.all(loadPromises).then(() => {
+            console.log('[DEBUG] All images loaded, finalizing canvas');
             if (!hasBackground) {
                 ctx.fillStyle = '#e5e7eb';
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
             }
 
             const dataUrl = canvas.toDataURL('image/png');
+            console.log('[DEBUG] Canvas dataUrl length:', dataUrl.length);
             const previewDiv = document.createElement('div');
             previewDiv.className = 'relative group';
             const canvasKey = `customization-canvas-${itemIndex}-${printAreaIndex}`;
@@ -1179,11 +1181,15 @@
 
     // 页面加载完成初始化
     document.addEventListener('DOMContentLoaded', function() {
-        document.querySelectorAll('[data-customization]').forEach((el) => {
+        const elements = document.querySelectorAll('[data-customization]');
+        console.log('[DEBUG] DOMContentLoaded, found', elements.length, 'customization elements');
+        elements.forEach((el, i) => {
+            console.log('[DEBUG] Element', i, 'dataset:', el.dataset);
             try {
                 const data = JSON.parse(el.dataset.customization);
                 const itemIndex = el.dataset.itemIndex;
                 const printAreaIndex = el.dataset.printAreaIndex;
+                console.log('[DEBUG] Calling renderCustomizationPreview with elements:', data.elements?.length);
                 renderCustomizationPreview(
                     itemIndex,
                     printAreaIndex,
