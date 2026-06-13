@@ -706,7 +706,7 @@ function loadPrintAreas() {
                 });
                 
                 selectProductImage(data.data[0].image_url || data.data[0].url, data.data[0]);
-                loadSavedCustomization(); // 恢复保存的设计
+                // loadSavedCustomization is not needed here - selectProductImage already restores from layerStore
             }
         });
 }
