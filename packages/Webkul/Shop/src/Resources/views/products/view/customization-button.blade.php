@@ -254,6 +254,23 @@ function saveCustomization() {
     var elements = [];
     var elemDivs = printArea.querySelectorAll('.canvas-elem');
     console.log('[DEBUG] Found', elemDivs.length, 'elements in print area');
+    
+    // 获取屏幕显示尺寸和原图尺寸用于坐标转换
+    var displayRect = printArea.getBoundingClientRect();
+    var areaX = areaData.x;      // 原图 print area X 百分比
+    var areaY = areaData.y;      // 原图 print area Y 百分比
+    var areaW = areaData.width;   // 原图 print area 宽度百分比
+    var areaH = areaData.height;  // 原图 print area 高度百分比
+    
+    console.log('[DEBUG saveCustomization] Area info:', {
+        displayWidth: displayRect.width,
+        displayHeight: displayRect.height,
+        originalX: areaX,
+        originalY: areaY,
+        originalW: areaW,
+        originalH: areaH
+    });
+    
     elemDivs.forEach(function(div, index) {
         var elemData = div._elemData;
         console.log('[DEBUG] Element', index, 'styles:', { 
@@ -264,13 +281,39 @@ function saveCustomization() {
             _elemData: elemData
         });
         if (elemData) {
+            // 屏幕百分比坐标
+            var screenX = parseFloat(div.style.left) || 0;
+            var screenY = parseFloat(div.style.top) || 0;
+            var screenW = parseFloat(div.style.width) || 0;
+            var screenH = parseFloat(div.style.height) || 0;
+            
+            // 转换为原图百分比坐标
+            // 原图坐标 = print area 开始位置 + (屏幕坐标 × 屏幕尺寸 / 原图尺寸)
+            var originalX = areaX + (screenX * displayRect.width / (displayRect.width * 100 / areaW)) / 100;
+            var originalY = areaY + (screenY * displayRect.height / (displayRect.height * 100 / areaH)) / 100;
+            var originalW = screenW * areaW / 100;
+            var originalH = screenH * areaH / 100;
+            
+            console.log('[DEBUG] Element', index, 'coordinate conversion:', {
+                screenX: screenX + '%',
+                screenY: screenY + '%',
+                originalX: originalX + '%',
+                originalY: originalY + '%'
+            });
+            
             var elem = {
                 type: elemData.type,
                 content: elemData.content,
-                x: parseFloat(div.style.left) || 0,
-                y: parseFloat(div.style.top) || 0,
-                width: parseFloat(div.style.width) || 0,
-                height: parseFloat(div.style.height) || 0,
+                // 保留屏幕坐标（用于前台显示）
+                screenX: screenX,
+                screenY: screenY,
+                screenWidth: screenW,
+                screenHeight: screenH,
+                // 原图坐标（用于后台还原）
+                originalX: originalX,
+                originalY: originalY,
+                originalWidth: originalW,
+                originalHeight: originalH,
                 rotation: elemData.rotation || 0,
                 scaleX: elemData.scaleX || 1,
                 scaleY: elemData.scaleY || 1,
