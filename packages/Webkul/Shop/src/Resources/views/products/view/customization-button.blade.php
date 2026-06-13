@@ -853,14 +853,22 @@ function selectElem(elemData) {
     document.querySelectorAll('.elem-control').forEach(function(c) { c.remove(); });
     
     var wrapper = elemData.dom;
+    var dialog = document.querySelector('.customize-dialog');
     var control = document.createElement('div');
     control.className = 'elem-control';
+    
     // 兼容 w/h 和 width/height 两种字段名
     var elemW = elemData.w || elemData.width || 80;
     var elemH = elemData.h || elemData.height || 80;
-    control.style.cssText = 'position:absolute;left:' + elemData.x + '%;top:' + elemData.y + '%;width:' + elemW + '%;height:' + elemH + '%;border:2px solid #3b82f6;transform:rotate(' + (elemData.rotation || 0) + 'deg);pointer-events:none;';
-    // 添加到 print area（wrapper.parentNode），与元素同一个容器
+    
+    // 蓝框使用像素坐标，初始位置设为 0，后续由 updateControl 更新
+    control.style.cssText = 'position:absolute;left:0;top:0;width:0;height:0;border:2px solid #3b82f6;pointer-events:none;';
+    
+    // 添加到 dialog 层级，避免被 overflow:hidden 裁剪
     dialog.appendChild(control);
+    
+    // 立即更新控制框位置
+    updateControl(elemData);
     
     var rotH = document.createElement('div');
     rotH.style.cssText = 'position:absolute;top:-30px;left:50%;transform:translateX(-50%);width:14px;height:14px;background:#3b82f6;border-radius:50%;cursor:grab;pointer-events:auto;';
