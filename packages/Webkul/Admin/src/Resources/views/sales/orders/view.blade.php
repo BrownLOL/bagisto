@@ -1119,20 +1119,17 @@
                     const img = new Image();
                     img.onload = () => {
                         console.log('[DEBUG] Image loaded:', elem.content);
-                        const x = (elem.x / 100) * canvas.width;
-                        const y = (elem.y / 100) * canvas.height;
-                        const width = ((elem.width || 100) / 100) * canvas.width;
-                        const height = ((elem.height || 100) / 100) * canvas.height;
-                        console.log('[DEBUG] Drawing image at x:', x, 'y:', y, 'w:', width, 'h:', height);
+                        try {
+                            const x = (elem.x / 100) * canvas.width;
+                            const y = (elem.y / 100) * canvas.height;
+                            const width = ((elem.width || 100) / 100) * canvas.width;
+                            const height = ((elem.height || 100) / 100) * canvas.height;
+                            console.log('[DEBUG] Drawing image at x:', x, 'y:', y, 'w:', width, 'h:', height);
 
-                        if (elem.rotation) {
-                            ctx.save();
-                            ctx.translate(x + width/2, y + height/2);
-                            ctx.rotate(elem.rotation * Math.PI / 180);
-                            ctx.drawImage(img, -width/2, -height/2, width, height);
-                            ctx.restore();
-                        } else {
                             ctx.drawImage(img, x, y, width, height);
+                            console.log('[DEBUG] Image drawn successfully');
+                        } catch(e) {
+                            console.log('[DEBUG] Draw error:', e.message);
                         }
                         resolve();
                     };
