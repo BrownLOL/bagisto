@@ -761,24 +761,28 @@ function selectProductImage(imgUrl, areaData) {
         canvas.appendChild(printArea);
         
         // Re-create element DOMs from currentCanvas.elements
-        if (currentCanvas.elements.length > 0) {
-            console.log('[DEBUG selectProductImage] Re-creating ' + currentCanvas.elements.length + ' elements');
-            currentCanvas.elements.forEach(function(elemData, index) {
-                // Get or recreate the element wrapper
-                var wrapper = document.getElementById('elem-' + elemData.id);
-                if (!wrapper && elemData.dom) {
-                    // Clone the existing DOM if available
-                    wrapper = elemData.dom.cloneNode(true);
-                    wrapper.id = 'elem-' + elemData.id;
-                    wrapper.dataset.id = elemData.id;
-                    printArea.appendChild(wrapper);
-                    elemData.dom = wrapper;
-                } else if (wrapper) {
-                    printArea.appendChild(wrapper);
-                    elemData.dom = wrapper;
-                }
-            });
-        }
+        var savedElements = currentCanvas.elements.slice();
+        currentCanvas.elements = [];
+        
+        savedElements.forEach(function(elemData) {
+            elemData.dom = null;
+            if (elemData.type === 'image') {
+                addUploadedImage(elemData.content, elemData.x, elemData.y, elemData.w || elemData.width, elemData.h || elemData.height, elemData.rotation || 0, elemData.scaleX || 1, elemData.scaleY || 1, elemData.id);
+            } else if (elemData.type === 'text') {
+                // Direct call to addTextToCanvas with id
+                addTextToCanvas(elemData.content, elemData.styles?.fontSize || 24, elemData.styles?.color || '#000', elemData.styles?.fontFamily || 'Noto Sans TC, sans-serif', {
+                    x: elemData.x,
+                    y: elemData.y,
+                    w: elemData.w || elemData.width,
+                    h: elemData.h || elemData.height,
+                    rotation: elemData.rotation || 0,
+                    scaleX: elemData.scaleX || 1,
+                    scaleY: elemData.scaleY || 1,
+                    styles: elemData.styles,
+                    id: elemData.id
+                });
+            }
+        });
     }
     
     updateLayersList();
@@ -786,7 +790,7 @@ function selectProductImage(imgUrl, areaData) {
     updatePreview();
 }
 
-function addUploadedImage(dataUrl, x, y, w, h, rotation, scaleX, scaleY) {
+function addUploadedImage(dataUrl, x, y, w, h, rotation, scaleX, scaleY, id) {
     x = x !== undefined ? x : 10;
     y = y !== undefined ? y : 10;
     w = w !== undefined ? w : 80;
@@ -794,6 +798,7 @@ function addUploadedImage(dataUrl, x, y, w, h, rotation, scaleX, scaleY) {
     rotation = rotation !== undefined ? rotation : 0;
     scaleX = scaleX !== undefined ? scaleX : 1;
     scaleY = scaleY !== undefined ? scaleY : 1;
+    var elemId = id !== undefined ? id : Date.now();
     
     var areaData = window.currentAreaData;
     var areaElemId = 'print-area-' + (areaData && (areaData.id || areaData.print_area_id) ? (areaData.id || areaData.print_area_id) : 'default');
@@ -815,10 +820,10 @@ function addUploadedImage(dataUrl, x, y, w, h, rotation, scaleX, scaleY) {
         content: dataUrl,
         x: x, y: y, w: w, h: h, rotation: rotation, scaleX: scaleX, scaleY: scaleY,
         styles: {},
-        id: Date.now()
+        id: elemId
     };
     wrapper._elemData = elemData;
-    wrapper.dataset.id = elemData.id;
+    wrapper.dataset.id = elemId;
     setupElemEvents(wrapper, elemData);
     printArea.appendChild(wrapper);
     currentCanvas.elements.push(elemData);
@@ -1403,21 +1408,28 @@ function addTextToCanvas(text, size, color, font, opts) {
     var finalH = savedH !== null ? savedH : imgHeight;
     var finalX = savedX !== null ? savedX : 10;
     var finalY = savedY !== null ? savedY : 10;
+    var savedId = opts && opts.id !== undefined ? opts.id : Date.now();
     
-    // Add as image element
-    addUploadedImage(dataUrl, finalX, finalY, finalW, finalH, {
-        rotation: savedRotation !== null ? savedRotation : 0,
-        scaleX: savedScaleX !== null ? savedScaleX : 1,
-        scaleY: savedScaleY !== null ? savedScaleY : 1,
-        styles: {
-            ...savedStyles,
+    // Add as image element - pass individual params
+    addUploadedImage(dataUrl, finalX, finalY, finalW, finalH, 
+        savedRotation !== null ? savedRotation : 0,
+        savedScaleX !== null ? savedScaleX : 1,
+        savedScaleY !== null ? savedScaleY : 1,
+        savedId
+    );
+    
+    // Update the elemData with text styles
+    var elemData = currentCanvas.elements[currentCanvas.elements.length - 1];
+    if (elemData) {
+        elemData.styles = elemData.styles || {};
+        Object.assign(elemData.styles, {
             originalType: 'text',
             originalText: text,
             fontSize: fontSize,
             color: textColor,
             fontFamily: fontFamily
-        }
-    });
+        });
+    }
 }
 </script>
 @endpushOnce
