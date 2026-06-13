@@ -280,56 +280,16 @@ function saveCustomization() {
         }
     });
     
-    console.log('[DEBUG] Parsed elements:', JSON.stringify(elements, null, 2));
-    
-    // Generate composed preview image using html2canvas - captures design as-is
+    // Save elements with their original screen coordinates
+    // The coordinates will be converted when displaying in admin
     var productId = window.customizationProductId;
-    var previewImage = '';
     
     console.log('[DEBUG saveCustomization] Starting with elements count:', elements.length);
+    console.log('[DEBUG saveCustomization] Will save screen coordinates, convert later');
     
-    (async function() {
-        try {
-            // Find the print area container in the design dialog
-            var printAreaId = window.currentAreaData?.id;
-            var printAreaContainer = document.getElementById('print-area-' + printAreaId);
-            
-            if (!printAreaContainer) {
-                console.error('[DEBUG saveCustomization] Print area container not found');
-                saveCustomizationWithPreview('', elements);
-                return;
-            }
-            
-            console.log('[DEBUG saveCustomization] Using html2canvas to capture design');
-            
-            // Use html2canvas to capture the print area exactly as shown on screen
-            // Calculate scale based on original print area vs display size for high quality
-            var areaData = window.currentAreaData || {};
-            var origWidth = areaData.width ? parseFloat(areaData.width) / 100 * (areaData.original_width || 2048) : 658;
-            var displayWidth = printAreaContainer.getBoundingClientRect().width;
-            var scale = Math.max(2, Math.ceil(origWidth / displayWidth));
-            
-            console.log('[DEBUG saveCustomization] html2canvas scale:', scale, '(orig:', origWidth, 'display:', displayWidth + ')');
-            
-            const canvas = await html2canvas(printAreaContainer, {
-                useCORS: true,
-                allowTaint: false,
-                scale: scale, // High resolution based on original image size
-                backgroundColor: null,
-                logging: false
-            });
-            
-            previewImage = canvas.toDataURL('image/png');
-            console.log('[DEBUG saveCustomization] SUCCESS: html2canvas preview generated, length:', previewImage.length);
-            
-        } catch (e) {
-            console.error('[DEBUG saveCustomization] html2canvas failed:', e.message || e);
-        }
-        
-        // Continue with saving after preview image is ready
-        console.log('[DEBUG saveCustomization] Calling saveCustomizationWithPreview, previewImage length:', previewImage ? previewImage.length : 0);
-        saveCustomizationWithPreview(previewImage, elements);
-    })();
+    // Save elements directly without generating preview image
+    // Preview will be generated in admin when displaying
+    saveCustomizationWithPreview('', elements);
 }
 
 // 上传预览图到服务器（返回 URL）
@@ -360,16 +320,12 @@ async function uploadPreviewImage(previewImage) {
     return previewImage; // 上传失败，返回原始 base64
 }
 
-// 保存设计（异步，上传预览图后保存）
+// 保存设计（保存元素数据，不生成预览图）
 async function saveCustomizationWithPreview(previewImage, elements) {
     var productId = window.customizationProductId;
     
-    console.log('[DEBUG saveCustomizationWithPreview] Starting with previewImage length:', previewImage ? previewImage.length : 0);
+    console.log('[DEBUG saveCustomizationWithPreview] Starting');
     console.log('[DEBUG saveCustomizationWithPreview] elements count:', elements.length);
-    
-    // 先上传预览图获取 URL
-    var previewImageUrl = await uploadPreviewImage(previewImage);
-    console.log('[DEBUG saveCustomizationWithPreview] previewImageUrl:', previewImageUrl);
     
     // Prepare customization data for current print area
     var uuid = getDesignUUID(); // Ensure we have a UUID
@@ -406,7 +362,7 @@ async function saveCustomizationWithPreview(previewImage, elements) {
             print_area_id: parseInt(printAreaId),
             record_key: currentRecordKey,
             image_url: window.currentAreaData?.image_url || window.currentAreaData?.url || '',
-            preview_image: previewImageUrl, // 保存预览图 URL（上传后）
+            // 屏幕百分比坐标，元素内容
             elements: elements
         };
         
@@ -418,7 +374,7 @@ async function saveCustomizationWithPreview(previewImage, elements) {
             printAreas.push(recordData);
         }
         
-        // 保存完整数据到 localStorage（包含 preview_image URL）
+        // 保存完整数据到 localStorage
         var designDataForStorage = {
             product_id: productId,
             print_areas: printAreas,
@@ -428,7 +384,7 @@ async function saveCustomizationWithPreview(previewImage, elements) {
         localStorage.setItem(designKey, JSON.stringify(designDataForStorage));
         
         console.log('[DEBUG saveCustomizationWithPreview] Saved to localStorage, key:', designKey);
-        console.log('[DEBUG saveCustomizationWithPreview] preview_image URL length:', printAreas[0]?.preview_image?.length || 0);
+        console.log('[DEBUG saveCustomizationWithPreview] Elements:', JSON.stringify(elements, null, 2));
         
         // Ensure UUID is in the list
         var uuidsKey = 'design_uuids_' + productId;
