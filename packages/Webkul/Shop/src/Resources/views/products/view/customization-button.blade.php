@@ -528,17 +528,25 @@ function saveCustomizationWithPreview(previewImage, elements) {
             return rest;
         });
         
+        // 用于添加到购物车（包含 preview_image）
         var designDataToSave = {
+            product_id: productId,
+            print_areas: printAreas, // 使用包含 preview_image 的完整数据
+            updated_at: new Date().toISOString()
+        };
+        
+        console.log('[DEBUG saveCustomizationWithPreview] Saving designData with print_areas count:', printAreas.length);
+        console.log('[DEBUG saveCustomizationWithPreview] First print_area has preview_image:', !!printAreas[0]?.preview_image);
+        console.log('[DEBUG saveCustomizationWithPreview] preview_image length:', printAreas[0]?.preview_image?.length || 0);
+        
+        // 保存到 localStorage（不包含 preview_image，节省空间）
+        var designDataForStorage = {
             product_id: productId,
             print_areas: printAreasWithoutPreview,
             updated_at: new Date().toISOString()
         };
         
-        console.log('[DEBUG saveCustomizationWithPreview] Saving designData with print_areas count:', printAreasWithoutPreview.length);
-        console.log('[DEBUG saveCustomizationWithPreview] First print_area elements count:', printAreasWithoutPreview[0]?.elements?.length || 0);
-        console.log('[DEBUG saveCustomizationWithPreview] Storage size (without preview_image):', JSON.stringify(designDataToSave).length, 'bytes');
-        
-        localStorage.setItem(designKey, JSON.stringify(designDataToSave));
+        localStorage.setItem(designKey, JSON.stringify(designDataForStorage));
         
         console.log('[DEBUG saveCustomizationWithPreview] Saved to localStorage, key:', designKey);
         
