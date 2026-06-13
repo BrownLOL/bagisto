@@ -1126,7 +1126,7 @@ function setupElemEvents(wrapper, elemData) {
         }
         
         if (!pa) {
-            console.log('[DEBUG mousemove] pa is null');
+            console.log('[DEBUG mousemove] pa is null, wrapper:', wrapper, 'wrapper.parentElement:', wrapper?.parentElement, 'wrapper.className:', wrapper?.className);
             return;
         }
         
