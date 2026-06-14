@@ -268,9 +268,12 @@
                                     window.customizationProductId = this.possibleOptionVariant.id;
                                     console.log('[DEBUG Configurable] Variant selected, product ID:', window.customizationProductId);
                                     
-                                    // Trigger design status check after variant selection
+                                    // Re-fetch print areas and check design status for new variant
+                                    if (typeof checkPrintAreasAndShowButton === 'function') {
+                                        setTimeout(checkPrintAreasAndShowButton, 100);
+                                    }
                                     if (typeof checkDesignStatus === 'function') {
-                                        setTimeout(checkDesignStatus, 100);
+                                        setTimeout(checkDesignStatus, 200);
                                     }
                                 }
                             }

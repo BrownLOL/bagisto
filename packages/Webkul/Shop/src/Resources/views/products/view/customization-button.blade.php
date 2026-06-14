@@ -124,6 +124,7 @@ function checkDesignStatus() {
     
     function checkPrintAreasAndShowButton() {
         var productId = window.customizationProductId;
+        console.log('[DEBUG checkPrintAreas] Checking print areas for product:', productId);
         
         fetch('/customization/print-areas/' + productId)
             .then(function(response) { return response.json(); })
@@ -134,10 +135,13 @@ function checkDesignStatus() {
                 if (data.success && data.data && data.data.length > 0) {
                     // Has print areas → show button
                     btn.classList.remove('hidden');
-                    console.log('[DEBUG checkPrintAreas] Product has print areas, showing button');
+                    // Store print areas globally for use when opening dialog
+                    window.currentPrintAreas = data.data;
+                    console.log('[DEBUG checkPrintAreas] Product has', data.data.length, 'print areas, showing button');
                 } else {
                     // No print areas → hide button
                     btn.classList.add('hidden');
+                    window.currentPrintAreas = [];
                     console.log('[DEBUG checkPrintAreas] Product has no print areas, hiding button');
                 }
             })
