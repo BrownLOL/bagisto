@@ -339,51 +339,33 @@
 
             methods: {
                 openAddDialog() {
-                    // 保存当前图片列表（用于去重）
-                    const currentImages = this.allImages.slice();
+                    // 合并图片列表：新上传的 + 已有的
+                    const images = [];
+                    const seenUrls = new Set();
                     
-                    // 尝试从 DOM 获取实时上传的图片
-                    const mediaComponent = document.querySelector('[data-v-media-images]');
-                    if (mediaComponent && mediaComponent.__vueParentComponent) {
-                        const instance = mediaComponent.__vueParentComponent.ctx;
-                        if (instance && instance.images) {
-                            instance.images.forEach(img => {
-                                if (img.file) {
-                                    // New uploaded file, store blob for later upload
-                                    const blobKey = 'blob_' + simpleHash(URL.createObjectURL(img.file));
-                                    this.blobFiles[blobKey] = img.file;
-                                    
-                                    const reader = new FileReader();
-                                    reader.onload = (e) => {
-                                        // 检查是否已存在
-                                        if (!currentImages.some(i => i.url === e.target.result)) {
-                                            currentImages.push({
-                                                id: blobKey,
-                                                url: e.target.result,
-                                                path: blobKey
-                                            });
-                                        }
-                                    };
-                                    reader.readAsDataURL(img.file);
-                                } else if (img.url) {
-                                    // Existing image
-                                    if (!currentImages.some(i => i.url === img.url)) {
-                                        currentImages.push({
-                                            id: img.id,
-                                            url: img.url,
-                                            path: img.path || img.url
-                                        });
-                                    }
-                                }
-                            });
-                        }
+                    // 添加新上传的图片（从 window.customizationData）
+                    if (window.customizationData && window.customizationData.images) {
+                        window.customizationData.images.forEach(img => {
+                            if (img.url && !seenUrls.has(img.url)) {
+                                images.push(img);
+                                seenUrls.add(img.url);
+                            }
+                        });
                     }
                     
-                    // 回退：如果没有获取到新图片，使用初始产品图片
-                    if (currentImages.length === 0 && this.initialProductImages.length > 0) {
+                    // 添加已保存的商品图片（避免重复）
+                    this.initialProductImages.forEach(img => {
+                        if (img.url && !seenUrls.has(img.url)) {
+                            images.push(img);
+                            seenUrls.add(img.url);
+                        }
+                    });
+                    
+                    // 如果都没有，回退到初始图片
+                    if (images.length === 0) {
                         this.allImages = this.initialProductImages.slice();
                     } else {
-                        this.allImages = currentImages;
+                        this.allImages = images;
                     }
 
                     this.isEditMode = false;
