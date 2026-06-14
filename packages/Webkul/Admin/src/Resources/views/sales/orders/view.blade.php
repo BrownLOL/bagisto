@@ -1228,5 +1228,42 @@
             }
         });
     });
+
+    // 使用 MutationObserver 监听容器内容变化，自动渲染预览图
+    document.addEventListener('DOMContentLoaded', function() {
+        // 延迟一下再开始观察，确保页面元素已加载
+        setTimeout(function() {
+            console.log('[DEBUG] Setting up MutationObserver for preview containers');
+            
+            var observer = new MutationObserver(function(mutations) {
+                mutations.forEach(function(mutation) {
+                    var el = mutation.target;
+                    if (el && el.dataset && el.dataset.customization) {
+                        console.log('[DEBUG] MutationObserver detected container change:', el.id);
+                        
+                        // 延迟渲染，等待 Vue 完成更新
+                        setTimeout(function() {
+                            var data = JSON.parse(el.dataset.customization);
+                            if (data && data.elements && data.elements.length > 0) {
+                                console.log('[DEBUG] Auto-rendering preview for:', el.id);
+                                renderCustomizationPreview(
+                                    el.dataset.itemIndex,
+                                    el.dataset.printAreaIndex,
+                                    data.image_url,
+                                    data.elements
+                                );
+                            }
+                        }, 100);
+                    }
+                });
+            });
+
+            // 观察所有预览容器
+            document.querySelectorAll('[id^="customization-preview-"]').forEach(function(container) {
+                observer.observe(container, { childList: true, subtree: true, attributes: true });
+                console.log('[DEBUG] Observing container:', container.id);
+            });
+        }, 500);
+    });
     </script>
 </x-admin::layouts>
