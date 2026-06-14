@@ -494,16 +494,36 @@
                         if (btn) btn.classList.remove('hidden');
                         
                         // 检查是否有保存的设计
+                        // 尝试从 current_design_{productId} 获取 uuid
                         var currentKey = 'current_design_' + productId;
                         var currentUuid = localStorage.getItem(currentKey);
+                        var hasSavedDesign = false;
+                        
                         if (currentUuid) {
+                            // 直接检查 design_{uuid} 是否存在
                             var savedKey = 'design_' + currentUuid;
                             var saved = localStorage.getItem(savedKey);
                             if (saved) {
-                                if (statusIcon) statusIcon.classList.remove('hidden');
-                            } else {
-                                if (statusIcon) statusIcon.classList.add('hidden');
+                                hasSavedDesign = true;
                             }
+                        }
+                        
+                        // 也检查 uuids 列表
+                        if (!hasSavedDesign) {
+                            var uuidsKey = 'design_uuids_' + productId;
+                            var uuids = JSON.parse(localStorage.getItem(uuidsKey) || '[]');
+                            for (var i = 0; i < uuids.length; i++) {
+                                var savedKey = 'design_' + uuids[i];
+                                var saved = localStorage.getItem(savedKey);
+                                if (saved) {
+                                    hasSavedDesign = true;
+                                    break;
+                                }
+                            }
+                        }
+                        
+                        if (hasSavedDesign) {
+                            if (statusIcon) statusIcon.classList.remove('hidden');
                         } else {
                             if (statusIcon) statusIcon.classList.add('hidden');
                         }
