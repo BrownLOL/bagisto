@@ -426,5 +426,122 @@
 
         </script>
     @endpush
+    
+    {{-- Customization Button for Configurable Products --}}
+    <div id="configurable-customization-area" class="hidden">
+        <button
+            type="button"
+            onclick="event.preventDefault(); openCustomizationDialogForConfigurable();"
+            id="customize-now-btn-configurable"
+            class="secondary-button w-full mt-4 flex items-center justify-center gap-2"
+        >
+            Customize Now
+            <span id="design-status-icon-configurable" class="hidden">
+                <svg class="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                </svg>
+            </span>
+        </button>
+    </div>
+    
+    @pushOnce('scripts')
+    <script>
+        // 监听 Vue 事件，当变体选择变化时检查设计区域
+        document.addEventListener('DOMContentLoaded', function() {
+            // 监听 configurable-variant-selected-event 事件
+            window.addEventListener('configurable-variant-selected-event', function(e) {
+                checkConfigurableDesignStatus(e.detail?.variantId || 0);
+            });
+            
+            // 初始检查
+            checkConfigurableDesignStatus();
+            
+            // 定期检查 selected_configurable_option 的值（作为备用）
+            setInterval(function() {
+                var selectedOption = document.getElementById('selected_configurable_option');
+                if (selectedOption && selectedOption.value) {
+                    var productId = parseInt(selectedOption.value);
+                    if (productId > 0 && window.lastCheckedVariantId !== productId) {
+                        checkConfigurableDesignStatus(productId);
+                    }
+                }
+            }, 500);
+        });
+        
+        function checkConfigurableDesignStatus(variantId) {
+            var selectedOption = document.getElementById('selected_configurable_option');
+            var productId = selectedOption ? parseInt(selectedOption.value) : 0;
+            
+            if (!productId || productId === 0) {
+                // 没有选择变体，隐藏自定义按钮
+                var btn = document.getElementById('configurable-customization-area');
+                if (btn) btn.classList.add('hidden');
+                return;
+            }
+            
+            // 记录最后检查的产品 ID
+            window.lastCheckedVariantId = productId;
+            
+            // 检查该产品是否有设计区域
+            fetch('/customization/print-areas/' + productId)
+                .then(function(response) { return response.json(); })
+                .then(function(data) {
+                    var btn = document.getElementById('configurable-customization-area');
+                    var statusIcon = document.getElementById('design-status-icon-configurable');
+                    
+                    if (data.data && data.data.length > 0) {
+                        // 有设计区域，显示按钮
+                        if (btn) btn.classList.remove('hidden');
+                        
+                        // 检查是否有保存的设计
+                        var currentKey = 'current_design_' + productId;
+                        var currentUuid = localStorage.getItem(currentKey);
+                        if (currentUuid) {
+                            var savedKey = 'design_' + currentUuid;
+                            var saved = localStorage.getItem(savedKey);
+                            if (saved) {
+                                if (statusIcon) statusIcon.classList.remove('hidden');
+                            } else {
+                                if (statusIcon) statusIcon.classList.add('hidden');
+                            }
+                        } else {
+                            if (statusIcon) statusIcon.classList.add('hidden');
+                        }
+                    } else {
+                        // 没有设计区域，隐藏按钮
+                        if (btn) btn.classList.add('hidden');
+                    }
+                })
+                .catch(function(error) {
+                    console.log('Error checking design status:', error);
+                });
+        }
+        
+        function openCustomizationDialogForConfigurable() {
+            var selectedOption = document.getElementById('selected_configurable_option');
+            var productId = selectedOption ? parseInt(selectedOption.value) : 0;
+            
+            if (!productId || productId === 0) {
+                alert('Please select color and size first.');
+                return;
+            }
+            
+            // 设置当前产品 ID
+            window.customizationProductId = productId;
+            
+            // 设置当前设计 UUID
+            var currentKey = 'current_design_' + productId;
+            var currentUuid = localStorage.getItem(currentKey);
+            if (!currentUuid) {
+                currentUuid = generateDesignUUID();
+                localStorage.setItem(currentKey, currentUuid);
+            }
+            window.designUUID = currentUuid;
+            
+            // 打开自定义对话框
+            openCustomizationDialog();
+        }
+    </script>
+    @endpush
 
 @endif
