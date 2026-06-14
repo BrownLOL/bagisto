@@ -262,20 +262,6 @@
                                 this.resetChildAttributes(attribute.nextAttribute);
                             } else {
                                 this.selectedOptionVariant = this.possibleOptionVariant;
-                                
-                                // Update customization product ID when variant changes
-                                if (this.possibleOptionVariant) {
-                                    window.customizationProductId = this.possibleOptionVariant.id;
-                                    console.log('[DEBUG Configurable] Variant selected, product ID:', window.customizationProductId);
-                                    
-                                    // Re-fetch print areas and check design status for new variant
-                                    if (typeof checkPrintAreasAndShowButton === 'function') {
-                                        setTimeout(checkPrintAreasAndShowButton, 100);
-                                    }
-                                    if (typeof checkDesignStatus === 'function') {
-                                        setTimeout(checkDesignStatus, 200);
-                                    }
-                                }
                             }
                         } else {
                             this.clearAttributeSelection(attribute);
@@ -288,12 +274,6 @@
                         this.reloadPrice();
                         
                         this.reloadImages();
-                        
-                        // Reset customization product ID when selection is cleared
-                        if (! this.selectedOptionVariant) {
-                            window.customizationProductId = {{ $product->id }};
-                            console.log('[DEBUG Configurable] Selection cleared, product ID reset to:', window.customizationProductId);
-                        }
                     },
 
                     getPossibleOptionVariant(attribute, optionId) {

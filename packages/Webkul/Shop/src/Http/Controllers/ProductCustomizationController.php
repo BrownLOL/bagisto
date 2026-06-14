@@ -132,20 +132,10 @@ class ProductCustomizationController extends Controller
 
     /**
      * Get print areas for a product.
-     * For Configurable products, also checks parent product if no areas found.
      */
     public function getPrintAreas(int $productId): JsonResponse
     {
         $printAreas = $this->printAreaRepository->getByProductId($productId);
-        
-        // For Configurable products, if no print areas found, check parent product
-        if ($printAreas->isEmpty()) {
-            $product = $this->productRepository->find($productId);
-            
-            if ($product && $product->parent_id) {
-                $printAreas = $this->printAreaRepository->getByProductId($product->parent_id);
-            }
-        }
 
         $areas = [];
         foreach ($printAreas as $area) {

@@ -1,3 +1,5 @@
+<div id="customization-product-id" data-id="{{ $product->id ?? 0 }}" class="hidden"></div>
+
 <button
     type="button"
     onclick="event.preventDefault(); openCustomizationDialog();"
@@ -57,7 +59,7 @@ function checkDesignStatus() {
     console.log('[DEBUG checkDesignStatus] No saved design');
 }
 
-document.addEventListener('DOMContentLoaded', function() {
+(function() {
     var el = document.getElementById('customization-product-id');
     if (el) {
         window.customizationProductId = parseInt(el.dataset.id) || 0;
@@ -122,7 +124,6 @@ document.addEventListener('DOMContentLoaded', function() {
     
     function checkPrintAreasAndShowButton() {
         var productId = window.customizationProductId;
-        console.log('[DEBUG checkPrintAreas] Checking print areas for product:', productId);
         
         fetch('/customization/print-areas/' + productId)
             .then(function(response) { return response.json(); })
@@ -133,13 +134,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (data.success && data.data && data.data.length > 0) {
                     // Has print areas → show button
                     btn.classList.remove('hidden');
-                    // Store print areas globally for use when opening dialog
-                    window.currentPrintAreas = data.data;
-                    console.log('[DEBUG checkPrintAreas] Product has', data.data.length, 'print areas, showing button');
+                    console.log('[DEBUG checkPrintAreas] Product has print areas, showing button');
                 } else {
                     // No print areas → hide button
                     btn.classList.add('hidden');
-                    window.currentPrintAreas = [];
                     console.log('[DEBUG checkPrintAreas] Product has no print areas, hiding button');
                 }
             })
@@ -153,7 +151,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Start polling
     waitForElementAndInit();
-});
+})();
 
 var currentCanvas = {
     elements: [],
