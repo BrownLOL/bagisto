@@ -479,12 +479,20 @@
                 return;
             }
             
-            // 初始化当前产品的 design uuid（如果不存在）
+            // 1. 初始化当前产品的 design uuid（如果不存在）
             var currentKey = 'current_design_' + productId;
-            if (!localStorage.getItem(currentKey)) {
-                var uuid = generateDesignUUID();
+            var uuid = localStorage.getItem(currentKey);
+            if (!uuid) {
+                uuid = generateDesignUUID();
                 localStorage.setItem(currentKey, uuid);
             }
+            
+            // 2. 设置 window.designUUID（与其他地方保持一致）
+            window.designUUID = uuid;
+            
+            // 3. 检查 localStorage['design_' + uuid] 是否有数据
+            var savedKey = 'design_' + uuid;
+            var savedDesign = localStorage.getItem(savedKey);
             
             // 记录最后检查的产品 ID
             window.lastCheckedVariantId = productId;
@@ -500,36 +508,8 @@
                         // 有设计区域，显示按钮
                         if (btn) btn.classList.remove('hidden');
                         
-                        // 检查是否有保存的设计
-                        // 尝试从 current_design_{productId} 获取 uuid
-                        var currentKey = 'current_design_' + productId;
-                        var currentUuid = localStorage.getItem(currentKey);
-                        var hasSavedDesign = false;
-                        
-                        if (currentUuid) {
-                            // 直接检查 design_{uuid} 是否存在
-                            var savedKey = 'design_' + currentUuid;
-                            var saved = localStorage.getItem(savedKey);
-                            if (saved) {
-                                hasSavedDesign = true;
-                            }
-                        }
-                        
-                        // 也检查 uuids 列表
-                        if (!hasSavedDesign) {
-                            var uuidsKey = 'design_uuids_' + productId;
-                            var uuids = JSON.parse(localStorage.getItem(uuidsKey) || '[]');
-                            for (var i = 0; i < uuids.length; i++) {
-                                var savedKey = 'design_' + uuids[i];
-                                var saved = localStorage.getItem(savedKey);
-                                if (saved) {
-                                    hasSavedDesign = true;
-                                    break;
-                                }
-                            }
-                        }
-                        
-                        if (hasSavedDesign) {
+                        // 根据 savedDesign 显示图标
+                        if (savedDesign) {
                             if (statusIcon) statusIcon.classList.remove('hidden');
                         } else {
                             if (statusIcon) statusIcon.classList.add('hidden');
