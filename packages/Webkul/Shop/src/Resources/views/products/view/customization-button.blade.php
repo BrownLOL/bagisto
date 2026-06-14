@@ -556,7 +556,7 @@ function loadSavedCustomization() {
                 } else if (elem.type === 'image') {
                     var img = document.createElement('img');
                     img.src = elem.content;
-                    img.style.cssText = 'width:100%;height:100%;object-fit:fill;pointer-events:none;';
+                    img.style.cssText = 'width:100%;height:100%;object-fit:contain;pointer-events:none;';
                     wrapper.appendChild(img);
                 }
                 
@@ -811,7 +811,7 @@ function addUploadedImage(dataUrl, x, y, w, h, rotation, scaleX, scaleY, id) {
     
     var img = document.createElement('img');
     img.src = dataUrl;
-    img.style.cssText = 'width:100%;height:100%;object-fit:fill;pointer-events:none;';
+    img.style.cssText = 'width:100%;height:100%;object-fit:contain;pointer-events:none;';
     wrapper.appendChild(img);
     
     var elemData = {
