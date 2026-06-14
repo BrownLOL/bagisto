@@ -1178,11 +1178,22 @@
             previewDiv.appendChild(img);
             previewDiv.appendChild(badge);
 
-            // 清空容器、替换内容
-            console.log('[DEBUG] Replacing container content');
-            container.innerHTML = '';
-            console.log('[DEBUG] Container innerHTML after clear:', container.innerHTML);
-            container.appendChild(previewDiv);
+            // 直接更新现有 img 的 src，而不是替换整个容器
+            const existingImg = container.querySelector('img');
+            if (existingImg) {
+                console.log('[DEBUG] Updating existing img src');
+                existingImg.src = dataUrl;
+                // 如果需要更新 badge
+                const existingBadge = container.querySelector('span');
+                if (!existingBadge) {
+                    container.appendChild(badge);
+                }
+            } else {
+                // 如果没有 img，才清空并创建
+                console.log('[DEBUG] No existing img, creating new');
+                container.innerHTML = '';
+                container.appendChild(previewDiv);
+            }
             console.log('[DEBUG] Container children count:', container.children.length);
             console.log('[DEBUG] img src (first 100 chars):', dataUrl.substring(0, 100));
         });
