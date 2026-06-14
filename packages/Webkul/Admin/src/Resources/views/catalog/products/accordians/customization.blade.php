@@ -308,15 +308,30 @@
 
             computed: {
                 availableImages() {
-                    // 从 window.customizationData 获取实时图片列表
-                    if (window.customizationData && window.customizationData.images.length > 0) {
-                        // 过滤掉已被删除的图片
-                        const usedUrls = window.customizationData.usedUrls || [];
-                        return window.customizationData.images.filter(img => !usedUrls.includes(img.url) || this.areas.some(area => area.imageUrl === img.url));
+                    // 合并两个来源的图片：新上传的 + 已保存的商品图片
+                    const images = [];
+                    const seenUrls = new Set();
+                    
+                    // 先添加已保存的商品图片（PHP传递的）
+                    this.initialProductImages.forEach(img => {
+                        if (img.url && !seenUrls.has(img.url)) {
+                            images.push(img);
+                            seenUrls.add(img.url);
+                        }
+                    });
+                    
+                    // 再添加新上传的图片（从 window.customizationData）
+                    if (window.customizationData && window.customizationData.images) {
+                        window.customizationData.images.forEach(img => {
+                            if (img.url && !seenUrls.has(img.url)) {
+                                images.push(img);
+                                seenUrls.add(img.url);
+                            }
+                        });
                     }
                     
-                    // 回退到 allImages（数据库中的图片）
-                    return this.allImages.filter(img => 
+                    // 过滤掉已被 print area 使用的图片（用于已选图片的回退判断）
+                    return images.filter(img => 
                         !this.removedAreas.some(ra => ra.imageUrl === img.url)
                     );
                 }
