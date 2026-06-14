@@ -83,5 +83,79 @@
         <x-shop::shimmer.products.view />
     </v-product>
 
+<!-- Customization Dialog -->
+<div id="customization-dialog" class="fixed inset-0 bg-black bg-opacity-50 hidden overflow-y-auto" style="z-index: 99999;" onclick="if(event.target===this)closeDialog()">
+    <div class="bg-white rounded-lg shadow-xl mx-auto p-4 flex flex-col" style="width: 1200px; height: 700px; margin-top: 100px;">
+        <div class="flex justify-between items-center mb-4">
+            <h2 class="text-xl font-bold">Custom Design</h2>
+            <button id="close-dialog" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
+        </div>
+        
+        <div class="flex flex-1 gap-4 overflow-hidden">
+            <!-- Left sidebar: Print areas list -->
+            <div class="w-64 border-r pr-4 overflow-y-auto">
+                <h3 class="font-semibold mb-3">Print Areas</h3>
+                <div id="print-areas-list"></div>
+            </div>
+            
+            <!-- Main area: Canvas -->
+            <div class="flex-1 flex flex-col">
+                <!-- Top: Background images selection -->
+                <div id="product-images-div" class="flex gap-2 mb-3 flex-wrap"></div>
+                
+                <!-- Canvas area -->
+                <div id="canvas-area" class="flex-1 relative bg-gray-100 rounded overflow-hidden">
+                    <div id="design-canvas" class="absolute inset-0 flex items-center justify-center" style="min-height: 400px;"></div>
+                </div>
+                
+                <!-- Layers panel -->
+                <div id="layers-panel" class="mt-3 border-t pt-3">
+                    <div class="flex justify-between items-center mb-2">
+                        <h4 class="font-semibold">Layers</h4>
+                        <button id="add-text-btn" class="bg-blue-500 text-white px-3 py-1 rounded text-sm hover:bg-blue-600">Add Text</button>
+                    </div>
+                    <div id="layers-list" class="max-h-32 overflow-y-auto"></div>
+                </div>
+            </div>
+            
+            <!-- Right sidebar: Controls -->
+            <div class="w-64 border-l pl-4">
+                <h3 class="font-semibold mb-3">Controls</h3>
+                
+                <div id="element-controls" class="space-y-3 hidden">
+                    <div>
+                        <label class="block text-sm font-medium">Position X (%)</label>
+                        <input type="number" id="elem-x" class="w-full border rounded px-2 py-1" min="0" max="100" step="1">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium">Position Y (%)</label>
+                        <input type="number" id="elem-y" class="w-full border rounded px-2 py-1" min="0" max="100" step="1">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium">Rotation (deg)</label>
+                        <input type="range" id="elem-rotation" class="w-full" min="-180" max="180" value="0">
+                        <span id="rotation-value">0</span>°
+                    </div>
+                </div>
+                
+                <div class="mt-4">
+                    <p class="text-sm text-gray-600 mb-2">Upload your design or text</p>
+                    <label class="block bg-green-500 text-white text-center py-2 px-4 rounded cursor-pointer hover:bg-green-600">
+                        Upload Image
+                        <input type="file" id="image-upload" accept="image/*" class="hidden">
+                    </label>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Bottom actions -->
+        <div class="flex justify-end gap-3 mt-4 pt-4 border-t">
+            <button id="cancel-btn" class="bg-gray-300 text-gray-700 px-6 py-2 rounded hover:bg-gray-400">Cancel</button>
+            <button id="save-design-btn" class="bg-blue-500 text-white px-6 py-2 rounded hover:bg-blue-600">Save Design</button>
+            <button id="add-to-cart-btn" class="bg-green-500 text-white px-6 py-2 rounded hover:bg-green-600">Add to Cart</button>
+        </div>
+    </div>
+</div>
+
 @include('shop::products.view.customization-button')
 </x-shop::layouts>
