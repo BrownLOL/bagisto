@@ -962,23 +962,43 @@ function updateControl(elemData) {
         var contentWidth = elemRect.width;
         var contentHeight = elemRect.height;
         
-        if (img && img.complete && img.naturalWidth > 0) {
-            // 图片的原始尺寸
-            var naturalW = img.naturalWidth;
-            var naturalH = img.naturalHeight;
-            // 容器的尺寸
-            var containerW = elemRect.width;
-            var containerH = elemRect.height;
-            
-            // 计算 object-fit:contain 后的实际尺寸
-            var ratio = Math.min(containerW / naturalW, containerH / naturalH);
-            contentWidth = naturalW * ratio;
-            contentHeight = naturalH * ratio;
-        }
+        // 立即计算位置（容器尺寸）
+        var left = elemRect.left - dialogRect.left;
+        var top = elemRect.top - dialogRect.top;
         
-        // 使用像素坐标，相对于 dialog
-        var left = elemRect.left - dialogRect.left + (elemRect.width - contentWidth) / 2;
-        var top = elemRect.top - dialogRect.top + (elemRect.height - contentHeight) / 2;
+        // 如果有图片，等待图片加载完成后再调整位置
+        if (img) {
+            if (img.complete && img.naturalWidth > 0) {
+                // 图片已加载，计算实际内容尺寸
+                var naturalW = img.naturalWidth;
+                var naturalH = img.naturalHeight;
+                var containerW = elemRect.width;
+                var containerH = elemRect.height;
+                
+                var ratio = Math.min(containerW / naturalW, containerH / naturalH);
+                contentWidth = naturalW * ratio;
+                contentHeight = naturalH * ratio;
+                
+                // 居中调整
+                left += (containerW - contentWidth) / 2;
+                top += (containerH - contentHeight) / 2;
+            } else {
+                // 图片未加载，等待加载完成
+                var imgClone = img.cloneNode();
+                imgClone.onload = function() {
+                    elemData._pendingUpdate = false;
+                    updateControl(elemData);
+                };
+                imgClone.onerror = function() {
+                    elemData._pendingUpdate = false;
+                };
+                // 如果已经等待过了，不再等待
+                if (!elemData._pendingUpdate) {
+                    elemData._pendingUpdate = true;
+                    return;
+                }
+            }
+        }
         
         control.style.left = left + 'px';
         control.style.top = top + 'px';
