@@ -288,9 +288,10 @@ function saveCustomization() {
             var screenH = parseFloat(div.style.height) || 0;
             
             // 转换为原图百分比坐标
-            // 原图坐标 = print area 开始位置 + (屏幕坐标 × 屏幕尺寸 / 原图尺寸)
-            var originalX = areaX + (screenX * displayRect.width / (displayRect.width * 100 / areaW)) / 100;
-            var originalY = areaY + (screenY * displayRect.height / (displayRect.height * 100 / areaH)) / 100;
+            // screenX/screenY 是相对于 print area 的百分比（0-100）
+            // originalX/originalY 是相对于原图的百分比（0-100）
+            var originalX = areaX + screenX * areaW / 100;
+            var originalY = areaY + screenY * areaH / 100;
             var originalW = screenW * areaW / 100;
             var originalH = screenH * areaH / 100;
             
