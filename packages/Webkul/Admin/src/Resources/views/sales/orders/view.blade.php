@@ -227,6 +227,26 @@
                                                                 
                                                                 // Get image URL directly from print_area data
                                                                 $backgroundUrl = $printArea['image_url'] ?? '';
+                                                                
+                                                                // Get print area position from database using print_area_id
+                                                                $paX = 0;
+                                                                $paY = 0;
+                                                                $paW = 100;
+                                                                $paH = 100;
+                                                                
+                                                                if (isset($printArea['print_area_id'])) {
+                                                                    try {
+                                                                        $printAreaRecord = Webkul\Product\Repositories\ProductImagePrintAreaRepository::find($printArea['print_area_id']);
+                                                                        if ($printAreaRecord) {
+                                                                            $paX = $printAreaRecord->x;
+                                                                            $paY = $printAreaRecord->y;
+                                                                            $paW = $printAreaRecord->width;
+                                                                            $paH = $printAreaRecord->height;
+                                                                        }
+                                                                    } catch (\Exception $e) {
+                                                                        // Use defaults if not found
+                                                                    }
+                                                                }
                                                             @endphp
                                                             <div 
                                                                 id="customization-preview-{{ $loop->parent->index }}-{{ $index }}"
@@ -235,10 +255,10 @@
                                                                 data-print-area-index="{{ $index }}"
                                                                 data-background-url="{{ $backgroundUrl }}"
                                                                 data-elements="{{ $elements }}"
-                                                                data-print-area-x="{{ $printArea['x'] ?? 0 }}"
-                                                                data-print-area-y="{{ $printArea['y'] ?? 0 }}"
-                                                                data-print-area-width="{{ $printArea['width'] ?? 100 }}"
-                                                                data-print-area-height="{{ $printArea['height'] ?? 100 }}"
+                                                                data-print-area-x="{{ $paX }}"
+                                                                data-print-area-y="{{ $paY }}"
+                                                                data-print-area-width="{{ $paW }}"
+                                                                data-print-area-height="{{ $paH }}"
                                                                 class="w-16 h-16 flex items-center justify-center bg-gray-100 rounded border border-gray-300 cursor-pointer select-none"
                                                                 onclick="openDesignFromAttr(this)"
                                                             >
