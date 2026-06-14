@@ -236,7 +236,8 @@
                                                                 
                                                                 if (isset($printArea['print_area_id'])) {
                                                                     try {
-                                                                        $printAreaRecord = Webkul\Product\Repositories\ProductImagePrintAreaRepository::find($printArea['print_area_id']);
+                                                                        $printAreaRepo = app('Webkul\Product\Repositories\ProductImagePrintAreaRepository');
+                                                                        $printAreaRecord = $printAreaRepo->find($printArea['print_area_id']);
                                                                         if ($printAreaRecord) {
                                                                             $paX = $printAreaRecord->x;
                                                                             $paY = $printAreaRecord->y;
