@@ -953,28 +953,38 @@ function updateControl(elemData) {
     var elem = document.querySelector('.canvas-elem[data-id="' + elemData.id + '"]');
     var dialog = document.getElementById('customization-dialog');
     
-    console.log('[DEBUG updateControl] control:', !!control, 'elem:', !!elem, 'dialog:', !!dialog);
-    
     if (control && elem && dialog) {
         var elemRect = elem.getBoundingClientRect();
         var dialogRect = dialog.getBoundingClientRect();
         
-        console.log('[DEBUG updateControl] elemRect:', elemRect);
-        console.log('[DEBUG updateControl] dialogRect:', dialogRect);
+        // 获取实际内容的尺寸（考虑 object-fit:contain）
+        var img = elem.querySelector('img');
+        var contentWidth = elemRect.width;
+        var contentHeight = elemRect.height;
+        
+        if (img && img.complete && img.naturalWidth > 0) {
+            // 图片的原始尺寸
+            var naturalW = img.naturalWidth;
+            var naturalH = img.naturalHeight;
+            // 容器的尺寸
+            var containerW = elemRect.width;
+            var containerH = elemRect.height;
+            
+            // 计算 object-fit:contain 后的实际尺寸
+            var ratio = Math.min(containerW / naturalW, containerH / naturalH);
+            contentWidth = naturalW * ratio;
+            contentHeight = naturalH * ratio;
+        }
         
         // 使用像素坐标，相对于 dialog
-        control.style.left = (elemRect.left - dialogRect.left) + 'px';
-        control.style.top = (elemRect.top - dialogRect.top) + 'px';
-        control.style.width = elemRect.width + 'px';
-        control.style.height = elemRect.height + 'px';
-        control.style.transform = 'rotate(' + (elemData.rotation || 0) + 'deg)';
+        var left = elemRect.left - dialogRect.left + (elemRect.width - contentWidth) / 2;
+        var top = elemRect.top - dialogRect.top + (elemRect.height - contentHeight) / 2;
         
-        console.log('[DEBUG updateControl] final style:', {
-            left: control.style.left,
-            top: control.style.top,
-            width: control.style.width,
-            height: control.style.height
-        });
+        control.style.left = left + 'px';
+        control.style.top = top + 'px';
+        control.style.width = contentWidth + 'px';
+        control.style.height = contentHeight + 'px';
+        control.style.transform = 'rotate(' + (elemData.rotation || 0) + 'deg)';
     }
 }
 
