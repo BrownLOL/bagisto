@@ -1081,8 +1081,8 @@
         }
 
         const canvas = document.createElement('canvas');
-        canvas.width = 400;
-        canvas.height = 400;
+        canvas.width = 1200;
+        canvas.height = 1200;
         const ctx = canvas.getContext('2d');
 
         const loadPromises = [];
