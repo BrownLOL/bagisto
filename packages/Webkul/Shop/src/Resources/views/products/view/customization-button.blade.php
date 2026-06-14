@@ -423,7 +423,7 @@ async function saveCustomizationWithPreview(previewImage, elements) {
         var designDataForStorage = {
             product_id: productId,
             print_areas: printAreas,
-            selectedImageKey: currentRecordKey,  // 保存当前选中的 print area
+            selectedImageKey: currentRecordKey || window.currentAreaData?.print_area_id || window.currentAreaData?.id,  // 保存当前选中的 print area
             updated_at: new Date().toISOString()
         };
         
@@ -483,97 +483,17 @@ function loadSavedCustomization() {
     }
     
     // Restore all print area data to layerStore
+    // selectProductImage will read from layerStore and create DOM elements
     printAreas.forEach(function(pa) {
+        // 统一使用 print_area_id 或 id 作为 key
+        var recordKey = pa.print_area_id || pa.id || pa.record_key || 'default';
         if (pa.elements && pa.elements.length > 0) {
-            var recordKey = pa.record_key || 'default';
             currentCanvas.layerStore[recordKey] = pa.elements;
             console.log('[DEBUG loadSavedCustomization] Restored record:', recordKey, 'with', pa.elements.length, 'elements');
         }
     });
     
-    // Check if current view has saved elements
-    var currentRecordKey = currentCanvas.currentImageKey;
-    if (currentRecordKey && currentCanvas.layerStore[currentRecordKey]) {
-        var elements = currentCanvas.layerStore[currentRecordKey];
-        
-        // Don't try to load preview_image - it's no longer stored in localStorage
-        // Background image is already set from window.currentAreaData.image_url
-        
-        // Update currentCanvas.elements to match layerStore (important for other functions)
-        currentCanvas.elements = elements.slice();
-        
-        // Wait for content to be ready, then restore elements
-        setTimeout(function() {
-            // Get canvas dimensions for debugging
-            var wrapper = document.querySelector('.canvas-wrapper');
-            var printArea = document.querySelector('.print-area-inner');
-            var wrapperRect = wrapper ? wrapper.getBoundingClientRect() : null;
-            var printAreaRect = printArea ? printArea.getBoundingClientRect() : null;
-            
-            console.log('[DEBUG loadSavedCustomization] Canvas dims - wrapper:', wrapperRect ? wrapperRect.width + 'x' + wrapperRect.height : 'null', 
-                        'printArea:', printAreaRect ? printAreaRect.width + 'x' + printAreaRect.height : 'null');
-            console.log('[DEBUG loadSavedCustomization] areaData:', JSON.stringify(window.currentAreaData));
-            
-            elements.forEach(function(elem, idx) {
-                console.log('[DEBUG loadSavedCustomization] Element', idx, ':', elem.type, 'at', elem.x + '%,', elem.y + '%');
-                
-                // Directly create DOM element instead of calling addUploadedImage/addTextToCanvas
-                // because selectProductImage already creates them from currentCanvas.elements
-                var areaData = window.currentAreaData;
-                var printAreaId = 'print-area-' + (areaData && (areaData.id || areaData.print_area_id) ? (areaData.id || areaData.print_area_id) : 'default');
-                var printArea = document.getElementById(printAreaId);
-                if (!printArea) return;
-                
-                var wrapper = document.createElement('div');
-                wrapper.className = 'canvas-elem';
-                var rotation = elem.rotation || 0;
-                var scaleX = elem.scaleX || 1;
-                var scaleY = elem.scaleY || 1;
-                wrapper.style.cssText = 'position:absolute;left:' + elem.x + '%;top:' + elem.y + '%;width:' + (elem.width || elem.w || 80) + '%;height:' + (elem.height || elem.h || 80) + '%;cursor:move;transform-origin:center center;transform:rotate(' + rotation + 'deg) scaleX(' + scaleX + ') scaleY(' + scaleY + ');';
-                
-                var elemData = {
-                    dom: wrapper,
-                    type: elem.type,
-                    content: elem.content,
-                    x: elem.x,
-                    y: elem.y,
-                    width: elem.width || elem.w,
-                    height: elem.height || elem.h,
-                    rotation: rotation,
-                    scaleX: scaleX,
-                    scaleY: scaleY,
-                    styles: elem.styles || {},
-                    id: Date.now() + idx
-                };
-                
-                if (elem.type === 'text') {
-                    var textSpan = document.createElement('span');
-                    textSpan.textContent = elem.content;
-                    textSpan.style.cssText = 'width:100%;height:100%;display:flex;align-items:center;justify-content:center;overflow:hidden;';
-                    if (elem.styles) {
-                        textSpan.style.fontSize = elem.styles.fontSize || '24px';
-                        textSpan.style.color = elem.styles.color || '#000';
-                        textSpan.style.fontFamily = elem.styles.fontFamily || 'Arial';
-                    }
-                    wrapper.appendChild(textSpan);
-                } else if (elem.type === 'image') {
-                    var img = document.createElement('img');
-                    img.src = elem.content;
-                    img.style.cssText = 'width:100%;height:100%;object-fit:contain;pointer-events:none;';
-                    wrapper.appendChild(img);
-                }
-                
-                wrapper._elemData = elemData;
-                setupElemEvents(wrapper, elemData);
-                printArea.appendChild(wrapper);
-                // Don't push to currentCanvas.elements - selectProductImage already did that
-            });
-            
-            console.log('[DEBUG loadSavedCustomization] Restored', elements.length, 'elements');
-            // Update preview after elements are created
-            updatePreview();
-        }, 200);
-    }
+    console.log('[DEBUG loadSavedCustomization] Data loaded to layerStore, waiting for selectProductImage');
 }
 
 // Add event listener for save button
@@ -698,10 +618,12 @@ function loadPrintAreas() {
                 
                 data.data.forEach(function(item) {
                     var imgUrl = item.image_url || item.url || '';
-                    var recordKey = item.id || item.record_id || imgUrl;
+                    // 统一使用 print_area_id 或 id 作为 key
+                    var recordKey = item.print_area_id || item.id || item.record_id || imgUrl;
                     var div = document.createElement('div');
                     div.className = 'product-image-item cursor-pointer border-2 border-gray-300 rounded p-1 hover:border-blue-500';
                     div.setAttribute('data-record-key', recordKey);
+                    div.setAttribute('data-image-url', imgUrl);
                     div.style.cssText = 'width: 100%; aspect-ratio: 1; object-fit: contain;';
                     div.innerHTML = '<img src="' + imgUrl + '" class="w-full h-full object-contain" />';
                     div.onclick = function() { selectProductImage(imgUrl, item); };
@@ -742,7 +664,7 @@ function selectProductImage(imgUrl, areaData) {
     var canvas = document.getElementById('design-canvas-inner');
 
     // 用记录ID作为key，而不是图片URL（同一图片可能有多个PrintArea记录）
-    var recordKey = areaData.id || areaData.record_id || imgUrl;
+    var recordKey = areaData.print_area_id || areaData.id || areaData.record_id || imgUrl;
 
     if (currentCanvas.currentImageKey && currentCanvas.elements.length > 0) {
         currentCanvas.layerStore[currentCanvas.currentImageKey] = currentCanvas.elements.slice();
