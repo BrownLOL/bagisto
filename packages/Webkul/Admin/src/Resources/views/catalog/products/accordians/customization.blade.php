@@ -339,27 +339,32 @@
 
             methods: {
                 openAddDialog() {
-                    // 合并图片列表：新上传的 + 已有的
+                    // 合并图片列表：从 DOM 获取 + 已有的
                     const images = [];
                     const seenUrls = new Set();
                     
-                    // 添加新上传的图片（从 window.customizationData）
-                    if (window.customizationData && window.customizationData.images) {
-                        window.customizationData.images.forEach(img => {
+                    // 从 DOM 中获取 media component 中的所有图片
+                    const mediaContainer = document.querySelector('.box-shadow.rounded.bg-white.p-4');
+                    if (mediaContainer) {
+                        const imgElements = mediaContainer.querySelectorAll('img[src*="/storage/"]');
+                        imgElements.forEach(img => {
+                            const src = img.src;
+                            if (src && !seenUrls.has(src)) {
+                                images.push({ id: Date.now() + Math.random(), url: src });
+                                seenUrls.add(src);
+                            }
+                        });
+                    }
+                    
+                    // 如果 DOM 没有图片，使用已保存的商品图片
+                    if (images.length === 0 && this.initialProductImages.length > 0) {
+                        this.initialProductImages.forEach(img => {
                             if (img.url && !seenUrls.has(img.url)) {
                                 images.push(img);
                                 seenUrls.add(img.url);
                             }
                         });
                     }
-                    
-                    // 添加已保存的商品图片（避免重复）
-                    this.initialProductImages.forEach(img => {
-                        if (img.url && !seenUrls.has(img.url)) {
-                            images.push(img);
-                            seenUrls.add(img.url);
-                        }
-                    });
                     
                     // 如果都没有，回退到初始图片
                     if (images.length === 0) {
