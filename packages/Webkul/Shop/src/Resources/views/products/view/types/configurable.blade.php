@@ -479,6 +479,13 @@
                 return;
             }
             
+            // 初始化当前产品的 design uuid（如果不存在）
+            var currentKey = 'current_design_' + productId;
+            if (!localStorage.getItem(currentKey)) {
+                var uuid = generateDesignUUID();
+                localStorage.setItem(currentKey, uuid);
+            }
+            
             // 记录最后检查的产品 ID
             window.lastCheckedVariantId = productId;
             
