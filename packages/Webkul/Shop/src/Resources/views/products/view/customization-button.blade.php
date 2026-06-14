@@ -830,7 +830,7 @@ function selectElem(elemData) {
     var elemH = elemData.h || elemData.height || 80;
     
     // 蓝框使用像素坐标，初始位置设为 0，后续由 updateControl 更新
-    control.style.cssText = 'position:absolute;left:0;top:0;width:0;height:0;border:2px solid #3b82f6;pointer-events:none;';
+    control.style.cssText = 'position:fixed;left:0;top:0;width:0;height:0;border:2px solid #3b82f6;pointer-events:none;';
     
     // 添加到 dialog 层级，避免被 overflow:hidden 裁剪
     dialog.appendChild(control);
@@ -877,10 +877,9 @@ function updateControl(elemData) {
         var contentWidth = elemRect.width;
         var contentHeight = elemRect.height;
         
-        // 蓝框使用 position: absolute，相对于 dialog 定位
-        // 计算 elem 相对于 dialog 的位置
-        var left = elemRect.left - dialogRect.left;
-        var top = elemRect.top - dialogRect.top;
+        // 蓝框使用 position: fixed，直接使用 elemRect 的值（相对于视口）
+        var left = elemRect.left;
+        var top = elemRect.top;
         
         // 如果有图片，等待图片加载完成后再调整位置
         if (img) {
