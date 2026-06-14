@@ -542,6 +542,6 @@
             openCustomizationDialog();
         }
     </script>
-    @endpush
+@endpushOnce
 
 @endif
