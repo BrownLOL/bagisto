@@ -476,36 +476,10 @@ function loadSavedCustomization() {
     
     // Get the print_areas array
     var printAreas = savedData.print_areas || [];
-    var savedSelectedKey = savedData.selectedImageKey;  // 获取保存时选中的 print area
     
     if (!printAreas || printAreas.length === 0) {
         console.log('[DEBUG loadSavedCustomization] No print areas to restore');
         return;
-    }
-    
-    // 如果有保存的 selectedImageKey，触发选择对应的图片
-    if (savedSelectedKey) {
-        console.log('[DEBUG loadSavedCustomization] Will select saved image key:', savedSelectedKey);
-        // 触发选择对应的图片按钮
-        setTimeout(function() {
-            var selector = '.print-area-selector[data-record-key="' + savedSelectedKey + '"]';
-            var btn = document.querySelector(selector);
-            if (btn) {
-                console.log('[DEBUG loadSavedCustomization] Clicking selector button for:', savedSelectedKey);
-                btn.click();
-            } else {
-                // 如果找不到按钮，尝试通过图片 URL 匹配
-                var savedPa = printAreas.find(function(pa) { return pa.record_key === savedSelectedKey; });
-                if (savedPa && savedPa.image_url) {
-                    var imgSelector = '.print-area-selector[data-image-url*="' + savedPa.image_url.split('/').pop() + '"]';
-                    var imgBtn = document.querySelector(imgSelector);
-                    if (imgBtn) {
-                        console.log('[DEBUG loadSavedCustomization] Clicking selector button by image URL for:', savedSelectedKey);
-                        imgBtn.click();
-                    }
-                }
-            }
-        }, 100);
     }
     
     // Restore all print area data to layerStore
@@ -734,7 +708,29 @@ function loadPrintAreas() {
                     productImagesDiv.appendChild(div);
                 });
                 
-                selectProductImage(data.data[0].image_url || data.data[0].url, data.data[0]);
+                // 根据保存的状态选择图片
+                var savedData = null;
+                try {
+                    savedData = JSON.parse(localStorage.getItem('design_' + window.designUUID));
+                } catch(e) {}
+                
+                if (savedData && savedData.selectedImageKey) {
+                    // 有保存的状态，选择对应的图片
+                    var targetItem = data.data.find(function(item) {
+                        return (item.id || item.record_id || item.image_url || item.url) === savedData.selectedImageKey;
+                    });
+                    if (targetItem) {
+                        var targetUrl = targetItem.image_url || targetItem.url;
+                        console.log('[DEBUG loadPrintAreas] Selecting saved image:', savedData.selectedImageKey);
+                        selectProductImage(targetUrl, targetItem);
+                    } else {
+                        // 找不到对应图片，选择第一张
+                        selectProductImage(data.data[0].image_url || data.data[0].url, data.data[0]);
+                    }
+                } else {
+                    // 没有保存的状态，选择第一张
+                    selectProductImage(data.data[0].image_url || data.data[0].url, data.data[0]);
+                }
             }
         });
 }
