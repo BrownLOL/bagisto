@@ -235,6 +235,10 @@
                                                                 data-print-area-index="{{ $index }}"
                                                                 data-background-url="{{ $backgroundUrl }}"
                                                                 data-elements="{{ $elements }}"
+                                                                data-print-area-x="{{ $printArea['x'] ?? 0 }}"
+                                                                data-print-area-y="{{ $printArea['y'] ?? 0 }}"
+                                                                data-print-area-width="{{ $printArea['width'] ?? 100 }}"
+                                                                data-print-area-height="{{ $printArea['height'] ?? 100 }}"
                                                                 class="w-16 h-16 flex items-center justify-center bg-gray-100 rounded border border-gray-300 cursor-pointer select-none"
                                                                 onclick="openDesignFromAttr(this)"
                                                             >
@@ -1066,14 +1070,14 @@
     }
 
     // 渲染自定义预览画布
-    function renderCustomizationPreview(itemIndex, printAreaIndex, backgroundUrl, elements) {
+    function renderCustomizationPreview(itemIndex, printAreaIndex, backgroundUrl, elements, printAreaX, printAreaY, printAreaW, printAreaH) {
         const container = document.getElementById('customization-preview-' + itemIndex + '-' + printAreaIndex);
         console.log('[DEBUG] renderCustomizationPreview:', {
             itemIndex,
             printAreaIndex,
             backgroundUrl,
             elementsCount: elements?.length,
-            elements: elements
+            printArea: { x: printAreaX, y: printAreaY, w: printAreaW, h: printAreaH }
         });
         if (!container || !elements || elements.length === 0) {
             console.log('[DEBUG] Skipped: no container or elements');
@@ -1088,6 +1092,12 @@
         const loadPromises = [];
         let hasBackground = false;
 
+        // 计算 print area 在 canvas 上的实际像素位置
+        const paX = (printAreaX / 100) * canvas.width;
+        const paY = (printAreaY / 100) * canvas.height;
+        const paW = (printAreaW / 100) * canvas.width;
+        const paH = (printAreaH / 100) * canvas.height;
+
         // 加载背景图
         if (backgroundUrl) {
             const bgPromise = new Promise((resolve) => {
@@ -1095,6 +1105,15 @@
                 img.onload = () => {
                     hasBackground = true;
                     ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                    
+                    // 如果有 print area 位置信息，设置裁剪区域
+                    if (printAreaX !== undefined && printAreaY !== undefined && printAreaW !== undefined && printAreaH !== undefined) {
+                        ctx.save();
+                        ctx.beginPath();
+                        ctx.rect(paX, paY, paW, paH);
+                        ctx.clip();
+                        console.log('[DEBUG] Clip region set: x:', paX, 'y:', paY, 'w:', paW, 'h:', paH);
+                    }
                     resolve();
                 };
                 img.onerror = () => {
@@ -1186,9 +1205,16 @@
 
         Promise.all(loadPromises).then(() => {
             console.log('[DEBUG] All images loaded, finalizing canvas');
+            
             if (!hasBackground) {
                 ctx.fillStyle = '#e5e7eb';
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
+            }
+            
+            // 如果有 print area 位置信息，恢复裁剪区域（元素已绘制完成）
+            if (printAreaX !== undefined && printAreaY !== undefined && printAreaW !== undefined && printAreaH !== undefined) {
+                ctx.restore();
+                console.log('[DEBUG] Clip region restored');
             }
 
             const dataUrl = canvas.toDataURL('image/png');
@@ -1284,7 +1310,11 @@
                                     el.dataset.itemIndex,
                                     el.dataset.printAreaIndex,
                                     data.image_url,
-                                    data.elements
+                                    data.elements,
+                                    parseFloat(el.dataset.printAreaX) || 0,
+                                    parseFloat(el.dataset.printAreaY) || 0,
+                                    parseFloat(el.dataset.printAreaWidth) || 100,
+                                    parseFloat(el.dataset.printAreaHeight) || 100
                                 );
                             }
                         }, 100);
