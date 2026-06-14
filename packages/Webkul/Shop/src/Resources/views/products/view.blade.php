@@ -980,7 +980,12 @@
                         this.isStoring[operation] = true;
 
                         // 检查是否有定制设计
-                        const productId = "{{ $product->id }}";
+                        // 对于 Configurable 产品，使用选中的子产品 ID
+                        const mainProductId = "{{ $product->id }}";
+                        const selectedOption = document.getElementById('selected_configurable_option');
+                        const productId = selectedOption && selectedOption.value 
+                            ? selectedOption.value 
+                            : mainProductId;
                         const currentDesignKey = 'current_design_' + productId;
                         const designUUID = localStorage.getItem(currentDesignKey);
                         
