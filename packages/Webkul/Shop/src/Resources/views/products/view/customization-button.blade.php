@@ -403,10 +403,17 @@ async function saveCustomizationWithPreview(previewImage, elements) {
             return pa.record_key === currentRecordKey;
         });
         
+        // 获取 print area 位置信息
+        var areaData = window.currentAreaData || {};
         var recordData = {
             print_area_id: parseInt(printAreaId),
             record_key: currentRecordKey,
-            image_url: window.currentAreaData?.image_url || window.currentAreaData?.url || '',
+            image_url: areaData.image_url || areaData.url || '',
+            // 保存 print area 位置信息（百分比）
+            x: areaData.x || 0,
+            y: areaData.y || 0,
+            width: areaData.width || 100,
+            height: areaData.height || 100,
             // 屏幕百分比坐标，元素内容
             elements: elements
         };
