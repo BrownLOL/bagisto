@@ -1203,12 +1203,15 @@
                 console.log('[DEBUG] First element sample:', data.elements?.[0]);
                 
                 // 使用原图坐标重新绘制预览
-                renderCustomizationPreview(
-                    itemIndex,
-                    printAreaIndex,
-                    backgroundUrl,
-                    data.elements || []
-                );
+                // 延迟执行，等待 Vue 渲染完成
+                setTimeout(function() {
+                    renderCustomizationPreview(
+                        itemIndex,
+                        printAreaIndex,
+                        backgroundUrl,
+                        data.elements || []
+                    );
+                }, 500);
             } catch (e) {
                 console.error('渲染预览失败:', e);
             }
