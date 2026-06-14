@@ -83,6 +83,9 @@
         <x-shop::shimmer.products.view />
     </v-product>
 
+<!-- Customization product ID for JS -->
+<div id="customization-product-id" data-id="{{ $product->id ?? 0 }}" class="hidden"></div>
+
 <!-- Customization Dialog -->
 <div id="customization-dialog" class="fixed inset-0 bg-black bg-opacity-50 hidden overflow-y-auto" style="z-index: 99999;" onclick="if(event.target===this)closeDialog()">
     <div class="bg-white rounded-lg shadow-xl mx-auto p-4 flex flex-col" style="width: 1200px; height: 700px; margin-top: 100px;">

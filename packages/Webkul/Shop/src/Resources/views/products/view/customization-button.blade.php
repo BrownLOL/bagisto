@@ -1,5 +1,3 @@
-<div id="customization-product-id" data-id="{{ $product->id ?? 0 }}" class="hidden"></div>
-
 <button
     type="button"
     onclick="event.preventDefault(); openCustomizationDialog();"
@@ -59,7 +57,7 @@ function checkDesignStatus() {
     console.log('[DEBUG checkDesignStatus] No saved design');
 }
 
-(function() {
+document.addEventListener('DOMContentLoaded', function() {
     var el = document.getElementById('customization-product-id');
     if (el) {
         window.customizationProductId = parseInt(el.dataset.id) || 0;
@@ -120,7 +118,7 @@ function checkDesignStatus() {
         
         // Check if there's a saved design and show status icon
         checkDesignStatus();
-    }
+    });
     
     function checkPrintAreasAndShowButton() {
         var productId = window.customizationProductId;
