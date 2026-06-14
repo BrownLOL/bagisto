@@ -302,6 +302,7 @@ function saveCustomization() {
             });
             
             var elem = {
+                id: elemData.id,  // 保存元素 id，用于图层切换
                 type: elemData.type,
                 content: elemData.content,
                 // 屏幕坐标（用于前台显示和选择框）
