@@ -274,6 +274,7 @@
                 return {
                     productId: {{ $product->id ?? 0 }},
                     allImages: {!! json_encode($productImages ?? [], JSON_UNESCAPED_SLASHES) !!},
+                    initialProductImages: {!! json_encode($productImages ?? [], JSON_UNESCAPED_SLASHES) !!},
                     imagesWithAreas: {!! json_encode($imagesWithAreas ?? [], JSON_UNESCAPED_SLASHES) !!},
                     dialogSelectedImageId: '',
                     dialogSelectedImageUrl: '',
@@ -322,10 +323,10 @@
 
             methods: {
                 openAddDialog() {
-                    // Get images from DOM media component in real-time
-                    this.allImages = [];
+                    // 保存当前图片列表（用于去重）
+                    const currentImages = this.allImages.slice();
                     
-                    // Try to get images from Vue component
+                    // 尝试从 DOM 获取实时上传的图片
                     const mediaComponent = document.querySelector('[data-v-media-images]');
                     if (mediaComponent && mediaComponent.__vueParentComponent) {
                         const instance = mediaComponent.__vueParentComponent.ctx;
@@ -338,38 +339,35 @@
                                     
                                     const reader = new FileReader();
                                     reader.onload = (e) => {
-                                        this.allImages.push({
-                                            id: blobKey,
-                                            url: e.target.result,
-                                            path: blobKey
-                                        });
+                                        // 检查是否已存在
+                                        if (!currentImages.some(i => i.url === e.target.result)) {
+                                            currentImages.push({
+                                                id: blobKey,
+                                                url: e.target.result,
+                                                path: blobKey
+                                            });
+                                        }
                                     };
                                     reader.readAsDataURL(img.file);
                                 } else if (img.url) {
                                     // Existing image
-                                    this.allImages.push({
-                                        id: img.id,
-                                        url: img.url,
-                                        path: img.path || img.url
-                                    });
+                                    if (!currentImages.some(i => i.url === img.url)) {
+                                        currentImages.push({
+                                            id: img.id,
+                                            url: img.url,
+                                            path: img.path || img.url
+                                        });
+                                    }
                                 }
                             });
                         }
                     }
                     
-                    // Fallback: get from dataImages div
-                    if (this.allImages.length === 0) {
-                        const dataImagesDiv = document.querySelector('.dataImages');
-                        if (dataImagesDiv) {
-                            const imgElements = dataImagesDiv.querySelectorAll('img');
-                            imgElements.forEach((img, index) => {
-                                this.allImages.push({
-                                    id: 'dom_img_' + index,
-                                    url: img.src,
-                                    path: img.src
-                                });
-                            });
-                        }
+                    // 回退：如果没有获取到新图片，使用初始产品图片
+                    if (currentImages.length === 0 && this.initialProductImages.length > 0) {
+                        this.allImages = this.initialProductImages.slice();
+                    } else {
+                        this.allImages = currentImages;
                     }
 
                     this.isEditMode = false;
