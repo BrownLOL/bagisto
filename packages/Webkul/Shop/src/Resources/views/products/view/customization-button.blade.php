@@ -830,6 +830,37 @@ function addUploadedImage(dataUrl, x, y, w, h, rotation, scaleX, scaleY, id) {
     selectElem(elemData);
     updateLayersList();
     updatePreview();
+    
+    // 如果是 base64（文字元素），上传到服务器获取 URL
+    if (dataUrl && dataUrl.startsWith('data:image')) {
+        uploadAndUpdateContent(elemData, dataUrl);
+    }
+}
+
+function uploadAndUpdateContent(elemData, base64Data) {
+    fetch('/customization/save-base64-image', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || ''
+        },
+        body: JSON.stringify({ image: base64Data })
+    })
+    .then(function(response) { return response.json(); })
+    .then(function(result) {
+        if (result.success && result.url) {
+            elemData.content = result.url;
+            if (elemData.dom) {
+                var img = elemData.dom.querySelector('img');
+                if (img) img.src = result.url;
+            }
+            updateLayersList();
+            console.log('[DEBUG] Text image uploaded:', result.url);
+        }
+    })
+    .catch(function(err) {
+        console.error('[DEBUG] Text image upload failed:', err);
+    });
 }
 
 function updateLayersList() {
