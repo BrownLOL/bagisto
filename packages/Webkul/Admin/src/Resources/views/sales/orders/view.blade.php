@@ -993,29 +993,90 @@
 
     <!-- Design Preview Modal -->
     <div id="designPreviewModal" onclick="closeDesignPreview()" style="display: none; position: fixed; inset: 0; z-index: 99999; background: rgba(0,0,0,0.8); cursor: pointer;">
-        <div onclick="event.stopPropagation(); return false;" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); max-width: 90vw; max-height: 90vh;">
+        <div onclick="event.stopPropagation(); return false;" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);">
+            <!-- 关闭按钮 -->
             <button onclick="closeDesignPreview(); return false;" style="position: absolute; top: -40px; right: 0; background: none; border: none; color: white; font-size: 28px; cursor: pointer; z-index: 100000;">&times;</button>
-            <img id="designPreviewImage" src="" style="max-width: 90vw; max-height: 85vh; display: block;" />
+            <!-- 缩放控制 -->
+            <div style="position: absolute; top: -40px; left: 0; display: flex; gap: 8px; z-index: 100000;">
+                <button onclick="zoomDesignPreview(-0.1); return false;" style="background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.4); color: white; width: 32px; height: 32px; border-radius: 4px; cursor: pointer; font-size: 18px; line-height: 1;">−</button>
+                <span id="zoomLevelDisplay" style="background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.4); color: white; padding: 0 12px; height: 32px; line-height: 32px; border-radius: 4px; font-size: 14px;">100%</span>
+                <button onclick="zoomDesignPreview(0.1); return false;" style="background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.4); color: white; width: 32px; height: 32px; border-radius: 4px; cursor: pointer; font-size: 18px; line-height: 1;">+</button>
+                <button onclick="resetZoomDesignPreview(); return false;" style="background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.4); color: white; padding: 0 12px; height: 32px; line-height: 32px; border-radius: 4px; cursor: pointer; font-size: 12px;">Reset</button>
+            </div>
+            <!-- 预览图片 -->
+            <img id="designPreviewImage" src="" style="max-width: 90vw; max-height: 85vh; display: block; cursor: zoom-out;" />
         </div>
     </div>
 
     <script>
     // 提前初始化全局画布容器
     window.customizationCanvases = window.customizationCanvases || {};
+    window.designPreviewZoom = 1; // 缩放级别
 
     function showDesignPreview(src) {
         const modal = document.getElementById('designPreviewModal');
         const img = document.getElementById('designPreviewImage');
         if (modal && img) {
             img.src = src;
+            window.designPreviewZoom = 1; // 重置缩放
+            updatePreviewImageStyle();
             modal.style.display = 'block';
         }
+    }
+
+    // 更新预览图片样式
+    function updatePreviewImageStyle() {
+        const img = document.getElementById('designPreviewImage');
+        const zoomDisplay = document.getElementById('zoomLevelDisplay');
+        if (img && zoomDisplay) {
+            img.style.transform = 'scale(' + window.designPreviewZoom + ')';
+            img.style.transformOrigin = 'center center';
+            zoomDisplay.textContent = Math.round(window.designPreviewZoom * 100) + '%';
+        }
+    }
+
+    // 缩放预览图
+    function zoomDesignPreview(delta) {
+        window.designPreviewZoom = Math.max(0.5, Math.min(3, window.designPreviewZoom + delta));
+        updatePreviewImageStyle();
+    }
+
+    // 重置缩放
+    function resetZoomDesignPreview() {
+        window.designPreviewZoom = 1;
+        updatePreviewImageStyle();
     }
 
     function closeDesignPreview() {
         const modal = document.getElementById('designPreviewModal');
         if (modal) modal.style.display = 'none';
     }
+
+    // 键盘事件监听 (+/-/0/ESC)
+    document.addEventListener('keydown', function(e) {
+        const modal = document.getElementById('designPreviewModal');
+        if (modal && modal.style.display === 'block') {
+            if (e.key === '+' || e.key === '=') {
+                zoomDesignPreview(0.1);
+            } else if (e.key === '-') {
+                zoomDesignPreview(-0.1);
+            } else if (e.key === '0') {
+                resetZoomDesignPreview();
+            } else if (e.key === 'Escape') {
+                closeDesignPreview();
+            }
+        }
+    });
+
+    // 鼠标滚轮缩放
+    document.addEventListener('wheel', function(e) {
+        const modal = document.getElementById('designPreviewModal');
+        if (modal && modal.style.display === 'block') {
+            e.preventDefault();
+            const delta = e.deltaY > 0 ? -0.1 : 0.1;
+            zoomDesignPreview(delta);
+        }
+    }, { passive: false });
 
     // 核心点击方法：从当前DOM取值并打开预览
     function openDesignFromAttr(el) {
