@@ -118,7 +118,7 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Check if there's a saved design and show status icon
         checkDesignStatus();
-    });
+    }
     
     function checkPrintAreasAndShowButton() {
         var productId = window.customizationProductId;
@@ -153,7 +153,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Start polling
     waitForElementAndInit();
-})();
+});
 
 var currentCanvas = {
     elements: [],
