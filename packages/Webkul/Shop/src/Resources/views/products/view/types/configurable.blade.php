@@ -527,7 +527,7 @@
                     }
                 })
                 .catch(function(error) {
-                    console.log('Error checking design status:', error);
+
                 });
         }
         

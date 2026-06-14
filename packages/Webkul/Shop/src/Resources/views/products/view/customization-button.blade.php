@@ -47,7 +47,7 @@ function checkDesignStatus() {
                     });
                     if (hasElements) {
                         statusIcon.classList.remove('hidden');
-                        console.log('[DEBUG checkDesignStatus] Saved design found:', currentUuid);
+
                         return;
                     }
                 }
@@ -56,7 +56,7 @@ function checkDesignStatus() {
     }
     
     statusIcon.classList.add('hidden');
-    console.log('[DEBUG checkDesignStatus] No saved design');
+
 }
 
 (function() {
@@ -134,15 +134,15 @@ function checkDesignStatus() {
                 if (data.success && data.data && data.data.length > 0) {
                     // Has print areas → show button
                     btn.classList.remove('hidden');
-                    console.log('[DEBUG checkPrintAreas] Product has print areas, showing button');
+
                 } else {
                     // No print areas → hide button
                     btn.classList.add('hidden');
-                    console.log('[DEBUG checkPrintAreas] Product has no print areas, hiding button');
+
                 }
             })
             .catch(function(err) {
-                console.error('[DEBUG checkPrintAreas] Error:', err);
+
                 // On error, hide button
                 var btn = document.getElementById('customize-now-btn');
                 if (btn) btn.classList.add('hidden');
@@ -179,7 +179,7 @@ function getDesignUUID() {
     
     if (uuid) {
         window.designUUID = uuid;
-        console.log('[DEBUG getDesignUUID] Using current design UUID:', uuid);
+
         return uuid;
     }
     
@@ -187,15 +187,14 @@ function getDesignUUID() {
     uuid = generateDesignUUID();
     localStorage.setItem(currentKey, uuid);
     window.designUUID = uuid;
-    console.log('[DEBUG getDesignUUID] Generated new UUID:', uuid);
+
     return uuid;
 }
 
 function openCustomizationDialog() {
     // Get or create UUID (persists during session via sessionStorage)
     window.designUUID = getDesignUUID();
-    console.log('[DEBUG openCustomizationDialog] Design UUID:', window.designUUID);
-    
+
     document.getElementById('customization-dialog').classList.remove('hidden');
     document.body.style.overflow = 'hidden';
     currentCanvas.elements = [];
@@ -206,7 +205,7 @@ function openCustomizationDialog() {
     initTextControls();
     resetZoom();
     initCanvasPan();
-    console.log('Opening dialog, productId:', window.customizationProductId);
+
 }
 
 function closeDialog() {
@@ -225,8 +224,7 @@ function clearSavedDesign() {
     updateLayersList();
     updateOperationButtons();
     updatePreview();
-    
-    console.log('[DEBUG clearSavedDesign] Elements cleared from canvas');
+
 }
 
 function saveCustomization() {
@@ -253,33 +251,17 @@ function saveCustomization() {
     
     var elements = [];
     var elemDivs = printArea.querySelectorAll('.canvas-elem');
-    console.log('[DEBUG] Found', elemDivs.length, 'elements in print area');
-    
+
     // 获取屏幕显示尺寸和原图尺寸用于坐标转换
     var displayRect = printArea.getBoundingClientRect();
     var areaX = areaData.x;      // 原图 print area X 百分比
     var areaY = areaData.y;      // 原图 print area Y 百分比
     var areaW = areaData.width;   // 原图 print area 宽度百分比
     var areaH = areaData.height;  // 原图 print area 高度百分比
-    
-    console.log('[DEBUG saveCustomization] Area info:', {
-        displayWidth: displayRect.width,
-        displayHeight: displayRect.height,
-        originalX: areaX,
-        originalY: areaY,
-        originalW: areaW,
-        originalH: areaH
-    });
-    
+
     elemDivs.forEach(function(div, index) {
         var elemData = div._elemData;
-        console.log('[DEBUG] Element', index, 'styles:', { 
-            left: div.style.left, 
-            top: div.style.top, 
-            width: div.style.width, 
-            height: div.style.height,
-            _elemData: elemData
-        });
+
         if (elemData) {
             // 屏幕百分比坐标
             var screenX = parseFloat(div.style.left) || 0;
@@ -294,14 +276,7 @@ function saveCustomization() {
             var originalY = areaY + screenY * areaH / 100;
             var originalW = screenW * areaW / 100;
             var originalH = screenH * areaH / 100;
-            
-            console.log('[DEBUG] Element', index, 'coordinate conversion:', {
-                screenX: screenX + '%',
-                screenY: screenY + '%',
-                originalX: originalX + '%',
-                originalY: originalY + '%'
-            });
-            
+
             var elem = {
                 id: elemData.id,  // 保存元素 id，用于图层切换
                 type: elemData.type,
@@ -328,10 +303,8 @@ function saveCustomization() {
     // Save elements with their original screen coordinates
     // The coordinates will be converted when displaying in admin
     var productId = window.customizationProductId;
-    
-    console.log('[DEBUG saveCustomization] Starting with elements count:', elements.length);
-    console.log('[DEBUG saveCustomization] Will save screen coordinates, convert later');
-    
+
+
     // Save elements directly without generating preview image
     // Preview will be generated in admin when displaying
     saveCustomizationWithPreview('', elements);
@@ -355,11 +328,11 @@ async function uploadPreviewImage(previewImage) {
         
         const result = await response.json();
         if (result.success) {
-            console.log('[DEBUG] Preview image uploaded:', result.url);
+
             return result.url;
         }
     } catch (error) {
-        console.error('[DEBUG] Preview upload failed:', error);
+
     }
     
     return previewImage; // 上传失败，返回原始 base64
@@ -368,21 +341,15 @@ async function uploadPreviewImage(previewImage) {
 // 保存设计（保存元素数据，不生成预览图）
 async function saveCustomizationWithPreview(previewImage, elements) {
     var productId = window.customizationProductId;
-    
-    console.log('[DEBUG saveCustomizationWithPreview] Starting');
-    console.log('[DEBUG saveCustomizationWithPreview] elements count:', elements.length);
-    
+
+
     // Prepare customization data for current print area
     var uuid = getDesignUUID(); // Ensure we have a UUID
-    
-    console.log('[DEBUG saveCustomizationWithPreview] UUID:', uuid);
-    
+
     // Get current print area record key
     var currentRecordKey = currentCanvas.currentImageKey || 'default';
     var printAreaId = window.currentAreaData?.id || window.currentAreaData?.print_area_id;
-    
-    console.log('[DEBUG saveCustomizationWithPreview] currentRecordKey:', currentRecordKey, 'printAreaId:', printAreaId);
-    
+
     if (uuid && elements.length > 0) {
         var designKey = 'design_' + uuid;
         
@@ -417,9 +384,7 @@ async function saveCustomizationWithPreview(previewImage, elements) {
             // 屏幕百分比坐标，元素内容
             elements: elements
         };
-        
-        console.log('[DEBUG saveCustomizationWithPreview] recordData elements count:', elements.length);
-        
+
         if (existingIndex >= 0) {
             printAreas[existingIndex] = recordData;
         } else {
@@ -435,9 +400,8 @@ async function saveCustomizationWithPreview(previewImage, elements) {
         };
         
         localStorage.setItem(designKey, JSON.stringify(designDataForStorage));
+
         
-        console.log('[DEBUG saveCustomizationWithPreview] Saved to localStorage, key:', designKey);
-        console.log('[DEBUG saveCustomizationWithPreview] Elements:', JSON.stringify(elements, null, 2));
         
         // Ensure UUID is in the list
         var uuidsKey = 'design_uuids_' + productId;
@@ -459,25 +423,24 @@ async function saveCustomizationWithPreview(previewImage, elements) {
 function loadSavedCustomization() {
     var uuid = getDesignUUID(); // Get current UUID (creates one if not exists)
     if (!uuid) {
-        console.log('[DEBUG loadSavedCustomization] No design UUID, skipping load');
+
         return;
     }
     
     var key = 'design_' + uuid;
-    console.log('[DEBUG loadSavedCustomization] Start, key:', key);
-    
+
     var saved = localStorage.getItem(key);
     if (!saved) {
-        console.log('[DEBUG loadSavedCustomization] No saved data');
+
         return;
     }
     
     var savedData;
     try {
         savedData = JSON.parse(saved);
-        console.log('[DEBUG loadSavedCustomization] Parsed:', savedData);
+
     } catch(e) {
-        console.error('[DEBUG loadSavedCustomization] Parse error:', e);
+
         return;
     }
     
@@ -485,7 +448,7 @@ function loadSavedCustomization() {
     var printAreas = savedData.print_areas || [];
     
     if (!printAreas || printAreas.length === 0) {
-        console.log('[DEBUG loadSavedCustomization] No print areas to restore');
+
         return;
     }
     
@@ -496,11 +459,10 @@ function loadSavedCustomization() {
         var recordKey = pa.print_area_id || pa.id || pa.record_key || 'default';
         if (pa.elements && pa.elements.length > 0) {
             currentCanvas.layerStore[recordKey] = pa.elements;
-            console.log('[DEBUG loadSavedCustomization] Restored record:', recordKey, 'with', pa.elements.length, 'elements');
+
         }
     });
-    
-    console.log('[DEBUG loadSavedCustomization] Data loaded to layerStore, waiting for selectProductImage');
+
 }
 
 // Add event listener for save button
@@ -650,7 +612,7 @@ function loadPrintAreas() {
                     });
                     if (targetItem) {
                         var targetUrl = targetItem.image_url || targetItem.url;
-                        console.log('[DEBUG loadPrintAreas] Selecting saved image:', savedData.selectedImageKey);
+
                         selectProductImage(targetUrl, targetItem);
                     } else {
                         // 找不到对应图片，选择第一张
@@ -808,11 +770,11 @@ function uploadAndUpdateContent(elemData, base64Data) {
                 if (img) img.src = result.url;
             }
             updateLayersList();
-            console.log('[DEBUG] Text image uploaded:', result.url);
+
         }
     })
     .catch(function(err) {
-        console.error('[DEBUG] Text image upload failed:', err);
+
     });
 }
 
@@ -1090,7 +1052,7 @@ function setupElemEvents(wrapper, elemData) {
     var startX, startY, startX2, startY2, startW, startH, startAngle, startRot;
     
     wrapper.addEventListener('mousedown', function(e) {
-        console.log('[DEBUG mousedown] target:', e.target.className, 'dataset.action:', e.target.dataset.action);
+
         if (e.target.dataset.action) return;
         isDrag = true;
         startX = e.clientX;
@@ -1098,7 +1060,7 @@ function setupElemEvents(wrapper, elemData) {
         startX2 = elemData.x;
         startY2 = elemData.y;
         selectElem(elemData);
-        console.log('[DEBUG mousedown] isDrag:', isDrag, 'selectedElement:', currentCanvas.selectedElement === elemData);
+
         e.stopPropagation();
         e.preventDefault();
     });
@@ -1141,9 +1103,7 @@ function setupElemEvents(wrapper, elemData) {
         if (!pa) {
             return;
         }
-        
-        console.log('[DEBUG mousemove] isDrag:', isDrag, 'dx:', e.clientX - startX, 'dy:', e.clientY - startY);
-        
+
         if (isDrag) {
             var dx = e.clientX - startX;
             var dy = e.clientY - startY;
@@ -1278,15 +1238,15 @@ document.addEventListener('change', function(e) {
                             div.innerHTML = '<img src="' + imgUrl + '" class="w-full h-full object-contain" />';
                             div.onclick = function() { addUploadedImage(imgUrl); };
                             uploadedImagesDiv.appendChild(div);
-                            console.log('[DEBUG image upload] Success:', imgUrl);
+
                         } else {
-                            console.error('[DEBUG image upload] Failed:', result);
+
                             alert('Image upload failed. Please try again.');
                         }
                     })
                     .catch(function(err) {
                         loadingDiv.remove();
-                        console.error('[DEBUG image upload] Error:', err);
+
                         alert('Image upload failed. Please try again.');
                     });
                 };
