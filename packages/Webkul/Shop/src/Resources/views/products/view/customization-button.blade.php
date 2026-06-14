@@ -423,6 +423,7 @@ async function saveCustomizationWithPreview(previewImage, elements) {
         var designDataForStorage = {
             product_id: productId,
             print_areas: printAreas,
+            selectedImageKey: currentRecordKey,  // 保存当前选中的 print area
             updated_at: new Date().toISOString()
         };
         
@@ -475,10 +476,36 @@ function loadSavedCustomization() {
     
     // Get the print_areas array
     var printAreas = savedData.print_areas || [];
+    var savedSelectedKey = savedData.selectedImageKey;  // 获取保存时选中的 print area
     
     if (!printAreas || printAreas.length === 0) {
         console.log('[DEBUG loadSavedCustomization] No print areas to restore');
         return;
+    }
+    
+    // 如果有保存的 selectedImageKey，触发选择对应的图片
+    if (savedSelectedKey) {
+        console.log('[DEBUG loadSavedCustomization] Will select saved image key:', savedSelectedKey);
+        // 触发选择对应的图片按钮
+        setTimeout(function() {
+            var selector = '.print-area-selector[data-record-key="' + savedSelectedKey + '"]';
+            var btn = document.querySelector(selector);
+            if (btn) {
+                console.log('[DEBUG loadSavedCustomization] Clicking selector button for:', savedSelectedKey);
+                btn.click();
+            } else {
+                // 如果找不到按钮，尝试通过图片 URL 匹配
+                var savedPa = printAreas.find(function(pa) { return pa.record_key === savedSelectedKey; });
+                if (savedPa && savedPa.image_url) {
+                    var imgSelector = '.print-area-selector[data-image-url*="' + savedPa.image_url.split('/').pop() + '"]';
+                    var imgBtn = document.querySelector(imgSelector);
+                    if (imgBtn) {
+                        console.log('[DEBUG loadSavedCustomization] Clicking selector button by image URL for:', savedSelectedKey);
+                        imgBtn.click();
+                    }
+                }
+            }
+        }, 100);
     }
     
     // Restore all print area data to layerStore
