@@ -479,13 +479,20 @@
                 return;
             }
             
-            // 1. 初始化当前产品的 design uuid（如果不存在）
+            // 1. 初始化/覆盖当前产品的 design uuid（与 Simple 产品一致）
             var currentKey = 'current_design_' + productId;
-            var uuid = localStorage.getItem(currentKey);
-            if (!uuid) {
+            var urlParams = new URLSearchParams(window.location.search);
+            var urlUuid = urlParams.get('design_uuid');
+            
+            var uuid;
+            if (urlUuid) {
+                // URL 有 uuid → 使用 URL 中的 uuid
+                uuid = urlUuid;
+            } else {
+                // URL 没有 uuid → 生成新的 uuid，覆盖 localStorage
                 uuid = generateDesignUUID();
-                localStorage.setItem(currentKey, uuid);
             }
+            localStorage.setItem(currentKey, uuid);
             
             // 2. 设置 window.designUUID（与其他地方保持一致）
             window.designUUID = uuid;
