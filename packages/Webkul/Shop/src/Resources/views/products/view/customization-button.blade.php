@@ -877,9 +877,10 @@ function updateControl(elemData) {
         var contentWidth = elemRect.width;
         var contentHeight = elemRect.height;
         
-        // 蓝框使用 position: absolute，直接使用 elemRect 的值（相对于视口）
-        var left = elemRect.left;
-        var top = elemRect.top;
+        // 蓝框使用 position: absolute，相对于 dialog 定位
+        // 计算 elem 相对于 dialog 的位置
+        var left = elemRect.left - dialogRect.left;
+        var top = elemRect.top - dialogRect.top;
         
         // 如果有图片，等待图片加载完成后再调整位置
         if (img) {
