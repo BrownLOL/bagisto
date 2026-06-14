@@ -289,6 +289,7 @@
                     drawStartY: 0,
                     saving: false,
                     blobFiles: {}, // Store blob files for later upload
+                    removedAreas: [], // 已删除的区域（用于过滤图片）
                 }
             },
 
