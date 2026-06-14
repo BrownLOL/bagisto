@@ -201,12 +201,12 @@ function openCustomizationDialog() {
     currentCanvas.elements = [];
     currentCanvas.selectedElement = null;
     updateOperationButtons();
+    loadSavedCustomization(); // Load from localStorage first
     loadPrintAreas();
     initTextControls();
     resetZoom();
     initCanvasPan();
     console.log('Opening dialog, productId:', window.customizationProductId);
-    // loadSavedCustomization is called by loadPrintAreas on success
 }
 
 function closeDialog() {
@@ -707,7 +707,6 @@ function loadPrintAreas() {
                 });
                 
                 selectProductImage(data.data[0].image_url || data.data[0].url, data.data[0]);
-                // loadSavedCustomization is not needed here - selectProductImage already restores from layerStore
             }
         });
 }
