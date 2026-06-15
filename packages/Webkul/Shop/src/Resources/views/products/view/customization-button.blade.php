@@ -1,5 +1,7 @@
 <div id="customization-product-id" data-id="{{ $product->id ?? 0 }}" class="hidden"></div>
 
+{{-- 只在 Simple 产品页面显示（Configurable 产品有自己的按钮） --}}
+@if (!Webkul\Product\Helpers\ProductType::hasVariants($product->type))
 <button
     type="button"
     onclick="event.preventDefault(); openCustomizationDialog();"
@@ -13,6 +15,7 @@
         </svg>
     </span>
 </button>
+@endif
 
 @pushOnce('styles')
 <style>
