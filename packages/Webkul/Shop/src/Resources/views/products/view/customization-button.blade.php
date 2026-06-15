@@ -824,7 +824,7 @@ function selectElem(elemData) {
     var wrapper = elemData.dom;
     var control = document.createElement('div');
     control.className = 'elem-control';
-    control.style.cssText = 'position:absolute;pointer-events:none;';
+    control.style.cssText = 'position:absolute;left:0;top:0;width:0;height:0;border:2px solid #3b82f6;pointer-events:none;';
     
     // 蓝框添加到 print area，与 elem 使用相同的定位方式
     var printArea = wrapper.parentElement;
@@ -878,6 +878,7 @@ function updateControl(elemData) {
         control.style.top = top + '%';
         control.style.width = width + '%';
         control.style.height = height + '%';
+        control.style.transformOrigin = 'center center';
         control.style.transform = 'rotate(' + rotation + 'deg) scaleX(' + scaleX + ') scaleY(' + scaleY + ')';
     }
 }
