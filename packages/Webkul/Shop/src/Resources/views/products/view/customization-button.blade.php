@@ -665,7 +665,7 @@ function selectProductImage(imgUrl, areaData) {
 
     var bgImg = document.createElement('img');
     bgImg.src = imgUrl;
-    bgImg.style.cssText = 'position:absolute;left:0;top:0;width:100%;height:100%;object-fit:contain;pointer-events:none;';
+    bgImg.style.cssText = 'position:absolute;left:0;top:0;width:100%;height:100%;object-fit:fill;pointer-events:none;';
     canvas.appendChild(bgImg);
 
     if (areaData && areaData.x !== undefined) {
@@ -726,7 +726,7 @@ function addUploadedImage(dataUrl, x, y, w, h, rotation, scaleX, scaleY, id) {
     
     var img = document.createElement('img');
     img.src = dataUrl;
-    img.style.cssText = 'width:100%;height:100%;object-fit:contain;pointer-events:none;';
+    img.style.cssText = 'width:100%;height:100%;object-fit:fill;pointer-events:none;';
     wrapper.appendChild(img);
     
     var elemData = {
@@ -873,7 +873,7 @@ function updateControl(elemData) {
         var elemRect = elem.getBoundingClientRect();
         var dialogRect = dialog.getBoundingClientRect();
         
-        // 获取实际内容的尺寸（考虑 object-fit:contain）
+        // 获取实际内容的尺寸（考虑 object-fit:fill）
         var img = elem.querySelector('img');
         var contentWidth = elemRect.width;
         var contentHeight = elemRect.height;
