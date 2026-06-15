@@ -250,7 +250,8 @@ function saveCustomization() {
     }
     
     var elements = [];
-    var elemDivs = printArea.querySelectorAll('.canvas-elem');
+    // 现在遍历 .elem-control（蓝框），elem 在蓝框内部
+    var controlDivs = printArea.querySelectorAll('.elem-control');
 
     // 获取屏幕显示尺寸和原图尺寸用于坐标转换
     var displayRect = printArea.getBoundingClientRect();
@@ -259,15 +260,18 @@ function saveCustomization() {
     var areaW = areaData.width;   // 原图 print area 宽度百分比
     var areaH = areaData.height;  // 原图 print area 高度百分比
 
-    elemDivs.forEach(function(div, index) {
-        var elemData = div._elemData;
+    controlDivs.forEach(function(control, index) {
+        // 从蓝框获取 elemData
+        var elemData = control._elemData;
+        if (!elemData || !elemData.dom) return;
 
+        var div = elemData.dom;  // elem (wrapper)
         if (elemData) {
-            // 屏幕百分比坐标
-            var screenX = parseFloat(div.style.left) || 0;
-            var screenY = parseFloat(div.style.top) || 0;
-            var screenW = parseFloat(div.style.width) || 0;
-            var screenH = parseFloat(div.style.height) || 0;
+            // 屏幕百分比坐标（从蓝框获取）
+            var screenX = parseFloat(control.style.left) || 0;
+            var screenY = parseFloat(control.style.top) || 0;
+            var screenW = parseFloat(control.style.width) || 0;
+            var screenH = parseFloat(control.style.height) || 0;
             
             // 转换为原图百分比坐标
             // screenX/screenY 是相对于 print area 的百分比（0-100）
@@ -720,17 +724,27 @@ function addUploadedImage(dataUrl, x, y, w, h, rotation, scaleX, scaleY, id) {
     var printArea = document.getElementById(areaElemId);
     if (!printArea) return;
     
+    // 创建蓝框（容器）
+    var control = document.createElement('div');
+    control.className = 'elem-control';
+    control.style.cssText = 'position:absolute;left:0;top:0;width:0;height:0;border:2px solid #3b82f6;pointer-events:none;transform-origin:center center;';
+
+    // 创建 elem wrapper，设置宽高为 100% 填满蓝框
     var wrapper = document.createElement('div');
     wrapper.className = 'canvas-elem';
-    wrapper.style.cssText = 'position:absolute;left:' + x + '%;top:' + y + '%;width:' + w + '%;height:' + h + '%;cursor:move;transform-origin:center center;transform:rotate(' + rotation + 'deg) scaleX(' + scaleX + ') scaleY(' + scaleY + ');';
+    wrapper.style.cssText = 'position:absolute;left:0;top:0;width:100%;height:100%;cursor:move;transform-origin:center center;transform:rotate(' + rotation + 'deg) scaleX(' + scaleX + ') scaleY(' + scaleY + ');';
     
     var img = document.createElement('img');
     img.src = dataUrl;
     img.style.cssText = 'width:100%;height:100%;object-fit:contain;pointer-events:none;';
     wrapper.appendChild(img);
     
+    // 把 wrapper 添加到 control（蓝框）
+    control.appendChild(wrapper);
+    
     var elemData = {
         dom: wrapper,
+        control: control,
         type: 'image',
         content: dataUrl,
         x: x, y: y, w: w, h: h, rotation: rotation, scaleX: scaleX, scaleY: scaleY,
@@ -740,9 +754,10 @@ function addUploadedImage(dataUrl, x, y, w, h, rotation, scaleX, scaleY, id) {
     wrapper._elemData = elemData;
     wrapper.dataset.id = elemId;
     setupElemEvents(wrapper, elemData);
-    printArea.appendChild(wrapper);
+    // 把蓝框（包含 elem）添加到 print area
+    printArea.appendChild(control);
     currentCanvas.elements.push(elemData);
-    wrapper.offsetWidth; // 强制触发布局，确保 getBoundingClientRect 返回正确值
+    wrapper.offsetWidth; // 强制触发布局
     selectElem(elemData);
     updateLayersList();
     updatePreview();
@@ -819,16 +834,15 @@ function updateLayersList() {
 
 function selectElem(elemData) {
     currentCanvas.selectedElement = elemData;
-    document.querySelectorAll('.elem-control').forEach(function(c) { c.remove(); });
     
-    var wrapper = elemData.dom;
-    var control = document.createElement('div');
-    control.className = 'elem-control';
-    control.style.cssText = 'position:absolute;left:0;top:0;width:0;height:0;border:2px solid #3b82f6;pointer-events:none;';
+    // 使用已存在的蓝框（由 addUploadedImage 创建）
+    var control = elemData.control;
+    if (!control) return;
     
-    // 蓝框添加到 print area，与 elem 使用相同的定位方式
-    var printArea = wrapper.parentElement;
-    printArea.appendChild(control);
+    // 清空蓝框中的工具按钮
+    while (control.firstChild) {
+        control.removeChild(control.firstChild);
+    }
     
     // 使用 requestAnimationFrame 确保在下一帧渲染前执行，此时 DOM 已完成布局
     requestAnimationFrame(function() {
@@ -861,26 +875,24 @@ function selectElem(elemData) {
 }
 
 function updateControl(elemData) {
-    var control = document.querySelector('.elem-control');
-    var elem = document.querySelector('.canvas-elem[data-id="' + elemData.id + '"]');
+    // 使用已存在的蓝框
+    var control = elemData.control;
+    if (!control) return;
     
-    if (control && elem) {
-        // 蓝框与 elem 使用相同的定位方式：相对于 print area 的百分比定位 + transform
-        var left = elemData.x || 0;
-        var top = elemData.y || 0;
-        var width = elemData.w || elemData.width || 80;
-        var height = elemData.h || elemData.height || 80;
-        var rotation = elemData.rotation || 0;
-        var scaleX = elemData.scaleX || 1;
-        var scaleY = elemData.scaleY || 1;
-        
-        control.style.left = left + '%';
-        control.style.top = top + '%';
-        control.style.width = width + '%';
-        control.style.height = height + '%';
-        control.style.transformOrigin = 'center center';
-        control.style.transform = 'rotate(' + rotation + 'deg) scaleX(' + scaleX + ') scaleY(' + scaleY + ')';
-    }
+    // 蓝框使用与 elem 相同的 w/h 尺寸
+    var width = elemData.w || elemData.width || 80;
+    var height = elemData.h || elemData.height || 80;
+    var rotation = elemData.rotation || 0;
+    var scaleX = elemData.scaleX || 1;
+    var scaleY = elemData.scaleY || 1;
+    
+    // 强制布局
+    control.offsetHeight;
+    
+    control.style.width = width + '%';
+    control.style.height = height + '%';
+    control.style.transformOrigin = 'center center';
+    control.style.transform = 'rotate(' + rotation + 'deg) scaleX(' + scaleX + ') scaleY(' + scaleY + ')';
 }
 
 function updateOperationButtons() {
@@ -930,7 +942,10 @@ function flipHorizontal() {
     var scaleX = elemData.scaleX || 1;
     scaleX = scaleX * -1;
     elemData.scaleX = scaleX;
-    elemData.dom.style.transform = 'rotate(' + elemData.rotation + 'deg) scaleX(' + scaleX + ')';
+    // 更新蓝框翻转
+    if (elemData.control) {
+        elemData.control.style.transform = 'rotate(' + elemData.rotation + 'deg) scaleX(' + scaleX + ') scaleY(' + (elemData.scaleY || 1) + ')';
+    }
     updatePreview();
 }
 
@@ -940,7 +955,10 @@ function flipVertical() {
     var scaleY = elemData.scaleY || 1;
     scaleY = scaleY * -1;
     elemData.scaleY = scaleY;
-    elemData.dom.style.transform = 'rotate(' + elemData.rotation + 'deg) scaleY(' + scaleY + ')';
+    // 更新蓝框翻转
+    if (elemData.control) {
+        elemData.control.style.transform = 'rotate(' + elemData.rotation + 'deg) scaleX(' + (elemData.scaleX || 1) + ') scaleY(' + scaleY + ')';
+    }
     updatePreview();
 }
 
@@ -948,7 +966,10 @@ function rotateLeft() {
     if (!currentCanvas.selectedElement) return;
     var elemData = currentCanvas.selectedElement;
     elemData.rotation -= 90;
-    elemData.dom.style.transform = 'rotate(' + elemData.rotation + 'deg)';
+    // 更新蓝框旋转
+    if (elemData.control) {
+        elemData.control.style.transform = 'rotate(' + elemData.rotation + 'deg) scaleX(' + (elemData.scaleX || 1) + ') scaleY(' + (elemData.scaleY || 1) + ')';
+    }
     updateControl(elemData);
     updatePreview();
 }
@@ -957,7 +978,10 @@ function rotateRight() {
     if (!currentCanvas.selectedElement) return;
     var elemData = currentCanvas.selectedElement;
     elemData.rotation += 90;
-    elemData.dom.style.transform = 'rotate(' + elemData.rotation + 'deg)';
+    // 更新蓝框旋转
+    if (elemData.control) {
+        elemData.control.style.transform = 'rotate(' + elemData.rotation + 'deg) scaleX(' + (elemData.scaleX || 1) + ') scaleY(' + (elemData.scaleY || 1) + ')';
+    }
     updateControl(elemData);
     updatePreview();
 }
@@ -969,8 +993,9 @@ function bringForward() {
     if (idx < currentCanvas.elements.length - 1) {
         currentCanvas.elements.splice(idx, 1);
         currentCanvas.elements.push(elemData);
-        var pa = elemData.dom.parentElement;
-        pa.appendChild(elemData.dom);
+        // 移动蓝框（父容器）
+        var pa = elemData.control.parentElement;
+        pa.appendChild(elemData.control);
         updateLayersList();
         updateOperationButtons();
         updatePreview();
@@ -984,8 +1009,9 @@ function sendBackward() {
     if (idx > 0) {
         currentCanvas.elements.splice(idx, 1);
         currentCanvas.elements.unshift(elemData);
-        var pa = elemData.dom.parentElement;
-        pa.insertBefore(elemData.dom, pa.firstChild);
+        // 移动蓝框（父容器）
+        var pa = elemData.control.parentElement;
+        pa.insertBefore(elemData.control, pa.firstChild);
         updateLayersList();
         updateOperationButtons();
         updatePreview();
@@ -999,8 +1025,10 @@ function deleteElement() {
     if (idx > -1) {
         currentCanvas.elements.splice(idx, 1);
     }
-    elemData.dom.remove();
-    document.querySelectorAll('.elem-control').forEach(function(c) { c.remove(); });
+    // 删除蓝框（父容器）
+    if (elemData.control) {
+        elemData.control.remove();
+    }
     currentCanvas.selectedElement = null;
     updateLayersList();
     updateOperationButtons();
@@ -1070,9 +1098,9 @@ function setupElemEvents(wrapper, elemData) {
             var dy = e.clientY - startY;
             elemData.x = startX2 + (dx / pa.offsetWidth) * 100;
             elemData.y = startY2 + (dy / pa.offsetHeight) * 100;
-            wrapper.style.left = elemData.x + '%';
-            wrapper.style.top = elemData.y + '%';
-            updateControl(elemData);
+            // 更新蓝框位置
+            elemData.control.style.left = elemData.x + '%';
+            elemData.control.style.top = elemData.y + '%';
         }
         
         if (isResize) {
@@ -1106,10 +1134,11 @@ function setupElemEvents(wrapper, elemData) {
             elemData.h = Math.max(10, newH);
             elemData.x = newX;
             elemData.y = newY;
-            wrapper.style.width = elemData.w + '%';
-            wrapper.style.height = elemData.h + '%';
-            wrapper.style.left = elemData.x + '%';
-            wrapper.style.top = elemData.y + '%';
+            // 更新蓝框尺寸和位置
+            elemData.control.style.width = elemData.w + '%';
+            elemData.control.style.height = elemData.h + '%';
+            elemData.control.style.left = elemData.x + '%';
+            elemData.control.style.top = elemData.y + '%';
             
             // Scale font size for text elements
             if (elemData.type === 'text' && elemData.styles && elemData.styles.fontSize) {
@@ -1125,8 +1154,8 @@ function setupElemEvents(wrapper, elemData) {
             var rect = wrapper.getBoundingClientRect();
             var angle = Math.atan2(e.clientY - (rect.top + rect.height/2), e.clientX - (rect.left + rect.width/2)) * 180 / Math.PI;
             elemData.rotation = startRot + (angle - startAngle);
-            wrapper.style.transform = 'rotate(' + elemData.rotation + 'deg)';
-            updateControl(elemData);
+            // 更新蓝框旋转
+            elemData.control.style.transform = 'rotate(' + elemData.rotation + 'deg) scaleX(' + (elemData.scaleX || 1) + ') scaleY(' + (elemData.scaleY || 1) + ')';
         }
     });
     
