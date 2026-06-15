@@ -1195,12 +1195,11 @@
                     img.onload = () => {
                         console.log('[DEBUG] Image loaded:', elem.content?.substring(0, 50));
                         try {
-                            // 使用原图坐标定位
-                            const x = ((elem.originalX || elem.x || 0) / 100) * canvas.width;
-                            const y = ((elem.originalY || elem.y || 0) / 100) * canvas.height;
-                            // 使用原图尺寸或默认尺寸
-                            const imgW = ((elem.originalWidth || elem.width || 50) / 100) * canvas.width;
-                            const imgH = ((elem.originalHeight || elem.height || 50) / 100) * canvas.height;
+                            // 使用当前尺寸（与前台设计器一致）
+                            const x = ((elem.x || 0) / 100) * canvas.width;
+                            const y = ((elem.y || 0) / 100) * canvas.height;
+                            const imgW = ((elem.width || 50) / 100) * canvas.width;
+                            const imgH = ((elem.height || 50) / 100) * canvas.height;
                             console.log('[DEBUG] Drawing image at x:', x, 'y:', y, 'w:', imgW, 'h:', imgH);
 
                             ctx.drawImage(img, x, y, imgW, imgH);
