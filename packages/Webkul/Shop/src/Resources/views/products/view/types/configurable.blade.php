@@ -457,7 +457,12 @@
             checkConfigurableDesignStatus();
             
             // 定期检查 selected_configurable_option 的值（作为备用）
+            // 如果刚刚保存了设计（checkDesignStatus 会显示图标），跳过这次检查
             setInterval(function() {
+                if (window.skipNextConfigurableStatusCheck) {
+                    window.skipNextConfigurableStatusCheck = false;
+                    return;
+                }
                 var selectedOption = document.getElementById('selected_configurable_option');
                 if (selectedOption && selectedOption.value) {
                     var productId = parseInt(selectedOption.value);
@@ -515,9 +520,21 @@
                         // 有设计区域，显示按钮
                         if (btn) btn.classList.remove('hidden');
                         
-                        // 根据 savedDesign 显示图标
+                        // 检查 savedDesign 是否有 elements
                         if (savedDesign) {
-                            if (statusIcon) statusIcon.classList.remove('hidden');
+                            try {
+                                var savedData = JSON.parse(savedDesign);
+                                var hasElements = savedData.print_areas && Array.isArray(savedData.print_areas) && savedData.print_areas.some(function(pa) {
+                                    return pa.elements && pa.elements.length > 0;
+                                });
+                                if (hasElements) {
+                                    if (statusIcon) statusIcon.classList.remove('hidden');
+                                } else {
+                                    if (statusIcon) statusIcon.classList.add('hidden');
+                                }
+                            } catch (e) {
+                                if (statusIcon) statusIcon.classList.add('hidden');
+                            }
                         } else {
                             if (statusIcon) statusIcon.classList.add('hidden');
                         }

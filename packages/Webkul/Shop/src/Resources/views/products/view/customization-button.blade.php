@@ -54,6 +54,9 @@ function checkDesignStatus() {
                         if (parentContainer) {
                             parentContainer.classList.remove('hidden');
                         }
+                        
+                        // Skip the next scheduled checkConfigurableDesignStatus call
+                        window.skipNextConfigurableStatusCheck = true;
 
                         return;
                     }
