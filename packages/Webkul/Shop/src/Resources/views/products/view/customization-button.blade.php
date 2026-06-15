@@ -220,12 +220,6 @@ function openCustomizationDialog() {
 
 }
 
-function closeDialog() {
-    document.getElementById('customization-dialog').classList.add('hidden');
-    document.body.style.overflow = '';
-    clearSavedDesign();
-}
-
 function clearSavedDesign() {
     // 清空当前界面上的元素，不删除缓存
     currentCanvas.elements = [];
@@ -236,7 +230,12 @@ function clearSavedDesign() {
     updateLayersList();
     updateOperationButtons();
     updatePreview();
+}
 
+function closeDialog() {
+    document.getElementById('customization-dialog').classList.add('hidden');
+    document.body.style.overflow = '';
+    clearSavedDesign();
 }
 
 function saveCustomization() {
