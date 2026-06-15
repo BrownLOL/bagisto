@@ -1093,7 +1093,8 @@ function setupElemEvents(wrapper, elemData) {
         if (!currentCanvas.selectedElement || currentCanvas.selectedElement !== elemData) {
             return;
         }
-        var pa = wrapper.parentElement;
+        // Get parent element of current dragged element, not the canvas wrapper
+        var pa = elemData.dom ? elemData.dom.parentElement : null;
         
         // If parentElement is null or not a print area, find it
         if (!pa || (!pa.classList.contains('print-area-inner') && !pa.id.startsWith('print-area-'))) {
