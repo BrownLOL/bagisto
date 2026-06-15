@@ -223,7 +223,7 @@ function openCustomizationDialog() {
 function closeDialog() {
     document.getElementById('customization-dialog').classList.add('hidden');
     document.body.style.overflow = '';
-    currentCanvas.selectedElement = null;
+    clearSavedDesign();
 }
 
 function clearSavedDesign() {
