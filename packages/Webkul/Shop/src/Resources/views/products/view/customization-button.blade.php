@@ -870,16 +870,16 @@ function updateControl(elemData) {
     
     if (control && elem && dialog) {
         var elemRect = elem.getBoundingClientRect();
-        var dialogRect = dialog.getBoundingClientRect();
         
         // 获取实际内容的尺寸（考虑 object-fit:contain）
         var img = elem.querySelector('img');
         var contentWidth = elemRect.width;
         var contentHeight = elemRect.height;
         
-        // 立即计算位置（容器尺寸）
-        var left = elemRect.left - dialogRect.left;
-        var top = elemRect.top - dialogRect.top;
+        // 直接使用 elem 的绝对坐标，蓝框 append 到 dialog 时会相对于 dialog 定位
+        // 不再减去 dialogRect，因为 elem 和 dialog 的 offsetParent 可能不同
+        var left = elemRect.left;
+        var top = elemRect.top;
         
         // 如果有图片，等待图片加载完成后再调整位置
         if (img) {
