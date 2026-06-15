@@ -473,6 +473,15 @@
             }, 500);
         });
         
+        // Generate UUID for design tracking
+        function generateDesignUUID() {
+            return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+                var r = Math.random() * 16 | 0;
+                var v = c === 'x' ? r : (r & 0x3 | 0x8);
+                return v.toString(16);
+            });
+        }
+        
         function checkConfigurableDesignStatus(variantId) {
             var selectedOption = document.getElementById('selected_configurable_option');
             var productId = selectedOption ? parseInt(selectedOption.value) : 0;
