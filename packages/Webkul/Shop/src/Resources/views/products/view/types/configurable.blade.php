@@ -488,19 +488,11 @@
             if (urlUuid) {
                 // URL 有 uuid → 使用 URL 的 uuid，覆盖 localStorage
                 uuid = urlUuid;
-                localStorage.setItem(currentKey, uuid);
             } else {
-                // 检查 localStorage 中是否已有该产品的 UUID
-                var existingUuid = localStorage.getItem(currentKey);
-                if (existingUuid) {
-                    // 已有 UUID，直接使用
-                    uuid = existingUuid;
-                } else {
-                    // 没有 UUID，生成新的
-                    uuid = generateDesignUUID();
-                    localStorage.setItem(currentKey, uuid);
-                }
+                // URL 没有 uuid → 每次都生成新 UUID（与 Simple 产品一致），刷新页面会重置设计
+                uuid = generateDesignUUID();
             }
+            localStorage.setItem(currentKey, uuid);
             
             // 2. 设置 window.designUUID（与其他地方保持一致）
             window.designUUID = uuid;
