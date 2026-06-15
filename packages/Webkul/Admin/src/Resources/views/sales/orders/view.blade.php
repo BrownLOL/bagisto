@@ -1183,8 +1183,11 @@
                     tempCtx.fillText(line, 0, y);
 
                     // 使用当前坐标定位（与前台设计器一致）
-                    const x = ((elem.x || 0) / 100) * canvas.width;
-                    const yPos = ((elem.y || 0) / 100) * canvas.height;
+                    // elem.x/elem.y 是相对于 print area 的百分比，需要加上 print area 的偏移
+                    const elemX = ((elem.x || 0) / 100) * paW;
+                    const elemY = ((elem.y || 0) / 100) * paH;
+                    const x = paX + elemX;
+                    const yPos = paY + elemY;
                     ctx.drawImage(tempCanvas, x, yPos);
                     resolve();
                 });
@@ -1196,10 +1199,16 @@
                         console.log('[DEBUG] Image loaded:', elem.content?.substring(0, 50));
                         try {
                             // 使用当前尺寸（与前台设计器一致）
-                            const x = ((elem.x || 0) / 100) * canvas.width;
-                            const y = ((elem.y || 0) / 100) * canvas.height;
-                            const imgW = ((elem.width || 50) / 100) * canvas.width;
-                            const imgH = ((elem.height || 50) / 100) * canvas.height;
+                            // elem.x/elem.y/elem.width/elem.height 是相对于 print area 的百分比
+                            // 需要加上 print area 的偏移
+                            const elemX = ((elem.x || 0) / 100) * paW;
+                            const elemY = ((elem.y || 0) / 100) * paH;
+                            const elemW = ((elem.width || 50) / 100) * paW;
+                            const elemH = ((elem.height || 50) / 100) * paH;
+                            const x = paX + elemX;
+                            const y = paY + elemY;
+                            const imgW = elemW;
+                            const imgH = elemH;
                             console.log('[DEBUG] Drawing image at x:', x, 'y:', y, 'w:', imgW, 'h:', imgH);
 
                             ctx.drawImage(img, x, y, imgW, imgH);
