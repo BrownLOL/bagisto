@@ -1,3 +1,5 @@
 {{-- @include('shop::products.view.customizable-options') --}}
 
-@include('shop::products.view.customization-button')
+@if ($product->type === 'simple')
+    @include('shop::products.view.customization-button')
+@endif
