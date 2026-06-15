@@ -220,11 +220,13 @@ function openCustomizationDialog() {
 
 }
 
-function clearSavedDesign() {
+function clearSavedDesign(clearLayerStore) {
     // 清空当前界面上的元素，不删除缓存
     currentCanvas.elements = [];
     currentCanvas.selectedElement = null;
-    currentCanvas.layerStore = {};
+    if (clearLayerStore) {
+        currentCanvas.layerStore = {};
+    }
     document.querySelectorAll('.canvas-elem').forEach(function(e) { e.remove(); });
     document.querySelectorAll('.elem-control').forEach(function(c) { c.remove(); });
     
