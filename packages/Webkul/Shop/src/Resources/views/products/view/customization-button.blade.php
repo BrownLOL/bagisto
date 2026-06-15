@@ -742,6 +742,7 @@ function addUploadedImage(dataUrl, x, y, w, h, rotation, scaleX, scaleY, id) {
     setupElemEvents(wrapper, elemData);
     printArea.appendChild(wrapper);
     currentCanvas.elements.push(elemData);
+    wrapper.offsetWidth; // 强制触发布局，确保 getBoundingClientRect 返回正确值
     selectElem(elemData);
     updateLayersList();
     updatePreview();
