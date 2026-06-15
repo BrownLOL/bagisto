@@ -1182,9 +1182,9 @@
                     });
                     tempCtx.fillText(line, 0, y);
 
-                    // 使用原图坐标定位
-                    const x = ((elem.originalX || elem.x || 0) / 100) * canvas.width;
-                    const yPos = ((elem.originalY || elem.y || 0) / 100) * canvas.height;
+                    // 使用当前坐标定位（与前台设计器一致）
+                    const x = ((elem.x || 0) / 100) * canvas.width;
+                    const yPos = ((elem.y || 0) / 100) * canvas.height;
                     ctx.drawImage(tempCanvas, x, yPos);
                     resolve();
                 });
