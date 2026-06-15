@@ -27,7 +27,8 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script>
 function checkDesignStatus() {
-    var statusIcon = document.getElementById('design-status-icon');
+    var statusIcon = document.getElementById('design-status-icon') 
+                  || document.getElementById('design-status-icon-configurable');
     if (!statusIcon || !window.customizationProductId) return;
     
     var productId = window.customizationProductId;
