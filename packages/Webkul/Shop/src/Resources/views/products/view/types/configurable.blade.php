@@ -220,6 +220,11 @@
                 },
 
                 mounted() {
+                    // 页面首次加载时设置 sessionStorage 标记
+                    if (!sessionStorage.getItem('initialized')) {
+                        sessionStorage.setItem('initialized', 'true');
+                    }
+                    
                     let attributes = JSON.parse(JSON.stringify(this.config)).attributes.slice();
 
                     let index = attributes.length;
@@ -486,13 +491,18 @@
             
             var uuid;
             if (urlUuid) {
-                // URL 有 uuid → 使用 URL 中的 uuid
+                // URL 有 uuid → 使用 URL 的 uuid，覆盖 localStorage
                 uuid = urlUuid;
-            } else {
-                // URL 没有 uuid → 生成新的 uuid，覆盖 localStorage
+                localStorage.setItem(currentKey, uuid);
+            } else if (!sessionStorage.getItem('initialized')) {
+                // URL 没有 uuid + 页面首次加载 → 生成新 UUID
+                sessionStorage.setItem('initialized', 'true');
                 uuid = generateDesignUUID();
+                localStorage.setItem(currentKey, uuid);
+            } else {
+                // 选择变体（页面已加载）→ 使用 localStorage 现有的 UUID
+                uuid = localStorage.getItem(currentKey);
             }
-            localStorage.setItem(currentKey, uuid);
             
             // 2. 设置 window.designUUID（与其他地方保持一致）
             window.designUUID = uuid;
