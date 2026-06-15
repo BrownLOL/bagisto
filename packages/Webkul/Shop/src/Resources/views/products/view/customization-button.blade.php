@@ -836,8 +836,10 @@ function selectElem(elemData) {
     // 添加到 dialog 层级，避免被 overflow:hidden 裁剪
     dialog.appendChild(control);
     
-    // 立即更新控制框位置
-    updateControl(elemData);
+    // 使用 requestAnimationFrame 确保在下一帧渲染前执行，此时 DOM 已完成布局
+    requestAnimationFrame(function() {
+        updateControl(elemData);
+    });
     
     var rotH = document.createElement('div');
     rotH.style.cssText = 'position:absolute;top:-30px;left:50%;transform:translateX(-50%);width:14px;height:14px;background:#3b82f6;border-radius:50%;cursor:grab;pointer-events:auto;';
@@ -870,6 +872,9 @@ function updateControl(elemData) {
     var dialog = document.getElementById('customization-dialog');
     
     if (control && elem && dialog) {
+        // 强制触发布局，确保 getBoundingClientRect 返回准确值
+        elem.offsetHeight;
+        
         var elemRect = elem.getBoundingClientRect();
         
         // 获取实际内容的尺寸（考虑 object-fit:contain）
