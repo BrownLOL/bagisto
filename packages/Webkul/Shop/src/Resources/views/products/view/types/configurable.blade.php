@@ -569,14 +569,11 @@
             // 设置当前产品 ID
             window.customizationProductId = productId;
             
-            // 设置当前设计 UUID
+            // 每次打开 dialog 都生成新 UUID（与切换变体时一致）
+            var uuid = generateDesignUUID();
             var currentKey = 'current_design_' + productId;
-            var currentUuid = localStorage.getItem(currentKey);
-            if (!currentUuid) {
-                currentUuid = generateDesignUUID();
-                localStorage.setItem(currentKey, currentUuid);
-            }
-            window.designUUID = currentUuid;
+            localStorage.setItem(currentKey, uuid);
+            window.designUUID = uuid;
             
             // 打开自定义对话框
             openCustomizationDialog();
