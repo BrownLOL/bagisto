@@ -1114,17 +1114,7 @@ function setupElemEvents(wrapper, elemData) {
             wrapper.style.left = elemData.x + '%';
             wrapper.style.top = elemData.y + '%';
             
-            // 直接更新蓝框位置，避免滚动导致 getBoundingClientRect 不准确
-            var control = document.querySelector('.elem-control[data-elem-id="' + elemData.id + '"]');
-            if (control) {
-                var dialog = document.getElementById('customization-dialog');
-                var dialogRect = dialog.getBoundingClientRect();
-                var paRect = pa.getBoundingClientRect();
-                var paInDialogX = paRect.left - dialogRect.left;
-                var paInDialogY = paRect.top - dialogRect.top;
-                control.style.left = (paInDialogX + (elemData.x / 100) * pa.offsetWidth) + 'px';
-                control.style.top = (paInDialogY + (elemData.y / 100) * pa.offsetHeight) + 'px';
-            }
+            updateControl(elemData);
         }
         
         if (isResize) {
@@ -1170,19 +1160,7 @@ function setupElemEvents(wrapper, elemData) {
                 wrapper.style.fontSize = newFontSize + 'px';
             }
             
-            // 直接更新蓝框位置和尺寸
-            var control = document.querySelector('.elem-control[data-elem-id="' + elemData.id + '"]');
-            if (control) {
-                var dialog = document.getElementById('customization-dialog');
-                var dialogRect = dialog.getBoundingClientRect();
-                var paRect = pa.getBoundingClientRect();
-                var paInDialogX = paRect.left - dialogRect.left;
-                var paInDialogY = paRect.top - dialogRect.top;
-                control.style.left = (paInDialogX + (elemData.x / 100) * pa.offsetWidth) + 'px';
-                control.style.top = (paInDialogY + (elemData.y / 100) * pa.offsetHeight) + 'px';
-                control.style.width = (elemData.w + 0.5) + '%';
-                control.style.height = (elemData.h + 0.5) + '%';
-            }
+            updateControl(elemData);
         }
         
         if (isRotate) {
@@ -1190,12 +1168,7 @@ function setupElemEvents(wrapper, elemData) {
             var angle = Math.atan2(e.clientY - (rect.top + rect.height/2), e.clientX - (rect.left + rect.width/2)) * 180 / Math.PI;
             elemData.rotation = startRot + (angle - startAngle);
             wrapper.style.transform = 'rotate(' + elemData.rotation + 'deg)';
-            
-            // 直接更新蓝框旋转
-            var control = document.querySelector('.elem-control[data-elem-id="' + elemData.id + '"]');
-            if (control) {
-                control.style.transform = 'rotate(' + elemData.rotation + 'deg)';
-            }
+            updateControl(elemData);
         }
     });
     
