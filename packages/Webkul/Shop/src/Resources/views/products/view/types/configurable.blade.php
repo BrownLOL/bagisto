@@ -508,6 +508,11 @@
             }
             localStorage.setItem(currentKey, uuid);
             
+            // 清空旧的设计（清空 layerStore）
+            if (typeof clearSavedDesign === 'function') {
+                clearSavedDesign(true);
+            }
+            
             // 2. 设置 window.designUUID（与其他地方保持一致）
             window.designUUID = uuid;
             
