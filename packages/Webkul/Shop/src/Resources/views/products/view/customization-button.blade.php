@@ -48,6 +48,12 @@ function checkDesignStatus() {
                     });
                     if (hasElements) {
                         statusIcon.classList.remove('hidden');
+                        
+                        // Also show the parent container for configurable products
+                        var parentContainer = document.getElementById('configurable-customization-area');
+                        if (parentContainer) {
+                            parentContainer.classList.remove('hidden');
+                        }
 
                         return;
                     }
@@ -57,7 +63,6 @@ function checkDesignStatus() {
     }
     
     statusIcon.classList.add('hidden');
-
 }
 
 (function() {
