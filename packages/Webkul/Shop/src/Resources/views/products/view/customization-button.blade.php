@@ -884,21 +884,7 @@ function updateControl(elemData) {
         
         // 如果有图片，等待图片加载完成后再调整位置
         if (img) {
-            if (img.complete && img.naturalWidth > 0) {
-                // 图片已加载，计算实际内容尺寸
-                var naturalW = img.naturalWidth;
-                var naturalH = img.naturalHeight;
-                var containerW = elemRect.width;
-                var containerH = elemRect.height;
-                
-                var ratio = Math.min(containerW / naturalW, containerH / naturalH);
-                contentWidth = naturalW * ratio;
-                contentHeight = naturalH * ratio;
-                
-                // 居中调整
-                left += (containerW - contentWidth) / 2;
-                top += (containerH - contentHeight) / 2;
-            } else {
+            if (!img.complete || img.naturalWidth === 0) {
                 // 图片未加载，等待加载完成
                 var imgClone = img.cloneNode();
                 imgClone.onload = function() {
@@ -914,6 +900,7 @@ function updateControl(elemData) {
                     return;
                 }
             }
+            // 图片已加载，直接使用 wrapper 尺寸（object-fit:fill 会填满 wrapper）
         }
         
         control.style.left = left + 'px';
