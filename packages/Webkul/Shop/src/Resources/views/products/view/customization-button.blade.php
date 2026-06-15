@@ -822,18 +822,22 @@ function selectElem(elemData) {
     document.querySelectorAll('.elem-control').forEach(function(c) { c.remove(); });
     
     var wrapper = elemData.dom;
+    var dialog = document.getElementById('customization-dialog');
     var control = document.createElement('div');
     control.className = 'elem-control';
+    
+    // 兼容 w/h 和 width/height 两种字段名
+    var elemW = elemData.w || elemData.width || 80;
+    var elemH = elemData.h || elemData.height || 80;
+    
+    // 蓝框使用像素坐标，初始位置设为 0，后续由 updateControl 更新
     control.style.cssText = 'position:absolute;left:0;top:0;width:0;height:0;border:2px solid #3b82f6;pointer-events:none;';
     
-    // 蓝框添加到 print area，与 elem 使用相同的定位方式
-    var printArea = wrapper.parentElement;
-    printArea.appendChild(control);
+    // 添加到 dialog 层级，避免被 overflow:hidden 裁剪
+    dialog.appendChild(control);
     
-    // 使用 requestAnimationFrame 确保在下一帧渲染前执行，此时 DOM 已完成布局
-    requestAnimationFrame(function() {
-        updateControl(elemData);
-    });
+    // 立即更新控制框位置
+    updateControl(elemData);
     
     var rotH = document.createElement('div');
     rotH.style.cssText = 'position:absolute;top:-30px;left:50%;transform:translateX(-50%);width:14px;height:14px;background:#3b82f6;border-radius:50%;cursor:grab;pointer-events:auto;';
@@ -863,23 +867,60 @@ function selectElem(elemData) {
 function updateControl(elemData) {
     var control = document.querySelector('.elem-control');
     var elem = document.querySelector('.canvas-elem[data-id="' + elemData.id + '"]');
+    var dialog = document.getElementById('customization-dialog');
     
-    if (control && elem) {
-        // 蓝框与 elem 使用相同的定位方式：相对于 print area 的百分比定位 + transform
-        var left = elemData.x || 0;
-        var top = elemData.y || 0;
-        var width = elemData.w || elemData.width || 80;
-        var height = elemData.h || elemData.height || 80;
-        var rotation = elemData.rotation || 0;
-        var scaleX = elemData.scaleX || 1;
-        var scaleY = elemData.scaleY || 1;
+    if (control && elem && dialog) {
+        var elemRect = elem.getBoundingClientRect();
+        var dialogRect = dialog.getBoundingClientRect();
         
-        control.style.left = left + '%';
-        control.style.top = top + '%';
-        control.style.width = width + '%';
-        control.style.height = height + '%';
-        control.style.transformOrigin = 'center center';
-        control.style.transform = 'rotate(' + rotation + 'deg) scaleX(' + scaleX + ') scaleY(' + scaleY + ')';
+        // 获取实际内容的尺寸（考虑 object-fit:contain）
+        var img = elem.querySelector('img');
+        var contentWidth = elemRect.width;
+        var contentHeight = elemRect.height;
+        
+        // 计算位置（容器尺寸）
+        var left = elemRect.left - dialogRect.left;
+        var top = elemRect.top - dialogRect.top;
+        
+        // 如果有图片，等待图片加载完成后再调整位置
+        if (img) {
+            if (img.complete && img.naturalWidth > 0) {
+                // 图片已加载，计算实际内容尺寸
+                var naturalW = img.naturalWidth;
+                var naturalH = img.naturalHeight;
+                var containerW = elemRect.width;
+                var containerH = elemRect.height;
+                
+                var ratio = Math.min(containerW / naturalW, containerH / naturalH);
+                contentWidth = naturalW * ratio;
+                contentHeight = naturalH * ratio;
+                
+                // 居中调整
+                left += (containerW - contentWidth) / 2;
+                top += (containerH - contentHeight) / 2;
+            } else {
+                // 图片未加载，等待加载完成
+                var imgClone = img.cloneNode();
+                imgClone.onload = function() {
+                    elemData._pendingUpdate = false;
+                    updateControl(elemData);
+                };
+                imgClone.onerror = function() {
+                    elemData._pendingUpdate = false;
+                };
+                // 如果已经等待过了，不再等待
+                if (!elemData._pendingUpdate) {
+                    elemData._pendingUpdate = true;
+                    return;
+                }
+            }
+        }
+        
+        control.style.left = left + 'px';
+        control.style.top = top + 'px';
+        control.style.width = contentWidth + 'px';
+        control.style.height = contentHeight + 'px';
+        control.style.transform = 'rotate(' + (elemData.rotation || 0) + 'deg)';
     }
 }
 
