@@ -29,7 +29,7 @@
 @endphp
 
 <footer class="mt-9 bg-lightOrange max-sm:mt-10">
-    <div class="mx-auto max-w-[1200px]">
+    <div class="container mx-auto max-w-[1200px]" style="padding-left: 0 !important; padding-right: 0 !important;">
     <div class="flex justify-between gap-x-6 gap-y-8 max-1060:flex-col-reverse max-md:gap-5 max-sm:py-5" style="padding-top: 60px; padding-bottom: 60px;">
         <!-- For Desktop View -->
         <div
@@ -146,7 +146,7 @@
     </div>
 
     @if ($mediaLinksCustomizations->count() > 0)
-        <div class="mx-auto max-w-[1200px]">
+        <div class="container mx-auto max-w-[1200px]" style="padding-left: 0 !important; padding-right: 0 !important;">
             @foreach ($mediaLinksCustomizations as $mediaLink)
                 <div class="px-[60px] py-5 max-md:px-5">
                     @php
@@ -162,7 +162,7 @@
         </div>
     @endif
 
-    <div class="mx-auto max-w-[1200px]">
+    <div class="container mx-auto max-w-[1200px]" style="padding-left: 0 !important; padding-right: 0 !important;">
     <div class="flex justify-center px-[60px] py-3.5 max-md:justify-center max-sm:px-5">
         {!! view_render_event('bagisto.shop.layout.footer.footer_text.before') !!}
 
