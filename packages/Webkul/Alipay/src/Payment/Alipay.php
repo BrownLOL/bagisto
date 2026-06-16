@@ -41,7 +41,17 @@ class Alipay extends Payment
      */
     public function getTitle()
     {
-        return $this->getConfigData('title') ?? trans('alipay::app.title');
+        $configTitle = $this->getConfigData('title');
+        
+        // Debug logging
+        \Log::info('Alipay getTitle Debug', [
+            'configData' => $configTitle,
+            'code' => $this->code,
+            'channel' => core()->getCurrentChannel(),
+            'locale' => core()->getCurrentLocale()->code,
+        ]);
+        
+        return $configTitle ?? trans('alipay::app.title');
     }
 
     /**
