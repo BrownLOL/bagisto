@@ -60,6 +60,13 @@ class ThemeCustomizationTranslation extends Model implements ThemeCustomizationT
     public const SERVICES_CONTENT = 'services_content';
 
     /**
+     * Media Links.
+     *
+     * @var string
+     */
+    public const MEDIA_LINKS = 'media_links';
+
+    /**
      * Castable.
      *
      * @var array

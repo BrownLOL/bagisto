@@ -103,6 +103,9 @@
 
                 <!-- Services-content Template -->
                 @includeWhen($theme->type === 'services_content', 'admin::settings.themes.edit.services-content')
+
+                <!-- Media-Links Template -->
+                @includeWhen($theme->type === 'media_links', 'admin::settings.themes.edit.media-links')
             </div>
 
             <!-- General -->

@@ -19,6 +19,13 @@
         'theme_code' => $channel->theme,
         'channel_id' => $channel->id,
     ]);
+
+    $mediaLinksCustomizations = $themeCustomizationRepository->findWhere([
+        'type'       => 'media_links',
+        'status'     => 1,
+        'theme_code' => $channel->theme,
+        'channel_id' => $channel->id,
+    ])->sortBy('sort_order');
 @endphp
 
 <footer class="mt-9 bg-lightOrange max-sm:mt-10">
@@ -137,6 +144,23 @@
 
         {!! view_render_event('bagisto.shop.layout.footer.newsletter_subscription.after') !!}
     </div>
+
+    @if ($mediaLinksCustomizations->count() > 0)
+        <div class="container mx-auto max-w-[1200px]">
+            @foreach ($mediaLinksCustomizations as $mediaLink)
+                <div class="px-[60px] py-5 max-md:px-5">
+                    @if ($mediaLink->options['css'])
+                        <style>
+                            {!! $mediaLink->options['css'] !!}
+                        </style>
+                    @endif
+                    @if ($mediaLink->options['html'])
+                        {!! $mediaLink->options['html'] !!}
+                    @endif
+                </div>
+            @endforeach
+        </div>
+    @endif
 
     <div class="container mx-auto max-w-[1200px]">
     <div class="flex justify-center px-[60px] py-3.5 max-md:justify-center max-sm:px-5">

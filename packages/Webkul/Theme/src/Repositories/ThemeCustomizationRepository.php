@@ -29,7 +29,7 @@ class ThemeCustomizationRepository extends Repository
     {
         $locale = core()->getRequestedLocaleCode();
 
-        if ($data['type'] == 'static_content') {
+        if (in_array($data['type'], ['static_content', 'media_links'])) {
             $config = [
                 'HTML.Allowed' => null,
                 'HTML.ForbiddenElements' => 'script,iframe,form',

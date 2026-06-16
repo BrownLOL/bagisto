@@ -206,6 +206,7 @@
                             image_carousel: "@lang('admin::app.settings.themes.create.type.image-carousel')",
                             footer_links: "@lang('admin::app.settings.themes.create.type.footer-links')",
                             services_content: "@lang('admin::app.settings.themes.create.type.services-content')",
+                            media_links: "@lang('admin::app.settings.themes.create.type.media-links')",
                         },
 
                         isLoading: false,
