@@ -3,8 +3,8 @@
 return [
     'wechatpay' => [
         'code'       => 'wechatpay',
-        'title'      => 'wechatpay::app.title',
-        'description'=> 'wechatpay::app.description',
+        'title'      => '微信支付',
+        'description'=> '使用微信支付安全支付',
         'class'      => \Webkul\WeChatPay\Payment\WeChatPay::class,
         'active'     => true,
         'sort'       => 6,
