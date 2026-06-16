@@ -2619,7 +2619,7 @@ return [
                 'type' => 'text',
                 'depends' => 'active:1',
                 'channel_based' => true,
-                'locale_based' => true,
+                'locale_based' => false,
                 'validation' => 'required_if:active,1',
             ], [
                 'name' => 'description',
@@ -2627,7 +2627,7 @@ return [
                 'type' => 'textarea',
                 'depends' => 'active:1',
                 'channel_based' => true,
-                'locale_based' => true,
+                'locale_based' => false,
             ], [
                 'name' => 'image',
                 'title' => 'admin::app.configuration.index.sales.payment-methods.logo',
@@ -2720,7 +2720,7 @@ return [
                 'type' => 'text',
                 'depends' => 'active:1',
                 'channel_based' => true,
-                'locale_based' => true,
+                'locale_based' => false,
                 'validation' => 'required_if:active,1',
             ], [
                 'name' => 'description',
@@ -2728,7 +2728,7 @@ return [
                 'type' => 'textarea',
                 'depends' => 'active:1',
                 'channel_based' => true,
-                'locale_based' => true,
+                'locale_based' => false,
             ], [
                 'name' => 'image',
                 'title' => 'admin::app.configuration.index.sales.payment-methods.logo',
