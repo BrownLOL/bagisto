@@ -31,9 +31,10 @@ class ThemeCustomizationRepository extends Repository
 
         if (in_array($data['type'], ['static_content', 'media_links'])) {
             $config = [
-                'HTML.Allowed' => null,
+                'HTML.Allowed' => 'div,p,a[href|target|title|class|id],span[class|id],img[src|alt|title|class|id|width|height|data-src],br,hr,h1,h2,h3,h4,h5,h6,ul,ol,li,dl,dt,dd,strong,em,b,i,u,strike,sub,sup,table,tr,td,th,thead,tbody,tfoot,blockquote,pre,code',
                 'HTML.ForbiddenElements' => 'script,iframe,form',
                 'CSS.AllowedProperties' => null,
+                'Attr.AllowedFrameTargets' => ['_blank', '_self', '_parent', '_top'],
             ];
 
             if (isset($data[$locale]['options']['html'])) {
