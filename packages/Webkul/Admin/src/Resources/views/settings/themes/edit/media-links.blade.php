@@ -149,8 +149,16 @@
 
             created() {
                 if (this.options === null) {
-                    this.options = { html: {} };
-                }   
+                    this.options = { html: '', css: '' };
+                }
+                
+                if (this.options.html === undefined || this.options.html === null || typeof this.options.html === 'object') {
+                    this.options.html = '';
+                }
+                
+                if (this.options.css === undefined || this.options.css === null) {
+                    this.options.css = '';
+                }
             },
 
             mounted() {
