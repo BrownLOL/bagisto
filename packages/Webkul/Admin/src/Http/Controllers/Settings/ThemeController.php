@@ -49,6 +49,12 @@ class ThemeController extends Controller
             ]);
 
             $theme = $this->themeCustomizationRepository->find(request()->input('id'));
+            
+            // 对于 static_content 和 media_links，我们只需要上传图片并返回 URL
+            $type = $theme->type ?? '';
+            if (in_array($type, ['static_content', 'media_links'])) {
+                return $this->themeCustomizationRepository->uploadImage(request()->all(), $theme);
+            }
 
             return $this->themeCustomizationRepository->uploadImage(request()->all(), $theme);
         }

@@ -36,9 +36,13 @@ class ThemeCustomizationRepository extends Repository
                 'CSS.AllowedProperties' => null,
             ];
 
-            $data[$locale]['options']['html'] = Purify::config($config)->clean($data[$locale]['options']['html']);
+            if (isset($data[$locale]['options']['html'])) {
+                $data[$locale]['options']['html'] = Purify::config($config)->clean($data[$locale]['options']['html']);
+            }
 
-            $data[$locale]['options']['css'] = Purify::config($config)->clean($data[$locale]['options']['css']);
+            if (isset($data[$locale]['options']['css'])) {
+                $data[$locale]['options']['css'] = Purify::config($config)->clean($data[$locale]['options']['css']);
+            }
         }
 
         if (in_array($data['type'], ['image_carousel', 'services_content'])) {
@@ -109,14 +113,14 @@ class ThemeCustomizationRepository extends Repository
                     return redirect()->back();
                 }
 
-                if (($data['type'] ?? '') == 'static_content') {
+                if (($data['type'] ?? '') == 'static_content' || ($data['type'] ?? '') == 'media_links') {
                     return Storage::url($path);
                 }
 
                 $options['images'][] = [
                     'image' => 'storage/'.$path,
-                    'link' => $image['link'],
-                    'title' => $image['title'],
+                    'link' => $image['link'] ?? '',
+                    'title' => $image['title'] ?? '',
                 ];
             } else {
                 $options['images'][] = $image;
