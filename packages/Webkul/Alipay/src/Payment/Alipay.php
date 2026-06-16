@@ -43,15 +43,27 @@ class Alipay extends Payment
     {
         $configTitle = $this->getConfigData('title');
         
-        // Debug logging
+        // Debug logging - Check all possible config paths
+        $fullKey = 'sales.payment_methods.' . $this->code . '.title';
+        $localeKey = $fullKey . '.' . core()->getCurrentLocale()->code;
+        $channelKey = 'sales.payment_methods.' . $this->code . '.' . core()->getCurrentChannel()->code . '.title';
+        
         \Log::info('Alipay getTitle Debug', [
             'configData' => $configTitle,
             'code' => $this->code,
-            'channel' => core()->getCurrentChannel(),
+            'channel' => core()->getCurrentChannel()->code,
             'locale' => core()->getCurrentLocale()->code,
+            'fullKey' => $fullKey,
+            'localeKey' => $localeKey,
+            'channelKey' => $channelKey,
+            'directDbQuery' => \DB::table('core_config')->where('code', $fullKey)->first(),
+            'localeDbQuery' => \DB::table('core_config')->where('code', $localeKey)->first(),
+            'channelDbQuery' => \DB::table('core_config')->where('code', $channelKey)->first(),
+            'configGet' => \Config::get($fullKey),
+            'translated' => $configTitle ? null : trans('alipay::app.title'),
         ]);
         
-        return $configTitle ?? trans('alipay::app.title');
+        return $configTitle ?: trans('alipay::app.title');
     }
 
     /**
