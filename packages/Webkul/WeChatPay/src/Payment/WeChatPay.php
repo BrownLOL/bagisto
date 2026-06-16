@@ -31,7 +31,7 @@ class WeChatPay extends Payment
      */
     public function isAvailable()
     {
-        return parent::isAvailable() && $this->hasValidCredentials();
+        return parent::isAvailable();
     }
 
     /**
