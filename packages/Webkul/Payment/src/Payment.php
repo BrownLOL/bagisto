@@ -27,8 +27,19 @@ class Payment
     public function getPaymentMethods()
     {
         $paymentMethods = [];
+        
+        // Debug: Log all registered payment methods
+        $allPaymentMethods = Config::get('payment_methods');
+        \Log::info('Payment Debug - All registered payment methods:', [
+            'keys' => array_keys($allPaymentMethods ?? []),
+            'config' => $allPaymentMethods,
+        ]);
 
         foreach (Config::get('payment_methods') as $paymentMethodConfig) {
+            \Log::info('Payment Debug - Processing method:', [
+                'config' => $paymentMethodConfig,
+            ]);
+            
             $paymentMethod = app($paymentMethodConfig['class']);
 
             if ($paymentMethod->isAvailable()) {
