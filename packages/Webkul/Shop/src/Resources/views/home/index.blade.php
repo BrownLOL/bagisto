@@ -64,6 +64,17 @@
                 @endif
 
                 @break
+            @case ('media_links')
+                <!-- Media Links - only push CSS here, HTML is rendered in footer -->
+                @if (! empty($data['css']))
+                    @push ('styles')
+                        <style>
+                            {{ $data['css'] }}
+                        </style>
+                    @endpush
+                @endif
+
+                @break
             @case ($customization::CATEGORY_CAROUSEL)
                 <!-- Categories carousel -->
                 <x-shop::categories.carousel

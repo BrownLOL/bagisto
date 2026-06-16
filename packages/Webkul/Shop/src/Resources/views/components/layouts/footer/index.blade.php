@@ -146,20 +146,6 @@
     </div>
 
     @if ($mediaLinksCustomizations->count() > 0)
-        @foreach ($mediaLinksCustomizations as $mediaLink)
-            @php
-                $options = is_array($mediaLink->options) ? $mediaLink->options : json_decode($mediaLink->options, true) ?? [];
-                $cssContent = $options['css'] ?? '';
-                $htmlContent = $options['html'] ?? '';
-            @endphp
-            
-            @if (!empty($cssContent))
-                <style>
-                    {!! $cssContent !!}
-                </style>
-            @endif
-        @endforeach
-        
         <div class="container mx-auto max-w-[1200px]">
             @foreach ($mediaLinksCustomizations as $mediaLink)
                 <div class="px-[60px] py-5 max-md:px-5">
