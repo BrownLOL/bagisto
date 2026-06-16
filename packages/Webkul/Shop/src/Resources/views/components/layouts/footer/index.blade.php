@@ -29,7 +29,7 @@
 @endphp
 
 <footer class="mt-9 bg-lightOrange max-sm:mt-10">
-    <div class="container mx-auto max-w-[1200px]">
+    <div class="mx-auto max-w-[1200px]">
     <div class="flex justify-between gap-x-6 gap-y-8 max-1060:flex-col-reverse max-md:gap-5 max-sm:py-5" style="padding-top: 60px; padding-bottom: 60px;">
         <!-- For Desktop View -->
         <div
