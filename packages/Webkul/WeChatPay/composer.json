@@ -1,0 +1,21 @@
+{
+    "name": "webkul/wechatpay",
+    "description": "WeChat Pay payment gateway for Bagisto",
+    "type": "library",
+    "license": "MIT",
+    "require": {
+        "php": "^8.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Webkul\\WeChatPay\\": "src/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Webkul\\WeChatPay\\Providers\\WeChatPayServiceProvider"
+            ]
+        }
+    }
+}
