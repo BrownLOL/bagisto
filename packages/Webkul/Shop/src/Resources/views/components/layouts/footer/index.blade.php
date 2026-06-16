@@ -146,7 +146,7 @@
     </div>
 
     @if ($mediaLinksCustomizations->count() > 0)
-        <div class="container mx-auto max-w-[1200px]">
+        <div class="mx-auto max-w-[1200px]">
             @foreach ($mediaLinksCustomizations as $mediaLink)
                 <div class="px-[60px] py-5 max-md:px-5">
                     @php
@@ -162,7 +162,7 @@
         </div>
     @endif
 
-    <div class="container mx-auto max-w-[1200px]">
+    <div class="mx-auto max-w-[1200px]">
     <div class="flex justify-center px-[60px] py-3.5 max-md:justify-center max-sm:px-5">
         {!! view_render_event('bagisto.shop.layout.footer.footer_text.before') !!}
 
