@@ -146,15 +146,20 @@
     </div>
 
     @if ($mediaLinksCustomizations->count() > 0)
+        @foreach ($mediaLinksCustomizations as $mediaLink)
+            @if ($mediaLink->options['css'] ?? null)
+                @push('styles')
+                    <style>
+                        {!! $mediaLink->options['css'] !!}
+                    </style>
+                @endpush
+            @endif
+        @endforeach
+        
         <div class="container mx-auto max-w-[1200px]">
             @foreach ($mediaLinksCustomizations as $mediaLink)
                 <div class="px-[60px] py-5 max-md:px-5">
-                    @if ($mediaLink->options['css'])
-                        <style>
-                            {!! $mediaLink->options['css'] !!}
-                        </style>
-                    @endif
-                    @if ($mediaLink->options['html'])
+                    @if ($mediaLink->options['html'] ?? null)
                         {!! $mediaLink->options['html'] !!}
                     @endif
                 </div>
